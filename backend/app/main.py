@@ -13,7 +13,7 @@ load_dotenv()
 from app.models.schemas import (
     ChildProfile, AvatarConfig, LessonPlan, AnswerSubmission, 
     EvaluationResult, TeacherResponsePayload, ParentReport, CurriculumUploadResponse,
-    DoubtRequest, DoubtResponse
+    DoubtRequest, DoubtResponse, FeedbackCheckRequest
 )
 from app.services.pdf_service import pdf_service
 from app.services.teacher_service import teacher_service
@@ -176,6 +176,10 @@ def submit_answer(submission: AnswerSubmission):
 @app.post("/api/ask-doubt", response_model=DoubtResponse)
 def ask_doubt(req: DoubtRequest):
     return teacher_service.answer_student_doubt(req.session_id, req.student_query)
+
+@app.post("/api/feedback-check", response_model=TeacherResponsePayload)
+def feedback_check(req: FeedbackCheckRequest):
+    return teacher_service.process_comprehension_feedback(req.session_id, req.understood)
 
 @app.get("/api/teacher-next-step/{session_id}", response_model=TeacherResponsePayload)
 def get_teacher_next_step(session_id: str):

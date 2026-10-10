@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AvatarCanvas from './AvatarCanvas';
 import SlideBoard from './SlideBoard';
-import { Volume2, Mic, Tv, ArrowRight, Star, Award, CheckCircle, HelpCircle, MessageSquare, Sparkles, Send, Brain, Sliders, RefreshCw, AlertCircle } from 'lucide-react';
+import { Volume2, Mic, Tv, ArrowRight, Star, Award, CheckCircle, HelpCircle, MessageSquare, Sparkles, Send, Brain, Sliders, RefreshCw, AlertCircle, ThumbsUp, HelpCircle as HelpIcon, Smile } from 'lucide-react';
 
 export default function StudentClassroom({ sessionData, onLessonFinished }) {
   const [currentResponse, setCurrentResponse] = useState(sessionData?.current_response || null);
@@ -22,6 +22,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished }) {
   // Interactive Doubt Clarification State
   const [studentDoubtText, setStudentDoubtText] = useState('');
   const [doubtsList, setDoubtsList] = useState([]);
+  const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState(false);
   
   // D-Pad Remote Focus State for TV
   const [focusedOptionIdx, setFocusedOptionIdx] = useState(0);
@@ -31,7 +32,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished }) {
 
   const visemeIntervalRef = useRef(null);
 
-  // Load and populate available browser voices asynchronously
+  // Load available browser voices asynchronously
   useEffect(() => {
     const loadVoices = () => {
       if ('speechSynthesis' in window) {
@@ -115,7 +116,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [focusedOptionIdx, currentResponse]);
 
-  // Speech Synthesis with Selected Indian Voice
+  // Speech Synthesis with Selected Voice
   const speakTeacherResponse = (text, visemes) => {
     setIsSpeaking(true);
 
@@ -169,6 +170,28 @@ export default function StudentClassroom({ sessionData, onLessonFinished }) {
       }, 100);
     } else {
       setTimeout(() => setIsSpeaking(false), 5000);
+    }
+  };
+
+  // Student Interactive Feedback Check Handler ("I Understood!" vs "Please Explain Again!")
+  const handleFeedbackCheck = async (understood) => {
+    setIsFeedbackSubmitting(true);
+    try {
+      const res = await fetch('http://localhost:8000/api/feedback-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionData?.session_id || 'sess_demo',
+          understood: understood
+        })
+      });
+      const responsePayload = await res.json();
+      setIsFeedbackSubmitting(false);
+      setCurrentResponse(responsePayload);
+      speakTeacherResponse(responsePayload.speech_text, responsePayload.visemes);
+    } catch (err) {
+      console.warn('Feedback check error fallback:', err);
+      setIsFeedbackSubmitting(false);
     }
   };
 
@@ -236,10 +259,8 @@ export default function StudentClassroom({ sessionData, onLessonFinished }) {
         setStars((prev) => prev + 1);
       }
 
-      // Speak verbal response / remedial re-explanation out loud
       speakTeacherResponse(evalData.teacher_verbal_response, []);
 
-      // If child gave wrong answer, update speech text & reset selected option so child can try remedial check!
       if (!evalData.is_correct) {
         setCurrentResponse((prev) => ({
           ...prev,
@@ -318,8 +339,8 @@ export default function StudentClassroom({ sessionData, onLessonFinished }) {
                   maxWidth: '180px'
                 }}
               >
-                {availableVoices.map((v, i) => (
-                  <option key={i} value={v.voiceURI} style={{ background: '#FFFFFF', color: '#0F172A' }}>
+                {availableVoices.map((v, idx) => (
+                  <option key={idx} value={v.voiceURI}>
                     {v.name} ({v.lang})
                   </option>
                 ))}
@@ -327,23 +348,10 @@ export default function StudentClassroom({ sessionData, onLessonFinished }) {
             </div>
           )}
 
-          {/* Replay Audio Button */}
-          {currentResponse?.speech_text && (
-            <button 
-              onClick={() => speakTeacherResponse(currentResponse.speech_text, currentResponse.visemes)}
-              className="btn-primary"
-              style={{ fontSize: '0.85rem', padding: '8px 16px' }}
-            >
-              <Volume2 size={16} /> {isSpeaking ? 'Speaking...' : 'Play Teacher Voice'}
-            </button>
-          )}
-
-          {/* Stars counter */}
-          <div className="glass-card" style={{ padding: '6px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Star size={18} color="var(--accent-gold)" fill="var(--accent-gold)" />
-            <span style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--accent-gold)' }}>
-              {stars} Stars
-            </span>
+          {/* Star Counter Badge */}
+          <div className="glass-card" style={{ padding: '6px 16px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-gold)' }}>
+            <Star size={18} fill="var(--accent-gold)" color="var(--accent-gold)" />
+            <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>{stars} Stars</span>
           </div>
         </div>
       </div>
@@ -391,7 +399,54 @@ export default function StudentClassroom({ sessionData, onLessonFinished }) {
             slide={currentResponse?.slide}
             topicTitle={currentTopic?.title}
             chapterTitle={lessonPlan?.chapter_title}
+            realWorldAnalogy={currentTopic?.real_world_analogy}
           />
+        </div>
+      </div>
+
+      {/* Student Comprehension Feedback Bar ("Did you understand?") */}
+      <div className="glass-panel" style={{
+        padding: '16px 24px',
+        marginBottom: '24px',
+        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(16, 185, 129, 0.06) 100%)',
+        border: '1px solid var(--accent-purple)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderRadius: '16px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Smile size={24} color="var(--accent-purple)" />
+          <div>
+            <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+              {childName}, did you understand what {avatarConfig.name} just taught?
+            </h4>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              Give instant feedback to your teacher so she can repeat or re-explain!
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button 
+            type="button"
+            onClick={() => handleFeedbackCheck(true)}
+            disabled={isFeedbackSubmitting}
+            className="btn-primary"
+            style={{ padding: '10px 20px', fontSize: '0.88rem', background: '#059669', borderColor: '#059669' }}
+          >
+            <ThumbsUp size={16} /> Yes, I Understood!
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => handleFeedbackCheck(false)}
+            disabled={isFeedbackSubmitting}
+            className="btn-secondary"
+            style={{ padding: '10px 20px', fontSize: '0.88rem', borderColor: 'var(--accent-gold)', color: '#B45309' }}
+          >
+            <RefreshCw size={16} /> Please Re-explain in another way!
+          </button>
         </div>
       </div>
 

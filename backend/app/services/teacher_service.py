@@ -178,6 +178,68 @@ class TeacherStateService:
                 lesson_completed=False
             )
 
+    def process_comprehension_feedback(self, session_id: str, understood: bool) -> TeacherResponsePayload:
+        """
+        Processes explicit feedback from the student ("I understood!" vs "Please re-explain again!").
+        If student requests re-explanation, Google Gemini generates a fresh, simpler real-world analogy and re-explains without advancing.
+        """
+        session = self.active_sessions.get(session_id)
+        if not session and self.active_sessions:
+            session = list(self.active_sessions.values())[-1]
+        
+        if not session:
+            # Fallback for uninitialized demo session
+            speech = "Shabash Timmy! Let's keep learning together!" if understood else "Koi baat nahi Timmy! Let me explain this topic using a simpler real-world story!"
+            return TeacherResponsePayload(
+                topic_id="topic_1",
+                speech_text=speech,
+                visemes=[],
+                slide={"headline": "Learning Journey", "bullet_points": ["Understanding concepts step-by-step"], "diagram_type": "concept_map"},
+                question=None
+            )
+
+        current_topic = session.lesson_plan.topics[session.current_topic_index]
+
+        if understood:
+            # Student confirmed understanding! Prepare encouraging message.
+            praise_script = f"Shabash, {session.child_name}! I am so happy that you understood {current_topic.title}! Let's attempt the quick check question together!"
+            visemes = tts_viseme_service.generate_visemes_for_text(praise_script)
+            return TeacherResponsePayload(
+                topic_id=current_topic.topic_id,
+                speech_text=praise_script,
+                visemes=visemes,
+                slide=current_topic.visual_slide,
+                question=current_topic.checkpoint
+            )
+        else:
+            # Student requested re-explanation! Call Gemini for a fresh simpler analogy
+            session.is_in_remedial_loop = True
+            from app.services.llm_service import llm_service
+            gemini_reexplanation = llm_service.generate_gemini_remedial_explanation(
+                current_topic.title,
+                current_topic.concept_summary,
+                session.child_name
+            )
+
+            if not gemini_reexplanation:
+                analogy = getattr(current_topic, 'real_world_analogy', '') or "cooking in a kitchen"
+                gemini_reexplanation = (
+                    f"Koi baat nahi, {session.child_name} beta! Let me explain '{current_topic.title}' in a much simpler way! "
+                    f"Think of it like {analogy}. {current_topic.concept_summary} "
+                    f"Do you feel clearer now?"
+                )
+
+            session.remedial_verbal_script = gemini_reexplanation
+            visemes = tts_viseme_service.generate_visemes_for_text(gemini_reexplanation)
+
+            return TeacherResponsePayload(
+                topic_id=current_topic.topic_id,
+                speech_text=gemini_reexplanation,
+                visemes=visemes,
+                slide=current_topic.visual_slide,
+                question=current_topic.checkpoint
+            )
+
     def answer_student_doubt(self, session_id: str, student_query: str) -> DoubtResponse:
         session = self.active_sessions.get(session_id)
         child_name = session.child_name if session else "Beta"

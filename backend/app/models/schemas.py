@@ -45,14 +45,21 @@ class VisualSlide(BaseModel):
     headline: str
     bullet_points: List[str]
     diagram_type: Optional[str] = "concept_map"
+    image_prompt: Optional[str] = None # Detailed prompt for SVG/visual rendering
+    svg_illustration: Optional[str] = None # Rich inline SVG diagram markup
 
 class TopicModule(BaseModel):
     topic_id: str
     title: str
     concept_summary: str
     explanation_script: str
+    real_world_analogy: Optional[str] = None # Kid-friendly real world analogy
     visual_slide: VisualSlide
     checkpoint: CheckpointQuestion
+
+class FeedbackCheckRequest(BaseModel):
+    session_id: str
+    understood: bool # True = "I understood!", False = "Please explain again in another way"
 
 class LessonPlan(BaseModel):
     curriculum_id: str
