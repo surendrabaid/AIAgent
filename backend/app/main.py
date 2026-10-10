@@ -1,8 +1,10 @@
+import os
 import json
 import asyncio
+import hashlib
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional
+from typing import Optional, List
 from dotenv import load_dotenv
 
 # Load environment variables (.env file)
@@ -31,8 +33,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory storage for active lesson plans
-LESSON_PLANS_DB = {}
+# Persistent JSON storage for curriculum library & LLM cached responses
+CACHE_DIR = os.path.join(os.path.dirname(__file__), "storage")
+os.makedirs(CACHE_DIR, exist_ok=True)
+CACHE_FILE = os.path.join(CACHE_DIR, "curriculum_library.json")
+
+def load_cached_curriculums() -> dict:
+    if os.path.exists(CACHE_FILE):
+        try:
+            with open(CACHE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                result = {}
+                for cid, item in data.items():
+                    result[cid] = LessonPlan(**item)
+                return result
+        except Exception as e:
+            print(f"Error loading curriculum cache: {e}")
+    return {}
+
+def save_cached_curriculums():
+    try:
+        data = {cid: plan.dict() for cid, plan in LESSON_PLANS_DB.items()}
+        with open(CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"Error saving curriculum cache: {e}")
+
+# In-memory DB pre-populated from disk cache
+LESSON_PLANS_DB = load_cached_curriculums()
 
 @app.get("/")
 def read_root():
@@ -43,11 +71,22 @@ def read_root():
         "features": ["AI Tutor Agent", "AI Receptionist Agent", "Real-Time Viseme Lip-Sync", "TV D-Pad Support"]
     }
 
-@app.get("/api/sample-lesson", response_model=LessonPlan)
-def get_sample_lesson():
-    sample_plan = pdf_service.generate_ai_lesson_plan("Sample Photosynthesis Chapter Text", "Photosynthesis_Chapter_3.pdf")
-    LESSON_PLANS_DB[sample_plan.curriculum_id] = sample_plan
-    return sample_plan
+@app.get("/api/library")
+def get_curriculum_library():
+    """
+    Returns list of all previously uploaded textbook chapters & generated curricula
+    so parents can pick from existing history without re-uploading or burning LLM tokens.
+    """
+    library = []
+    for cid, plan in LESSON_PLANS_DB.items():
+        library.append({
+            "curriculum_id": cid,
+            "chapter_title": plan.chapter_title,
+            "filename": getattr(plan, 'subject', 'Uploaded Chapter'),
+            "topics_count": len(plan.topics),
+            "grade_level": plan.grade_level
+        })
+    return library
 
 @app.post("/api/upload-curriculum", response_model=CurriculumUploadResponse)
 async def upload_curriculum(
@@ -69,8 +108,27 @@ async def upload_curriculum(
     else:
         extracted_text = "Photosynthesis and plant life chapter."
 
+    # Generate content hash to check if file/text has already been parsed by LLM
+    content_hash = hashlib.md5(extracted_text.encode('utf-8')).hexdigest()
+
+    # Check if exact curriculum already exists in cache to save tokens
+    for existing_id, existing_plan in LESSON_PLANS_DB.items():
+        if getattr(existing_plan, 'full_pdf_text', '') == extracted_text or existing_id.endswith(content_hash[:8]):
+            print(f"⚡ LLM Cache Hit! Reusing existing cached lesson plan for '{existing_plan.chapter_title}'. Tokens saved!")
+            return CurriculumUploadResponse(
+                curriculum_id=existing_id,
+                filename=filename,
+                chapter_title=existing_plan.chapter_title,
+                topics_count=len(existing_plan.topics),
+                status="ready (cached)",
+                lesson_plan=existing_plan
+            )
+
     lesson_plan = pdf_service.generate_ai_lesson_plan(extracted_text, filename, child_age, grade)
+    # Ensure curriculum_id incorporates content hash for exact lookup
+    lesson_plan.curriculum_id = f"curr_{content_hash[:10]}"
     LESSON_PLANS_DB[lesson_plan.curriculum_id] = lesson_plan
+    save_cached_curriculums()
 
     return CurriculumUploadResponse(
         curriculum_id=lesson_plan.curriculum_id,

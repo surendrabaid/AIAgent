@@ -1,0 +1,103 @@
+{
+  "curr_fc6c47ec35": {
+    "curriculum_id": "curr_fc6c47ec35",
+    "chapter_title": "Unit 1",
+    "subject": "Textbook Unit",
+    "grade_level": "Grade 4",
+    "target_age": 9,
+    "topics": [
+      {
+        "topic_id": "topic_1",
+        "title": "Unit 1: Unit Families Communities",
+        "concept_summary": "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families that live close \r\nto one another in supportive and cooperative \r\ncommunities. Together, we cultivate a variety of \r\nplants and care for different animals, contributing \r\nto the well-being of our shared environment. \r\nThrough mutual aid and collective efforts, we \r\nbuild vibrant and harmonious communities.\r\nThis unit explores the many facets of our \r\nfamilies and communities, highlighting our \r\ncollaborative work and mutual support. We \r\nare dedicated to maintaining and respecting \r\nour surroundings, protecting the plants and \r\nanimals that sustain us with food, clothing, \r\nand more. Celebrations, such as melas \r\nand festivals, bring us together \r\nto play, sing, and dance, \r\nwhile we also express \r\ngratitude by respecting \r\nthe natural elements \r\nincluding the sun, \r\nmoon, air, water, \r\nand soil.",
+        "explanation_script": "Namaste! Let's explore 'Unit Families Communities'. Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families that live close \r\nto one another in supportive and cooperative \r\ncommunities. Together, we cultivate a variety of \r\nplants and care for different animals, contributing \r\nto the well-being of our shared environment. \r\nThrough mutual aid and collective efforts, we \r\nbuild vibrant and harmonious communities.\r\nThis unit explores the many facets of our \r\nfamilies and communities, highlighting our \r\ncollaborative work and mutual support. We \r\nare dedicated to maintaining and respecting \r\nour surroundings, protecting the plants and \r\nanimals that sustain us with food, clothing, \r\nand more. Celebrations, such as melas \r\nand festivals, bring us together \r\nto play, sing, and dance, \r\nwhile we also express \r\ngratitude by respecting \r\nthe natural elements \r\nincluding the sun, \r\nmoon, air, water, \r\nand soil. Notice how this concept helps us understand Unit 1 deeply!",
+        "visual_slide": {
+          "headline": "Unit Families Communities",
+          "bullet_points": [
+            "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families that live ...",
+            "Together, we cultivate a variety of \r\nplants and care for different animals, contributing \r\nto the w...",
+            "Through mutual aid and collective efforts, we \r\nbuild vibrant and harmonious communities.\r\nThis unit..."
+          ],
+          "diagram_type": "concept_map"
+        },
+        "checkpoint": {
+          "question_id": "chk_1",
+          "question_text": "Regarding 'Unit Families Communities', which statement accurately reflects what we just learned?",
+          "options": [
+            "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families ...",
+            "Together, we cultivate a variety of \r\nplants and care for different animals, contributing ...",
+            "This section does not apply to Unit Families Communities at all."
+          ],
+          "correct_option_index": 0,
+          "correct_answer_text": "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families ...",
+          "rubric_hint": "Child should select statement accurately describing Unit Families Communities."
+        }
+      },
+      {
+        "topic_id": "topic_2",
+        "title": "Unit 2: Family Friends Playing",
+        "concept_summary": "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste! Welcome to my home! \r\nMy name is Bela. I have two brothers \r\n— Banku Bhaiya and little Bishu. We \r\nenjoy playing chhupan-chhupai outside \r\ntogether. Do you know how to play \r\nchhupan-chhupai (hide and seek)?",
+        "explanation_script": "Namaste! Let's explore 'Family Friends Playing'. Family and Friends\r\n1\r\nPlaying Together\r\nNamaste! Welcome to my home! \r\nMy name is Bela. I have two brothers \r\n— Banku Bhaiya and little Bishu. We \r\nenjoy playing chhupan-chhupai outside \r\ntogether. Do you know how to play \r\nchhupan-chhupai (hide and seek)? Notice how this concept helps us understand Unit 1 deeply!",
+        "visual_slide": {
+          "headline": "Family Friends Playing",
+          "bullet_points": [
+            "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
+            "Welcome to my home!",
+            "My name is Bela."
+          ],
+          "diagram_type": "concept_map"
+        },
+        "checkpoint": {
+          "question_id": "chk_2",
+          "question_text": "Regarding 'Family Friends Playing', which statement accurately reflects what we just learned?",
+          "options": [
+            "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
+            "Welcome to my home!...",
+            "This section does not apply to Family Friends Playing at all."
+          ],
+          "correct_option_index": 0,
+          "correct_answer_text": "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
+          "rubric_hint": "Child should select statement accurately describing Family Friends Playing."
+        }
+      },
+      {
+        "topic_id": "topic_3",
+        "title": "Unit 3: Family Friends Playing",
+        "concept_summary": "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste! Welcome to my home! \r\nMy name is Bela. I have two brothers \r\n— Banku Bhaiya and little Bishu. We \r\nenjoy playing chhupan-chhupai outside \r\ntogether. Do you know how to play \r\nchhupan-chhupai (hide and seek)?",
+        "explanation_script": "Namaste! Let's explore 'Family Friends Playing'. Family and Friends\r\n1\r\nPlaying Together\r\nNamaste! Welcome to my home! \r\nMy name is Bela. I have two brothers \r\n— Banku Bhaiya and little Bishu. We \r\nenjoy playing chhupan-chhupai outside \r\ntogether. Do you know how to play \r\nchhupan-chhupai (hide and seek)? Notice how this concept helps us understand Unit 1 deeply!",
+        "visual_slide": {
+          "headline": "Family Friends Playing",
+          "bullet_points": [
+            "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
+            "Welcome to my home!",
+            "My name is Bela."
+          ],
+          "diagram_type": "concept_map"
+        },
+        "checkpoint": {
+          "question_id": "chk_3",
+          "question_text": "Regarding 'Family Friends Playing', which statement accurately reflects what we just learned?",
+          "options": [
+            "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
+            "Welcome to my home!...",
+            "This section does not apply to Family Friends Playing at all."
+          ],
+          "correct_option_index": 0,
+          "correct_answer_text": "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
+          "rubric_hint": "Child should select statement accurately describing Family Friends Playing."
+        }
+      }
+    ],
+    "key_vocabulary": [
+      {
+        "word": "Families",
+        "definition": "Key term from Unit 1 explaining fundamental concepts."
+      },
+      {
+        "word": "Communities",
+        "definition": "Key term from Unit 1 explaining fundamental concepts."
+      }
+    ],
+    "full_pdf_text": "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families that live close \r\nto one another in supportive and cooperative \r\ncommunities. Together, we cultivate a variety of \r\nplants and care for different animals, contributing \r\nto the well-being of our shared environment. \r\nThrough mutual aid and collective efforts, we \r\nbuild vibrant and harmonious communities.\r\nThis unit explores the many facets of our \r\nfamilies and communities, highlighting our \r\ncollaborative work and mutual support. We \r\nare dedicated to maintaining and respecting \r\nour surroundings, protecting the plants and \r\nanimals that sustain us with food, clothing, \r\nand more. Celebrations, such as melas \r\nand festivals, bring us together \r\nto play, sing, and dance, \r\nwhile we also express \r\ngratitude by respecting \r\nthe natural elements \r\nincluding the sun, \r\nmoon, air, water, \r\nand soil.\r\n\r\n\r\n\r\nChapter 1\r\n\r\nFamily and Friends\r\n1\r\nPlaying Together\r\nNamaste! Welcome to my home! \r\nMy name is Bela. I have two brothers \r\n— Banku Bhaiya and little Bishu. We \r\nenjoy playing chhupan-chhupai outside \r\ntogether. Do you know how to play \r\nchhupan-chhupai (hide and seek)? \r\n"
+  }
+}
