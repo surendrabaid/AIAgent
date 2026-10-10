@@ -24,6 +24,12 @@ export default function ParentSetup({ onStartLesson, onFastSample }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!pdfFile) {
+      alert("Please click 'Upload Chapter PDF / Material' to select your text file or PDF chapter before clicking Generate!");
+      return;
+    }
+
     setIsUploading(true);
 
     try {
@@ -56,7 +62,7 @@ export default function ParentSetup({ onStartLesson, onFastSample }) {
     } catch (err) {
       console.warn('Backend API connection fallback. Using local sample curriculum.', err);
       setIsUploading(false);
-      onFastSample();
+      alert('Error uploading file to server. Please try again.');
     }
   };
 

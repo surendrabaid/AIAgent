@@ -40,11 +40,49 @@ class PDFProcessorService:
     def generate_ai_lesson_plan(self, raw_text: str, filename: str, child_age: int = 9, grade: str = "Grade 4") -> LessonPlan:
         """
         Generates a comprehensive, un-truncated Lesson Plan from the uploaded material.
-        Extracts real headings, full explanatory teaching scripts, accurate slide bullet points,
-        and realistic contextual questions.
+        Uses live LLM API (OpenAI GPT-4o / Gemini) if API key is provided, or the Socratic NLP Engine.
         """
         curriculum_id = f"curr_{uuid.uuid4().hex[:8]}"
         chapter_title = self._extract_chapter_title(filename, raw_text)
+
+        # 1. Exclusive Google Gemini API Lesson Plan Generation
+        from app.services.llm_service import llm_service
+        llm_output = llm_service.generate_gemini_lesson_plan(raw_text, chapter_title, child_name="Timmy", grade=grade)
+        
+        if llm_output and "topics" in llm_output:
+            llm_topics = []
+            for idx, t in enumerate(llm_output["topics"]):
+                chk = t.get("checkpoint", {})
+                llm_topics.append(TopicModule(
+                    topic_id=f"topic_{idx+1}",
+                    title=t.get("title", f"Unit {idx+1}"),
+                    concept_summary=t.get("explanation_script", ""),
+                    explanation_script=t.get("explanation_script", ""),
+                    visual_slide=VisualSlide(
+                        headline=t.get("title", f"Unit {idx+1}"),
+                        bullet_points=t.get("slide", {}).get("bullet_points", ["Key concept from textbook"]),
+                        diagram_type="concept_map"
+                    ),
+                    checkpoint=CheckpointQuestion(
+                        question_id=f"chk_{idx+1}",
+                        question_text=chk.get("question_text", "What is the key takeaway?"),
+                        options=chk.get("options", ["Correct Concept", "Option B", "Option C"]),
+                        correct_option_index=chk.get("correct_option_index", 0),
+                        correct_answer_text=chk.get("correct_answer_text", chk.get("options", ["Correct Concept"])[0]),
+                        rubric_hint="Child should select correct answer."
+                    )
+                ))
+
+            return LessonPlan(
+                curriculum_id=curriculum_id,
+                chapter_title=chapter_title,
+                subject="Textbook Unit",
+                grade_level=grade,
+                target_age=child_age,
+                topics=llm_topics,
+                key_vocabulary=llm_output.get("key_vocabulary", [{"word": "Core Concept", "definition": "Main chapter idea"}]),
+                full_pdf_text=raw_text
+            )
 
         # Clean text into structured paragraphs (ignoring empty lines)
         paragraphs = [p.strip() for p in re.split(r'\n\s*\n', raw_text) if len(p.strip()) > 30]

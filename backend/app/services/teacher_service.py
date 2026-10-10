@@ -185,20 +185,27 @@ class TeacherStateService:
         chapter = session.lesson_plan.chapter_title if session else "this chapter"
         full_text = session.lesson_plan.full_pdf_text if (session and session.lesson_plan.full_pdf_text) else ""
 
-        # Search PDF text for matching context
-        matched_context = ""
-        query_words = [w.lower() for w in student_query.split() if len(w) > 3]
-        if full_text and query_words:
-            for sentence in full_text.split(". "):
-                if any(qw in sentence.lower() for qw in query_words):
-                    matched_context += sentence + ". "
-                    if len(matched_context) > 300:
-                        break
+        # Exclusive Google Gemini API Doubt Response
+        from app.services.llm_service import llm_service
+        gemini_explanation = llm_service.generate_gemini_doubt_response(student_query, chapter, full_text, child_name)
 
-        if matched_context:
-            explanation = f"Aapne bahut achha sawal poocha, {child_name}! From our chapter on {chapter}: {matched_context.strip()} Does that help clarify your doubt?"
+        if gemini_explanation:
+            explanation = gemini_explanation
         else:
-            explanation = f"That is a brilliant question, {child_name}! In {chapter}, when we look closely at '{student_query}', it helps us understand the key concept step by step. Feel free to ask me anything else!"
+            # Fallback search if API key not set
+            matched_context = ""
+            query_words = [w.lower() for w in student_query.split() if len(w) > 3]
+            if full_text and query_words:
+                for sentence in full_text.split(". "):
+                    if any(qw in sentence.lower() for qw in query_words):
+                        matched_context += sentence + ". "
+                        if len(matched_context) > 300:
+                            break
+
+            if matched_context:
+                explanation = f"Aapne bahut achha sawal poocha, {child_name}! From our chapter on {chapter}: {matched_context.strip()} Does that help clarify your doubt?"
+            else:
+                explanation = f"That is a brilliant question, {child_name}! In {chapter}, when we look closely at '{student_query}', it helps us understand the key concept step by step. Feel free to ask me anything else!"
 
         if session:
             session.doubts_asked.append({"query": student_query, "answer": explanation})

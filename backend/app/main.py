@@ -3,6 +3,10 @@ import asyncio
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
+from dotenv import load_dotenv
+
+# Load environment variables (.env file)
+load_dotenv()
 
 from app.models.schemas import (
     ChildProfile, AvatarConfig, LessonPlan, AnswerSubmission, 
