@@ -32,25 +32,46 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
 
   const visemeIntervalRef = useRef(null);
 
-  // Load available browser voices asynchronously
+  // Automatically set voice based on Teacher Gender:
+  // Female Teacher -> Microsoft Heera (or Indian Female)
+  // Male Teacher   -> Microsoft Ravi  (or Indian Male)
   useEffect(() => {
     const loadVoices = () => {
       if ('speechSynthesis' in window) {
         const voices = window.speechSynthesis.getVoices();
         setAvailableVoices(voices);
 
-        const indian = voices.find(v => 
-          v.lang.toLowerCase().includes('en-in') || 
-          v.lang.toLowerCase().includes('hi-in') || 
-          v.name.toLowerCase().includes('india') || 
-          v.name.toLowerCase().includes('priya') || 
-          v.name.toLowerCase().includes('neerja') || 
-          v.name.toLowerCase().includes('heera')
-        );
+        const isMale = avatarConfig?.gender === 'male';
 
-        if (indian && !selectedVoiceURI) {
-          setSelectedVoiceURI(indian.voiceURI);
-        } else if (voices.length > 0 && !selectedVoiceURI) {
+        let targetVoice = null;
+        if (isMale) {
+          // Look for Microsoft Ravi first, then any Indian male voice
+          targetVoice = voices.find(v => 
+            v.name.toLowerCase().includes('ravi') || 
+            (v.name.toLowerCase().includes('india') && (v.name.toLowerCase().includes('male') || !v.name.toLowerCase().includes('heera') && !v.name.toLowerCase().includes('priya') && !v.name.toLowerCase().includes('neerja')))
+          );
+        } else {
+          // Look for Microsoft Heera first, then any Indian female voice
+          targetVoice = voices.find(v => 
+            v.name.toLowerCase().includes('heera') || 
+            v.name.toLowerCase().includes('priya') || 
+            v.name.toLowerCase().includes('neerja') ||
+            (v.lang.toLowerCase().includes('en-in') && !v.name.toLowerCase().includes('ravi'))
+          );
+        }
+
+        // General fallback if specific voice isn't present
+        if (!targetVoice) {
+          targetVoice = voices.find(v => 
+            v.lang.toLowerCase().includes('en-in') || 
+            v.lang.toLowerCase().includes('hi-in') || 
+            v.name.toLowerCase().includes('india')
+          );
+        }
+
+        if (targetVoice) {
+          setSelectedVoiceURI(targetVoice.voiceURI);
+        } else if (voices.length > 0) {
           setSelectedVoiceURI(voices[0].voiceURI);
         }
       }
@@ -60,7 +81,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
     if ('speechSynthesis' in window) {
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
-  }, []);
+  }, [avatarConfig?.gender]);
 
   // Sync state whenever sessionData prop updates
   useEffect(() => {
@@ -330,33 +351,6 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Voice Accent Selector */}
-          {availableVoices.length > 0 && (
-            <div className="glass-card" style={{ padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Sliders size={14} color="var(--accent-purple)" />
-              <select 
-                value={selectedVoiceURI} 
-                onChange={(e) => setSelectedVoiceURI(e.target.value)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-main)',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  outline: 'none',
-                  cursor: 'pointer',
-                  maxWidth: '180px'
-                }}
-              >
-                {availableVoices.map((v, idx) => (
-                  <option key={idx} value={v.voiceURI}>
-                    {v.name} ({v.lang})
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
           {/* Star Counter Badge */}
           <div className="glass-card" style={{ padding: '6px 16px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-gold)' }}>
             <Star size={18} fill="var(--accent-gold)" color="var(--accent-gold)" />
