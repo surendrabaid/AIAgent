@@ -7,7 +7,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
   const [currentResponse, setCurrentResponse] = useState(sessionData?.current_response || null);
   const [lessonPlan, setLessonPlan] = useState(sessionData?.lesson_plan || null);
   const [avatarConfig, setAvatarConfig] = useState(sessionData?.avatar_config || { gender: 'female', name: 'Miss Priya' });
-  const [childName, setChildName] = useState(sessionData?.child_name || 'Timmy');
+  const [childName, setChildName] = useState(sessionData?.child_name || 'Vihana');
   
   // Audio & Viseme state
   const [currentViseme, setCurrentViseme] = useState(null);

@@ -37,7 +37,7 @@ class PDFProcessorService:
 
         return f"Chapter material for {filename}. Contains key educational units and concepts."
 
-    def generate_ai_lesson_plan(self, raw_text: str, filename: str, child_age: int = 9, grade: str = "Grade 4") -> LessonPlan:
+    def generate_ai_lesson_plan(self, raw_text: str, filename: str, child_age: int = 8, grade: str = "Grade 3") -> LessonPlan:
         """
         Generates a comprehensive, un-truncated Lesson Plan from the uploaded material.
         Uses live LLM API (OpenAI GPT-4o / Gemini) if API key is provided, or the Socratic NLP Engine.
@@ -47,7 +47,7 @@ class PDFProcessorService:
 
         # 1. Exclusive Google Gemini API Lesson Plan Generation
         from app.services.llm_service import llm_service
-        llm_output = llm_service.generate_gemini_lesson_plan(raw_text, chapter_title, child_name="Timmy", grade=grade)
+        llm_output = llm_service.generate_gemini_lesson_plan(raw_text, chapter_title, child_name="Vihana", grade=grade)
         
         if llm_output and "topics" in llm_output:
             llm_topics = []

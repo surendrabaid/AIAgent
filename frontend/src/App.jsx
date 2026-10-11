@@ -28,24 +28,24 @@ export default function App() {
       const res = await fetch('http://localhost:8000/api/sample-lesson');
       const lessonPlan = await res.json();
       
-      const startRes = await fetch(`http://localhost:8000/api/start-lesson?curriculum_id=${lessonPlan.curriculum_id}&child_name=Timmy&gender=female&avatar_style=young_mentor&avatar_name=Miss Sarah`, {
+      const startRes = await fetch(`http://localhost:8000/api/start-lesson?curriculum_id=${lessonPlan.curriculum_id}&child_name=Vihana&gender=female&avatar_style=young_mentor&avatar_name=Miss Sarah`, {
         method: 'POST'
       });
       const startData = await startRes.json();
       
       setSessionData({
         ...startData,
-        child_name: 'Timmy'
+        child_name: 'Vihana'
       });
       setActiveTab('classroom');
     } catch (err) {
       console.warn('Backend API connection fallback for fast sample:', err);
       setSessionData({
-        child_name: 'Timmy',
+        child_name: 'Vihana',
         avatar_config: { gender: 'female', name: 'Miss Sarah' },
         current_response: {
           topic_id: 'topic_1',
-          speech_text: "Hi Timmy! I am Miss Sarah. Welcome to Science class! Today we are learning how green plants use sunlight to make food!",
+          speech_text: "Hi Vihana! I am Miss Sarah. Welcome to Science class! Today we are learning how green plants use sunlight to make food!",
           visemes: [],
           slide: {
             headline: "Plant Power Source ☀️🌱",

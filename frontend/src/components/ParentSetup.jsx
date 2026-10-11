@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Upload, User, GraduationCap, Sparkles, BookOpen, Bot, Check, ArrowRight, FileText, Library, Clock, Zap } from 'lucide-react';
 
 export default function ParentSetup({ onStartLesson }) {
-  const [childName, setChildName] = useState('Timmy');
-  const [childAge, setChildAge] = useState(9);
-  const [grade, setGrade] = useState('Grade 4');
+  const [childName, setChildName] = useState('Vihana');
+  const [childAge, setChildAge] = useState(8);
+  const [grade, setGrade] = useState('Grade 3');
   const [gender, setGender] = useState('female');
   const [avatarStyle, setAvatarStyle] = useState('young_mentor');
   const [avatarName, setAvatarName] = useState('Miss Priya');

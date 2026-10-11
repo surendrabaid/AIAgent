@@ -92,8 +92,8 @@ def get_curriculum_library():
 async def upload_curriculum(
     file: Optional[UploadFile] = File(None),
     raw_text: Optional[str] = Form(None),
-    child_age: int = Form(9),
-    grade: str = Form("Grade 4")
+    child_age: int = Form(8),
+    grade: str = Form("Grade 3")
 ):
     filename = "Uploaded_Textbook.pdf"
     file_bytes = b""
@@ -142,7 +142,7 @@ async def upload_curriculum(
 @app.post("/api/start-lesson")
 def start_lesson(
     curriculum_id: str,
-    child_name: str = "Timmy",
+    child_name: str = "Vihana",
     gender: str = "female",
     avatar_style: str = "young_mentor",
     avatar_name: str = "Miss Sarah"
