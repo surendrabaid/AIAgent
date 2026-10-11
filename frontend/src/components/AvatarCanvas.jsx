@@ -217,16 +217,33 @@ export default function AvatarCanvas({ avatarConfig, currentViseme, isSpeaking, 
       {/* Video Call Controls Toolbar (Zoom / Meet Style) */}
       <div className="glass-card" style={{
         marginTop: '12px',
-        padding: '8px 16px',
+        padding: '6px 14px',
         borderRadius: '16px',
         display: 'flex',
         alignItems: 'center',
-        gap: '12px',
-        background: 'rgba(15, 23, 42, 0.8)',
-        border: '1px solid var(--border-glass)'
+        gap: '8px',
+        background: 'rgba(15, 23, 42, 0.9)',
+        border: '1px solid rgba(239, 68, 68, 0.4)',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)'
       }}>
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Video size={14} color="var(--accent-cyan)" /> Live WebRTC Session
+        <div style={{ 
+          fontSize: '0.8rem', 
+          color: '#F87171', 
+          fontWeight: 800, 
+          letterSpacing: '0.04em',
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '6px' 
+        }}>
+          <span style={{ 
+            width: '8px', 
+            height: '8px', 
+            borderRadius: '50%', 
+            background: '#EF4444', 
+            boxShadow: '0 0 8px #EF4444',
+            display: 'inline-block'
+          }} /> 
+          Live
         </div>
       </div>
     </div>

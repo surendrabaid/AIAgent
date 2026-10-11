@@ -32,6 +32,42 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
 
   const visemeIntervalRef = useRef(null);
 
+  // Helper to pick the appropriate voice based on teacher gender
+  const pickTargetVoice = (voices, gender) => {
+    if (!voices || voices.length === 0) return null;
+    const isMale = gender === 'male';
+
+    if (isMale) {
+      // 1. Look for Microsoft Ravi or any voice named Ravi
+      const ravi = voices.find(v => v.name.toLowerCase().includes('ravi'));
+      if (ravi) return ravi;
+      // 2. Any Indian male voice
+      const indianMale = voices.find(v => 
+        (v.lang.toLowerCase().includes('en-in') || v.lang.toLowerCase().includes('hi-in') || v.name.toLowerCase().includes('india')) &&
+        (v.name.toLowerCase().includes('male') || (!v.name.toLowerCase().includes('heera') && !v.name.toLowerCase().includes('priya') && !v.name.toLowerCase().includes('neerja') && !v.name.toLowerCase().includes('zira')))
+      );
+      if (indianMale) return indianMale;
+    } else {
+      // 1. Look for Microsoft Heera or any voice named Heera
+      const heera = voices.find(v => v.name.toLowerCase().includes('heera'));
+      if (heera) return heera;
+      // 2. Priya / Neerja or Indian female voice
+      const indianFemale = voices.find(v => 
+        (v.name.toLowerCase().includes('priya') || v.name.toLowerCase().includes('neerja') || (v.lang.toLowerCase().includes('en-in') && !v.name.toLowerCase().includes('ravi')))
+      );
+      if (indianFemale) return indianFemale;
+      // 3. Fallback female voice
+      const anyFemale = voices.find(v => 
+        (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('jenny')) &&
+        !v.name.toLowerCase().includes('ravi') && !v.name.toLowerCase().includes('david')
+      );
+      if (anyFemale) return anyFemale;
+    }
+
+    // Default fallback: match language or first voice
+    return voices.find(v => v.lang.toLowerCase().includes('en-in')) || voices[0];
+  };
+
   // Automatically set voice based on Teacher Gender:
   // Female Teacher -> Microsoft Heera (or Indian Female)
   // Male Teacher   -> Microsoft Ravi  (or Indian Male)
@@ -41,38 +77,9 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
         const voices = window.speechSynthesis.getVoices();
         setAvailableVoices(voices);
 
-        const isMale = avatarConfig?.gender === 'male';
-
-        let targetVoice = null;
-        if (isMale) {
-          // Look for Microsoft Ravi first, then any Indian male voice
-          targetVoice = voices.find(v => 
-            v.name.toLowerCase().includes('ravi') || 
-            (v.name.toLowerCase().includes('india') && (v.name.toLowerCase().includes('male') || !v.name.toLowerCase().includes('heera') && !v.name.toLowerCase().includes('priya') && !v.name.toLowerCase().includes('neerja')))
-          );
-        } else {
-          // Look for Microsoft Heera first, then any Indian female voice
-          targetVoice = voices.find(v => 
-            v.name.toLowerCase().includes('heera') || 
-            v.name.toLowerCase().includes('priya') || 
-            v.name.toLowerCase().includes('neerja') ||
-            (v.lang.toLowerCase().includes('en-in') && !v.name.toLowerCase().includes('ravi'))
-          );
-        }
-
-        // General fallback if specific voice isn't present
-        if (!targetVoice) {
-          targetVoice = voices.find(v => 
-            v.lang.toLowerCase().includes('en-in') || 
-            v.lang.toLowerCase().includes('hi-in') || 
-            v.name.toLowerCase().includes('india')
-          );
-        }
-
+        const targetVoice = pickTargetVoice(voices, avatarConfig?.gender);
         if (targetVoice) {
           setSelectedVoiceURI(targetVoice.voiceURI);
-        } else if (voices.length > 0) {
-          setSelectedVoiceURI(voices[0].voiceURI);
         }
       }
     };
@@ -145,20 +152,25 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 0.88;
-      utterance.pitch = avatarConfig.gender === 'male' ? 0.95 : 1.05;
+      utterance.pitch = avatarConfig?.gender === 'male' ? 0.95 : 1.1;
 
       const voices = window.speechSynthesis.getVoices();
-      let chosenVoice = voices.find(v => v.voiceURI === selectedVoiceURI);
-      
+      let chosenVoice = null;
+
+      // Check if current selectedVoiceURI matches the active gender
+      if (selectedVoiceURI) {
+        const found = voices.find(v => v.voiceURI === selectedVoiceURI);
+        if (found) {
+          const isFoundMale = found.name.toLowerCase().includes('ravi') || found.name.toLowerCase().includes('david') || found.name.toLowerCase().includes('male');
+          if ((avatarConfig?.gender === 'male' && isFoundMale) || (avatarConfig?.gender !== 'male' && !isFoundMale)) {
+            chosenVoice = found;
+          }
+        }
+      }
+
+      // If no valid match, pick target voice based on avatar gender
       if (!chosenVoice) {
-        chosenVoice = voices.find(v => 
-          v.lang.toLowerCase().includes('en-in') || 
-          v.lang.toLowerCase().includes('hi-in') || 
-          v.name.toLowerCase().includes('india') || 
-          v.name.toLowerCase().includes('priya') || 
-          v.name.toLowerCase().includes('neerja') || 
-          v.name.toLowerCase().includes('heera')
-        );
+        chosenVoice = pickTargetVoice(voices, avatarConfig?.gender);
       }
 
       if (chosenVoice) {
@@ -376,34 +388,40 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
             isListening={isListening}
             isThinking={isThinking}
           />
-          {currentResponse?.speech_text && (
-            <div style={{
-              marginTop: '12px',
-              padding: '12px 14px',
-              background: '#FFFFFF',
-              borderRadius: '12px',
-              border: '1px solid var(--border-glass)',
-              fontSize: '0.85rem',
-              color: 'var(--text-main)',
-              textAlign: 'left',
-              lineHeight: '1.4',
-              maxHeight: '130px',
-              overflowY: 'auto',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
-            }}>
-              💬 <strong>{avatarConfig.name}:</strong> "{currentResponse.speech_text}"
-            </div>
-          )}
         </div>
 
-        {/* Right Column: Visual Slide Board */}
-        <div>
+        {/* Right Column: Visual Slide Board & Teacher Dialogue */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <SlideBoard 
             slide={currentResponse?.slide}
             topicTitle={currentTopic?.title}
             chapterTitle={lessonPlan?.chapter_title}
             realWorldAnalogy={currentTopic?.real_world_analogy}
           />
+
+          {currentResponse?.speech_text && (
+            <div style={{
+              padding: '12px 18px',
+              background: '#FFFFFF',
+              borderRadius: '12px',
+              border: '1px solid var(--border-glass)',
+              fontSize: '0.9rem',
+              color: 'var(--text-main)',
+              textAlign: 'left',
+              lineHeight: '1.5',
+              maxHeight: '120px',
+              overflowY: 'auto',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '8px'
+            }}>
+              <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>💬</span>
+              <div>
+                <strong style={{ color: 'var(--accent-purple)' }}>{avatarConfig.name}:</strong> "{currentResponse.speech_text}"
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
