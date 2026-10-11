@@ -14,7 +14,7 @@ class GoogleGeminiService:
     def is_configured(self) -> bool:
         return bool(self.gemini_api_key)
 
-    def generate_gemini_lesson_plan(self, full_text: str, chapter_title: str, child_name: str = "Timmy", grade: str = "Grade 4") -> Optional[Dict[str, Any]]:
+    def generate_gemini_lesson_plan(self, full_text: str, chapter_title: str, child_name: str = "Vihana", grade: str = "Grade 3") -> Optional[Dict[str, Any]]:
         """
         Feeds the uploaded textbook file content exclusively to Google Gemini API (gemini-3.8-flash)
         to generate a multi-unit Socratic lesson plan, detailed explanations, visual slides, and contextual quizzes.

@@ -72,6 +72,7 @@ export default function ParentSetup({ onStartLesson }) {
       if (pdfFile) {
         const formData = new FormData();
         formData.append('file', pdfFile);
+        formData.append('child_name', childName);
         formData.append('child_age', childAge.toString());
         formData.append('grade', grade);
 

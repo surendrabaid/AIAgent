@@ -92,6 +92,7 @@ def get_curriculum_library():
 async def upload_curriculum(
     file: Optional[UploadFile] = File(None),
     raw_text: Optional[str] = Form(None),
+    child_name: str = Form("Vihana"),
     child_age: int = Form(8),
     grade: str = Form("Grade 3")
 ):
@@ -124,7 +125,7 @@ async def upload_curriculum(
                 lesson_plan=existing_plan
             )
 
-    lesson_plan = pdf_service.generate_ai_lesson_plan(extracted_text, filename, child_age, grade)
+    lesson_plan = pdf_service.generate_ai_lesson_plan(extracted_text, filename, child_age, grade, child_name)
     # Ensure curriculum_id incorporates content hash for exact lookup
     lesson_plan.curriculum_id = f"curr_{content_hash[:10]}"
     LESSON_PLANS_DB[lesson_plan.curriculum_id] = lesson_plan

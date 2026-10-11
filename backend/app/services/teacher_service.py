@@ -1,3 +1,4 @@
+import re
 import uuid
 import random
 from typing import Dict, Any, Optional, List
@@ -64,7 +65,12 @@ class TeacherStateService:
             )
 
         # Standard initial teaching script
-        speech_text = f"Namaste {session.child_name}! I am {session.avatar_config.name}. {current_topic.explanation_script}"
+        raw_script = current_topic.explanation_script or ""
+        # Clean any previously embedded names or greetings so the student's actual name is always used
+        cleaned_script = re.sub(r'^(Namaste(\s+[A-Za-z]+)?(!|\.)?\s*(Come,?\s*let\s+us|Let\'s)?)\s*', '', raw_script, flags=re.IGNORECASE).strip()
+        cleaned_script = re.sub(r'\b(Timmy|Vihana)\s+(beta)?\b', f"{session.child_name} beta", cleaned_script, flags=re.IGNORECASE)
+        
+        speech_text = f"Namaste {session.child_name}! I am {session.avatar_config.name}. {cleaned_script}"
         visemes = tts_viseme_service.generate_visemes_for_text(speech_text)
 
         return TeacherResponsePayload(
@@ -189,7 +195,7 @@ class TeacherStateService:
         
         if not session:
             # Fallback for uninitialized demo session
-            speech = "Shabash Timmy! Let's keep learning together!" if understood else "Koi baat nahi Timmy! Let me explain this topic using a simpler real-world story!"
+            speech = "Shabash! Let's keep learning together!" if understood else "Koi baat nahi! Let me explain this topic using a simpler real-world story!"
             return TeacherResponsePayload(
                 topic_id="topic_1",
                 speech_text=speech,
@@ -286,13 +292,13 @@ class TeacherStateService:
         if not session:
             return ParentReport(
                 session_id=session_id,
-                child_name="Timmy",
+                child_name="Vihana",
                 chapter_title="Textbook Chapter",
                 completed_at="Just now",
                 overall_comprehension_pct=95,
                 mastered_topics=["Chapter Overview", "Core Mechanisms"],
                 struggle_topics=[],
-                teacher_notes="Timmy asked thoughtful doubts and showed great mastery with Miss Priya!",
+                teacher_notes="The student asked thoughtful doubts and showed great mastery with their teacher!",
                 recommended_activities=["Discuss key learnings over dinner together!"]
             )
 
