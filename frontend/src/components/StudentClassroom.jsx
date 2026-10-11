@@ -47,25 +47,31 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
         (v.name.toLowerCase().includes('male') || (!v.name.toLowerCase().includes('heera') && !v.name.toLowerCase().includes('priya') && !v.name.toLowerCase().includes('neerja') && !v.name.toLowerCase().includes('zira')))
       );
       if (indianMale) return indianMale;
+      // 3. Any male voice
+      const anyMale = voices.find(v => v.name.toLowerCase().includes('david') || v.name.toLowerCase().includes('mark') || v.name.toLowerCase().includes('male'));
+      if (anyMale) return anyMale;
     } else {
       // 1. Look for Microsoft Heera or any voice named Heera
       const heera = voices.find(v => v.name.toLowerCase().includes('heera'));
       if (heera) return heera;
-      // 2. Priya / Neerja or Indian female voice
+      // 2. Priya / Neerja or explicitly female Indian voice (exclude Ravi, David, Mark)
       const indianFemale = voices.find(v => 
-        (v.name.toLowerCase().includes('priya') || v.name.toLowerCase().includes('neerja') || (v.lang.toLowerCase().includes('en-in') && !v.name.toLowerCase().includes('ravi')))
+        (v.name.toLowerCase().includes('priya') || v.name.toLowerCase().includes('neerja') || (v.lang.toLowerCase().includes('en-in') && !v.name.toLowerCase().includes('ravi') && !v.name.toLowerCase().includes('david')))
       );
       if (indianFemale) return indianFemale;
-      // 3. Fallback female voice
+      // 3. Fallback female voice (e.g. Zira, Jenny, Cortana, or female)
       const anyFemale = voices.find(v => 
         (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('jenny')) &&
-        !v.name.toLowerCase().includes('ravi') && !v.name.toLowerCase().includes('david')
+        !v.name.toLowerCase().includes('ravi') && !v.name.toLowerCase().includes('david') && !v.name.toLowerCase().includes('mark')
       );
       if (anyFemale) return anyFemale;
+      // 4. Any voice that does NOT contain male indicators
+      const notMale = voices.find(v => !v.name.toLowerCase().includes('ravi') && !v.name.toLowerCase().includes('david') && !v.name.toLowerCase().includes('mark') && !v.name.toLowerCase().includes('male'));
+      if (notMale) return notMale;
     }
 
-    // Default fallback: match language or first voice
-    return voices.find(v => v.lang.toLowerCase().includes('en-in')) || voices[0];
+    // Default fallback
+    return voices[0];
   };
 
   // Automatically set voice based on Teacher Gender:
@@ -75,11 +81,12 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
     const loadVoices = () => {
       if ('speechSynthesis' in window) {
         const voices = window.speechSynthesis.getVoices();
-        setAvailableVoices(voices);
-
-        const targetVoice = pickTargetVoice(voices, avatarConfig?.gender);
-        if (targetVoice) {
-          setSelectedVoiceURI(targetVoice.voiceURI);
+        if (voices.length > 0) {
+          setAvailableVoices(voices);
+          const targetVoice = pickTargetVoice(voices, avatarConfig?.gender);
+          if (targetVoice) {
+            setSelectedVoiceURI(targetVoice.voiceURI);
+          }
         }
       }
     };
@@ -125,6 +132,34 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
     }
   }, [currentResponse]);
 
+  // Stop all speech synthesis and viseme timers
+  const stopAllSpeechAndSession = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    if (visemeIntervalRef.current) {
+      clearInterval(visemeIntervalRef.current);
+      visemeIntervalRef.current = null;
+    }
+    setIsSpeaking(false);
+    setCurrentViseme(null);
+  };
+
+  // Ensure speech synthesis and viseme timers are cleanly stopped on unmount
+  useEffect(() => {
+    return () => {
+      stopAllSpeechAndSession();
+    };
+  }, []);
+
+  // Handler for Exit to Setup
+  const handleExitToSetup = () => {
+    stopAllSpeechAndSession();
+    if (onBackToSetup) {
+      onBackToSetup();
+    }
+  };
+
   // Keyboard Event Listener for Android TV Remote D-Pad Navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -150,40 +185,53 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
 
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.88;
-      utterance.pitch = avatarConfig?.gender === 'male' ? 0.95 : 1.1;
 
-      const voices = window.speechSynthesis.getVoices();
-      let chosenVoice = null;
+      const doSpeak = () => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.88;
+        utterance.pitch = avatarConfig?.gender === 'male' ? 0.95 : 1.1;
 
-      // Check if current selectedVoiceURI matches the active gender
-      if (selectedVoiceURI) {
-        const found = voices.find(v => v.voiceURI === selectedVoiceURI);
-        if (found) {
-          const isFoundMale = found.name.toLowerCase().includes('ravi') || found.name.toLowerCase().includes('david') || found.name.toLowerCase().includes('male');
-          if ((avatarConfig?.gender === 'male' && isFoundMale) || (avatarConfig?.gender !== 'male' && !isFoundMale)) {
-            chosenVoice = found;
+        const voices = window.speechSynthesis.getVoices();
+        let chosenVoice = null;
+
+        // Check if current selectedVoiceURI matches the active gender
+        if (selectedVoiceURI) {
+          const found = voices.find(v => v.voiceURI === selectedVoiceURI);
+          if (found) {
+            const isFoundMale = found.name.toLowerCase().includes('ravi') || found.name.toLowerCase().includes('david') || found.name.toLowerCase().includes('male') || found.name.toLowerCase().includes('mark');
+            if ((avatarConfig?.gender === 'male' && isFoundMale) || (avatarConfig?.gender !== 'male' && !isFoundMale)) {
+              chosenVoice = found;
+            }
           }
         }
-      }
 
-      // If no valid match, pick target voice based on avatar gender
-      if (!chosenVoice) {
-        chosenVoice = pickTargetVoice(voices, avatarConfig?.gender);
-      }
+        // If no valid match, pick target voice based on avatar gender
+        if (!chosenVoice) {
+          chosenVoice = pickTargetVoice(voices, avatarConfig?.gender);
+        }
 
-      if (chosenVoice) {
-        utterance.voice = chosenVoice;
-      }
+        if (chosenVoice) {
+          utterance.voice = chosenVoice;
+        }
 
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        setCurrentViseme(null);
-        if (visemeIntervalRef.current) clearInterval(visemeIntervalRef.current);
+        utterance.onend = () => {
+          setIsSpeaking(false);
+          setCurrentViseme(null);
+          if (visemeIntervalRef.current) clearInterval(visemeIntervalRef.current);
+        };
+
+        window.speechSynthesis.speak(utterance);
       };
 
-      window.speechSynthesis.speak(utterance);
+      const available = window.speechSynthesis.getVoices();
+      if (!available || available.length === 0) {
+        // Voices not populated yet by browser on initial load/refresh
+        window.speechSynthesis.onvoiceschanged = () => {
+          doSpeak();
+        };
+      } else {
+        doSpeak();
+      }
     }
 
     // Viseme Lip-Sync Animation Engine
@@ -347,7 +395,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {onBackToSetup && (
             <button
-              onClick={onBackToSetup}
+              onClick={handleExitToSetup}
               className="btn-secondary"
               style={{ padding: '6px 14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
             >

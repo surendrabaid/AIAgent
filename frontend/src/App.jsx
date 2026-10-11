@@ -91,7 +91,13 @@ export default function App() {
           <StudentClassroom 
             sessionData={sessionData}
             onLessonFinished={handleLessonFinished}
-            onBackToSetup={() => setActiveTab('setup')}
+            onBackToSetup={() => {
+              if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+              }
+              setSessionData(null);
+              setActiveTab('setup');
+            }}
           />
         )}
 
