@@ -2,14 +2,42 @@ import React, { useState, useEffect } from 'react';
 import { Upload, User, GraduationCap, Sparkles, BookOpen, Bot, Check, ArrowRight, FileText, Library, Clock, Zap } from 'lucide-react';
 
 export default function ParentSetup({ onStartLesson }) {
-  const [childName, setChildName] = useState('Vihana');
-  const [childAge, setChildAge] = useState(8);
-  const [grade, setGrade] = useState('Grade 3');
-  const [gender, setGender] = useState('female');
-  const [avatarStyle, setAvatarStyle] = useState('young_mentor');
-  const [avatarName, setAvatarName] = useState('Miss Priya');
+  // Load cached settings from localStorage if available
+  const [childName, setChildName] = useState(() => {
+    return localStorage.getItem('helpme_child_name') || 'Vihana';
+  });
+  const [childAge, setChildAge] = useState(() => {
+    const saved = localStorage.getItem('helpme_child_age');
+    return saved ? parseInt(saved, 10) : 8;
+  });
+  const [grade, setGrade] = useState(() => {
+    return localStorage.getItem('helpme_grade') || 'Grade 3';
+  });
+  const [gender, setGender] = useState(() => {
+    return localStorage.getItem('helpme_teacher_gender') || 'female';
+  });
+  const [avatarStyle, setAvatarStyle] = useState(() => {
+    return localStorage.getItem('helpme_avatar_style') || 'young_mentor';
+  });
+  const [avatarName, setAvatarName] = useState(() => {
+    return localStorage.getItem('helpme_avatar_name') || 'Miss Priya';
+  });
   const [pdfFile, setPdfFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Automatically save any modifications to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('helpme_child_name', childName);
+      localStorage.setItem('helpme_child_age', childAge.toString());
+      localStorage.setItem('helpme_grade', grade);
+      localStorage.setItem('helpme_teacher_gender', gender);
+      localStorage.setItem('helpme_avatar_style', avatarStyle);
+      localStorage.setItem('helpme_avatar_name', avatarName);
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+  }, [childName, childAge, grade, gender, avatarStyle, avatarName]);
 
   // Saved Library State
   const [library, setLibrary] = useState([]);
@@ -242,7 +270,12 @@ export default function ParentSetup({ onStartLesson }) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <button 
                   type="button"
-                  onClick={() => setGender('female')}
+                  onClick={() => {
+                    setGender('female');
+                    if (avatarName === 'Mr. Rajesh' || avatarName === 'Mr. Sharma') {
+                      setAvatarName('Miss Priya');
+                    }
+                  }}
                   className={`glass-card ${gender === 'female' ? 'dpad-focused' : ''}`}
                   style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', color: 'var(--text-main)', fontWeight: 700, border: gender === 'female' ? '2px solid var(--accent-purple)' : '1px solid #CBD5E1' }}
                 >
@@ -250,7 +283,12 @@ export default function ParentSetup({ onStartLesson }) {
                 </button>
                 <button 
                   type="button"
-                  onClick={() => setGender('male')}
+                  onClick={() => {
+                    setGender('male');
+                    if (avatarName === 'Miss Priya' || avatarName === 'Miss Sarah') {
+                      setAvatarName('Mr. Rajesh');
+                    }
+                  }}
                   className={`glass-card ${gender === 'male' ? 'dpad-focused' : ''}`}
                   style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', color: 'var(--text-main)', fontWeight: 700, border: gender === 'male' ? '2px solid var(--accent-purple)' : '1px solid #CBD5E1' }}
                 >
