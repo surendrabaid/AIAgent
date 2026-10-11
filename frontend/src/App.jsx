@@ -78,90 +78,7 @@ export default function App() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Main Navigation Header */}
-      <header className="glass-panel" style={{
-        margin: '16px 20px',
-        padding: '14px 28px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderRadius: '16px'
-      }}>
-        {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} onClick={() => setActiveTab('setup')}>
-          <div style={{
-            width: '42px',
-            height: '42px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 15px var(--accent-purple-glow)'
-          }}>
-            <Bot size={24} color="#FFF" />
-          </div>
-          <div>
-            <h1 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--text-main)' }}>
-              HelpMe
-            </h1>
-            <span style={{ fontSize: '0.7rem', color: 'var(--accent-purple)', fontWeight: 700, textTransform: 'uppercase' }}>
-              Multi-Platform AI Agent Ecosystem
-            </span>
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <nav style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            onClick={() => setActiveTab('setup')}
-            className={`btn-secondary ${activeTab === 'setup' ? 'dpad-focused' : ''}`}
-            style={{ fontSize: '0.85rem' }}
-          >
-            <GraduationCap size={16} /> Parent Setup
-          </button>
-
-          <button 
-            onClick={() => setActiveTab('classroom')}
-            className={`btn-secondary ${activeTab === 'classroom' ? 'dpad-focused' : ''}`}
-            style={{ fontSize: '0.85rem' }}
-          >
-            <Tv size={16} /> Student Classroom
-          </button>
-
-          <button 
-            onClick={() => setActiveTab('report')}
-            className={`btn-secondary ${activeTab === 'report' ? 'dpad-focused' : ''}`}
-            style={{ fontSize: '0.85rem' }}
-          >
-            <BarChart3 size={16} /> Parent Report
-          </button>
-
-          <button 
-            onClick={() => setActiveTab('receptionist')}
-            className={`btn-secondary ${activeTab === 'receptionist' ? 'dpad-focused' : ''}`}
-            style={{ fontSize: '0.85rem', borderColor: 'rgba(6, 182, 212, 0.4)' }}
-          >
-            <Building2 size={16} color="var(--accent-cyan)" /> Receptionist Mode
-          </button>
-        </nav>
-
-        {/* Backend Status Pill */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            width: '10px',
-            height: '10px',
-            borderRadius: '50%',
-            background: backendStatus === 'online' ? 'var(--accent-green)' : 'var(--accent-gold)',
-            boxShadow: backendStatus === 'online' ? '0 0 10px var(--accent-green)' : 'none'
-          }} />
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-            {backendStatus === 'online' ? 'FastAPI Backend Online' : 'Local Demo Mode'}
-          </span>
-        </div>
-      </header>
-
-      {/* View Content Routing */}
+      {/* View Content Routing (Header hidden to maximize screen space) */}
       <main style={{ flex: 1, padding: '10px' }}>
         {activeTab === 'setup' && (
           <ParentSetup 
@@ -174,6 +91,7 @@ export default function App() {
           <StudentClassroom 
             sessionData={sessionData}
             onLessonFinished={handleLessonFinished}
+            onBackToSetup={() => setActiveTab('setup')}
           />
         )}
 

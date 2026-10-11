@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AvatarCanvas from './AvatarCanvas';
 import SlideBoard from './SlideBoard';
-import { Volume2, Mic, Tv, ArrowRight, Star, Award, CheckCircle, HelpCircle, MessageSquare, Sparkles, Send, Brain, Sliders, RefreshCw, AlertCircle, ThumbsUp, HelpCircle as HelpIcon, Smile } from 'lucide-react';
+import { Volume2, Mic, Tv, ArrowRight, ArrowLeft, Star, Award, CheckCircle, HelpCircle, MessageSquare, Sparkles, Send, Brain, Sliders, RefreshCw, AlertCircle, ThumbsUp, HelpCircle as HelpIcon, Smile } from 'lucide-react';
 
-export default function StudentClassroom({ sessionData, onLessonFinished }) {
+export default function StudentClassroom({ sessionData, onLessonFinished, onBackToSetup }) {
   const [currentResponse, setCurrentResponse] = useState(sessionData?.current_response || null);
   const [lessonPlan, setLessonPlan] = useState(sessionData?.lesson_plan || null);
   const [avatarConfig, setAvatarConfig] = useState(sessionData?.avatar_config || { gender: 'female', name: 'Miss Priya' });
@@ -312,6 +312,15 @@ export default function StudentClassroom({ sessionData, onLessonFinished }) {
         marginBottom: '20px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {onBackToSetup && (
+            <button
+              onClick={onBackToSetup}
+              className="btn-secondary"
+              style={{ padding: '6px 14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <ArrowLeft size={16} /> Exit to Setup
+            </button>
+          )}
           <div className="tv-mode-badge">
             <Tv size={14} /> Android STB / TV Remote Ready
           </div>
