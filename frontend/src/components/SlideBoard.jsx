@@ -1,7 +1,7 @@
 import React from 'react';
 import { BookOpen, Sun, Leaf, Wind, CheckCircle2, Sparkles, Lightbulb, Compass, Image as ImageIcon } from 'lucide-react';
 
-export default function SlideBoard({ slide, topicTitle, chapterTitle, realWorldAnalogy }) {
+export default function SlideBoard({ slide, topicTitle, chapterTitle, realWorldAnalogy, teacherName = 'your teacher' }) {
   if (!slide) return null;
 
   const getDiagramIcon = (type) => {
@@ -147,7 +147,7 @@ export default function SlideBoard({ slide, topicTitle, chapterTitle, realWorldA
         marginTop: '8px'
       }}>
         <Sparkles size={14} color="var(--accent-gold)" />
-        <span>Listen carefully to Miss Priya's explanation, then share if you understood!</span>
+        <span>Listen carefully to {teacherName}'s explanation, then share if you understood!</span>
       </div>
     </div>
   );

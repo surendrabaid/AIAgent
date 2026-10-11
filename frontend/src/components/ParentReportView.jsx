@@ -149,6 +149,72 @@ export default function ParentReportView({ reportData, onRestart }) {
           </div>
         </div>
 
+        {/* Questions & Answers Audit Log for Parents */}
+        {report.qna_history && report.qna_history.length > 0 && (
+          <div className="glass-card" style={{ padding: '24px', marginBottom: '28px' }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <CheckCircle2 size={20} color="var(--accent-purple)" />
+              Questions Asked & {report.child_name}'s Answers
+            </h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {report.qna_history.map((qna, idx) => (
+                <div 
+                  key={idx}
+                  style={{
+                    padding: '14px 18px',
+                    borderRadius: '12px',
+                    background: qna.is_correct ? 'rgba(5, 150, 105, 0.04)' : 'rgba(239, 68, 68, 0.04)',
+                    border: qna.is_correct ? '1px solid rgba(5, 150, 105, 0.25)' : '1px solid rgba(239, 68, 68, 0.25)'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      Unit: {qna.topic_title}
+                    </span>
+                    <span style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: '8px',
+                      background: qna.is_correct ? 'rgba(5, 150, 105, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                      color: qna.is_correct ? 'var(--accent-green)' : '#DC2626'
+                    }}>
+                      {qna.is_correct ? '✓ Correct on 1st Attempt' : '⚠ Needed Remedial Help'}
+                    </span>
+                  </div>
+
+                  <p style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
+                    Q{idx + 1}: {qna.question_text}
+                  </p>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                      <span style={{ fontWeight: 700, color: qna.is_correct ? 'var(--accent-green)' : '#DC2626' }}>
+                        {report.child_name}'s Answer:
+                      </span>
+                      <span style={{ color: 'var(--text-main)' }}>
+                        {qna.student_selected_text}
+                      </span>
+                    </div>
+
+                    {!qna.is_correct && (
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                        <span style={{ fontWeight: 700, color: 'var(--accent-green)' }}>
+                          Correct Concept:
+                        </span>
+                        <span style={{ color: 'var(--text-main)', fontStyle: 'italic' }}>
+                          {qna.correct_answer_text}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: '16px' }}>
           <button onClick={onRestart} className="btn-primary">

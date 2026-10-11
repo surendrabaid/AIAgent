@@ -4,7 +4,8 @@ import random
 from typing import Dict, Any, Optional, List
 from app.models.schemas import (
     LessonPlan, TopicModule, AnswerSubmission, EvaluationResult, 
-    TeacherResponsePayload, ParentReport, AvatarConfig, DoubtResponse, CheckpointQuestion
+    TeacherResponsePayload, ParentReport, AvatarConfig, DoubtResponse, CheckpointQuestion,
+    QuestionHistoryItem
 )
 from app.services.tts_viseme_service import tts_viseme_service
 
@@ -17,6 +18,7 @@ class ActiveSession:
         self.current_topic_index = 0
         self.scores: Dict[str, float] = {}
         self.doubts_asked: List[Dict[str, str]] = []
+        self.qna_history: List[QuestionHistoryItem] = []
         self.remedial_attempts: Dict[str, int] = {} # topic_id -> attempts count
         self.is_in_remedial_loop: bool = False
         self.remedial_question: Optional[CheckpointQuestion] = None
@@ -111,6 +113,29 @@ class TeacherStateService:
             else:
                 is_correct = False
                 score = 0.3
+
+        # Determine student selected text
+        student_ans_text = ""
+        if submission.submission_type == "dpad_option" and submission.selected_option_index is not None:
+            if 0 <= submission.selected_option_index < len(active_checkpoint.options):
+                student_ans_text = active_checkpoint.options[submission.selected_option_index]
+            else:
+                student_ans_text = f"Option {submission.selected_option_index + 1}"
+        elif submission.voice_transcript:
+            student_ans_text = submission.voice_transcript
+        else:
+            student_ans_text = "No answer provided"
+
+        # Record question & answer history for the parent report
+        session.qna_history.append(QuestionHistoryItem(
+            topic_title=current_topic.title,
+            question_text=active_checkpoint.question_text,
+            options=active_checkpoint.options,
+            student_selected_text=student_ans_text,
+            correct_answer_text=active_checkpoint.correct_answer_text,
+            is_correct=is_correct,
+            score=score
+        ))
 
         session.scores[current_topic.topic_id] = score
 
@@ -330,7 +355,8 @@ class TeacherStateService:
             recommended_activities=[
                 f"Review key chapter concepts with {session.child_name}",
                 f"Ask {session.child_name} to explain what {session.avatar_config.name} taught today!"
-            ]
+            ],
+            qna_history=session.qna_history
         )
 
 teacher_service = TeacherStateService()

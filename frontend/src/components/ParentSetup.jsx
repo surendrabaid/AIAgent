@@ -53,7 +53,13 @@ export default function ParentSetup({ onStartLesson }) {
       const res = await fetch('http://localhost:8000/api/library');
       if (res.ok) {
         const data = await res.json();
-        setLibrary(data);
+        // Sort most recent first (by created_at descending)
+        const sorted = [...data].sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+        setLibrary(sorted);
+        // Default select the most recent chapter on top
+        if (sorted.length > 0 && !selectedCurriculumId && !pdfFile) {
+          setSelectedCurriculumId(sorted[0].curriculum_id);
+        }
       }
     } catch (err) {
       console.warn('Library fetch error:', err);
@@ -359,15 +365,12 @@ export default function ParentSetup({ onStartLesson }) {
               </div>
             </div>
 
-            {/* Option B: Pick from Saved History (Saved Tokens / Zero Cost) */}
+            {/* Option B: Pick from Saved History */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
                   Option B: Saved Chapters Library
                 </label>
-                <span style={{ fontSize: '0.7rem', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-green)', padding: '2px 8px', borderRadius: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <Zap size={12} /> Fast & Saves Tokens
-                </span>
               </div>
 
               <div style={{
@@ -380,7 +383,7 @@ export default function ParentSetup({ onStartLesson }) {
               }}>
                 {library.length > 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {library.map((item) => {
+                    {library.map((item, index) => {
                       const isSelected = selectedCurriculumId === item.curriculum_id;
                       return (
                         <div 
@@ -401,9 +404,24 @@ export default function ParentSetup({ onStartLesson }) {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <Library size={18} color={isSelected ? 'var(--accent-purple)' : '#64748B'} />
                             <div>
-                              <p style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
-                                {item.chapter_title}
-                              </p>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <p style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
+                                  {item.chapter_title}
+                                </p>
+                                {index === 0 && (
+                                  <span style={{
+                                    fontSize: '0.65rem',
+                                    fontWeight: 800,
+                                    background: 'var(--accent-purple)',
+                                    color: '#FFFFFF',
+                                    padding: '2px 6px',
+                                    borderRadius: '6px',
+                                    letterSpacing: '0.3px'
+                                  }}>
+                                    RECENT
+                                  </span>
+                                )}
+                              </div>
                               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                                 {item.topics_count} Units • Cached in History
                               </span>

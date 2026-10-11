@@ -70,6 +70,7 @@ class LessonPlan(BaseModel):
     topics: List[TopicModule]
     key_vocabulary: List[Dict[str, str]]
     full_pdf_text: Optional[str] = None
+    created_at: Optional[float] = None
 
 class CurriculumUploadResponse(BaseModel):
     curriculum_id: str
@@ -119,6 +120,15 @@ class DoubtResponse(BaseModel):
     teacher_explanation: str
     visemes: List[VisemeFrame]
 
+class QuestionHistoryItem(BaseModel):
+    topic_title: str
+    question_text: str
+    options: List[str]
+    student_selected_text: str
+    correct_answer_text: str
+    is_correct: bool
+    score: float
+
 class ParentReport(BaseModel):
     session_id: str
     child_name: str
@@ -129,3 +139,4 @@ class ParentReport(BaseModel):
     struggle_topics: List[str]
     teacher_notes: str
     recommended_activities: List[str]
+    qna_history: Optional[List[QuestionHistoryItem]] = []

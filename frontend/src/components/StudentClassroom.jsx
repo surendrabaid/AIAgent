@@ -313,7 +313,8 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
     setIsListening(true);
     setTimeout(() => {
       setIsListening(false);
-      const simQuery = `Miss Priya, can you explain this topic again simply?`;
+      const teacherName = avatarConfig?.name || 'Teacher';
+      const simQuery = `${teacherName}, can you explain this topic again simply?`;
       setStudentDoubtText(simQuery);
     }, 2000);
   };
@@ -445,6 +446,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
             topicTitle={currentTopic?.title}
             chapterTitle={lessonPlan?.chapter_title}
             realWorldAnalogy={currentTopic?.real_world_analogy}
+            teacherName={avatarConfig?.name}
           />
 
           {currentResponse?.speech_text && (
@@ -590,7 +592,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
               💡 Adaptive Remedial Review: {avatarConfig.name} is re-explaining this concept!
             </h4>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>
-              Miss Priya doesn't advance until {childName} understands 100%! Listen to her re-explanation above and try the follow-up question below.
+              {avatarConfig?.name || 'Your teacher'} doesn't advance until {childName} understands 100%! Listen to the re-explanation above and try the follow-up question below.
             </p>
           </div>
         </div>

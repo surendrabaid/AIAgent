@@ -207,23 +207,35 @@ class PDFProcessorService:
         return vocab
 
     def _create_contextual_question(self, topic_id: str, section_title: str, section_text: str, vocab_words: List[Dict[str, str]], q_idx: int) -> CheckpointQuestion:
-        # Extract sentences from section text to build plausible questions & answers
-        sentences = [s.strip() for s in re.split(r'(?<=[.!?]) +', section_text) if len(s.strip()) > 15]
+        # Extract meaningful sentences from section text
+        sentences = [s.strip() for s in re.split(r'(?<=[.!?]) +', section_text) if len(s.strip()) > 20 and not s.lower().startswith('namaste')]
         
+        # Determine focus keyword or vocabulary
+        keyword = vocab_words[0]['word'] if vocab_words else section_title
+        for vw in vocab_words:
+            if vw['word'].lower() in section_text.lower():
+                keyword = vw['word']
+                break
+
         if sentences:
-            correct_fact = sentences[0]
-            question_text = f"Regarding '{section_title}', which statement accurately reflects what we just learned?"
-            correct_option = correct_fact[:90] + ("..." if len(correct_fact) > 90 else "")
+            fact = sentences[0]
+            if len(fact) > 100:
+                fact = fact[:97] + "..."
             
-            # Build plausible distractors derived from text
-            distractor_1 = sentences[1][:90] + "..." if len(sentences) > 1 else f"It focuses on completely unrelated concepts."
-            distractor_2 = f"This section does not apply to {section_title} at all."
+            question_text = f"In '{section_title}', what is the most important concept we learned about {keyword}?"
+            correct_option = fact
+            
+            # Construct meaningful, educational distractors rather than nonsensical text
+            distractor_1 = f"That {keyword} operates completely opposite to what our lesson explained"
+            distractor_2 = f"That {keyword} has no connection to how things work in this chapter"
+            if len(sentences) > 1:
+                # Use contrastive phrasing based on another sentence
+                distractor_1 = f"It replaces the natural function of {sentences[1][:50]}..."
         else:
-            v_word = vocab_words[0]['word'] if vocab_words else "Community"
             question_text = f"What is the key takeaway from our study of '{section_title}'?"
-            correct_option = f"Understanding the role of {v_word} and cooperative principles."
-            distractor_1 = f"Ignoring the foundational ideas of {section_title}."
-            distractor_2 = f"Focusing strictly on unrelated external topics."
+            correct_option = f"Understanding how {keyword} functions and supports the chapter's main idea"
+            distractor_1 = f"Ignoring how {keyword} interacts with other elements"
+            distractor_2 = f"Assuming that {keyword} never changes under any circumstances"
 
         return CheckpointQuestion(
             question_id=f"chk_{q_idx}",
@@ -235,7 +247,7 @@ class PDFProcessorService:
             ],
             correct_option_index=0,
             correct_answer_text=correct_option,
-            rubric_hint=f"Child should select statement accurately describing {section_title}."
+            rubric_hint=f"Child should demonstrate understanding of {section_title}."
         )
 
 pdf_service = PDFProcessorService()

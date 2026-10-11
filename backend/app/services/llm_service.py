@@ -50,10 +50,10 @@ Return a structured JSON response with:
        "image_prompt": "Description of a simple visual diagram or illustration for this unit"
      }}
    - "checkpoint": {{
-       "question_text": "Interactive conceptual check question",
-       "options": ["Correct Answer", "Plausible Distractor 1", "Plausible Distractor 2"],
+       "question_text": "A clear, meaningful question testing real understanding of this unit (e.g., 'What essential role do green leaves play according to our lesson?')",
+       "options": ["A clear, factual correct answer", "A plausible, realistic distractor", "Another realistic distractor"],
        "correct_option_index": 0,
-       "correct_answer_text": "Correct Answer"
+       "correct_answer_text": "A clear, factual correct answer"
      }}
 2. "key_vocabulary": Array of {{"word": "Term", "definition": "Simple kid-friendly definition"}}
 
@@ -61,12 +61,12 @@ Return ONLY valid JSON matching this schema.
 """
 
         try:
-            # 1. Try modern google-genai SDK first with gemini-3.8-flash
+            # 1. Try modern google-genai SDK first with fast, high-availability models
             try:
                 from google import genai
                 client = genai.Client(api_key=self.gemini_api_key)
                 response = client.models.generate_content(
-                    model="gemini-3.8-flash",
+                    model="gemini-3.5-flash-lite",
                     contents=prompt
                 )
                 if response and response.text:
@@ -75,15 +75,17 @@ Return ONLY valid JSON matching this schema.
             except Exception as sdk_e:
                 print(f"google.genai SDK exception, trying REST fallback: {sdk_e}")
 
-            # 2. REST API fallback using supported model
-            for model_name in ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-1.5-flash"]:
+            # 2. REST API fallback using verified available models
+            for model_name in ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3-flash-preview", "gemini-3.5-flash", "gemini-3.8-flash"]:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={self.gemini_api_key}"
                 body = {"contents": [{"parts": [{"text": prompt}]}]}
-                res = requests.post(url, json=body, timeout=15)
+                res = requests.post(url, json=body, timeout=25)
                 if res.status_code == 200:
                     text_out = res.json()["candidates"][0]["content"]["parts"][0]["text"]
                     clean_json = text_out.replace("```json", "").replace("```", "").strip()
                     return json.loads(clean_json)
+                else:
+                    print(f"Gemini REST model {model_name} status {res.status_code}: {res.text[:120]}")
         except Exception as e:
             print(f"Google Gemini Lesson Plan Exception: {e}")
 

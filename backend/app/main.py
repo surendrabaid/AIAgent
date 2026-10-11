@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import asyncio
 import hashlib
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, WebSocket, WebSocketDisconnect
@@ -74,18 +75,28 @@ def read_root():
 @app.get("/api/library")
 def get_curriculum_library():
     """
-    Returns list of all previously uploaded textbook chapters & generated curricula
-    so parents can pick from existing history without re-uploading or burning LLM tokens.
+    Returns list of all previously uploaded textbook chapters & generated curricula,
+    sorted with the most recent one on top, so parents can quickly pick the latest.
     """
     library = []
-    for cid, plan in LESSON_PLANS_DB.items():
+    # Items from dictionary
+    items = list(LESSON_PLANS_DB.items())
+    for cid, plan in items:
+        # If created_at is missing, default to order in DB or fallback
+        ts = getattr(plan, 'created_at', None) or 0.0
         library.append({
             "curriculum_id": cid,
             "chapter_title": plan.chapter_title,
             "filename": getattr(plan, 'subject', 'Uploaded Chapter'),
             "topics_count": len(plan.topics),
-            "grade_level": plan.grade_level
+            "grade_level": plan.grade_level,
+            "created_at": ts
         })
+
+    # Sort descending: most recent timestamp first. If timestamps are 0, preserve reversed insertion order
+    # (i.e. newest on top)
+    library.reverse()
+    library.sort(key=lambda x: x.get("created_at", 0.0), reverse=True)
     return library
 
 @app.post("/api/upload-curriculum", response_model=CurriculumUploadResponse)
@@ -107,7 +118,8 @@ async def upload_curriculum(
         extracted_text = raw_text
         filename = "Custom_Parent_Topic.txt"
     else:
-        extracted_text = "Photosynthesis and plant life chapter."
+        extracted_text = "Our Solar System consists of our Sun and eight planets orbiting around it bound by gravity. The inner rocky planets are Mercury, Venus, Earth, and Mars. The outer giants are Jupiter, Saturn, Uranus, and Neptune."
+        filename = "Our_Solar_System.pdf"
 
     # Generate content hash to check if file/text has already been parsed by LLM
     content_hash = hashlib.md5(extracted_text.encode('utf-8')).hexdigest()
@@ -116,6 +128,9 @@ async def upload_curriculum(
     for existing_id, existing_plan in LESSON_PLANS_DB.items():
         if getattr(existing_plan, 'full_pdf_text', '') == extracted_text or existing_id.endswith(content_hash[:8]):
             print(f"⚡ LLM Cache Hit! Reusing existing cached lesson plan for '{existing_plan.chapter_title}'. Tokens saved!")
+            # Update created_at so reused item surfaces to the top as most recent
+            existing_plan.created_at = time.time()
+            save_cached_curriculums()
             return CurriculumUploadResponse(
                 curriculum_id=existing_id,
                 filename=filename,
@@ -128,6 +143,7 @@ async def upload_curriculum(
     lesson_plan = pdf_service.generate_ai_lesson_plan(extracted_text, filename, child_age, grade, child_name)
     # Ensure curriculum_id incorporates content hash for exact lookup
     lesson_plan.curriculum_id = f"curr_{content_hash[:10]}"
+    lesson_plan.created_at = time.time()
     LESSON_PLANS_DB[lesson_plan.curriculum_id] = lesson_plan
     save_cached_curriculums()
 
@@ -150,8 +166,19 @@ def start_lesson(
 ):
     lesson_plan = LESSON_PLANS_DB.get(curriculum_id)
     if not lesson_plan:
-        lesson_plan = pdf_service.generate_ai_lesson_plan("Default Photosynthesis Text", "Photosynthesis_Chapter.pdf")
-        LESSON_PLANS_DB[lesson_plan.curriculum_id] = lesson_plan
+        if "curr_solar_system" in LESSON_PLANS_DB:
+            lesson_plan = LESSON_PLANS_DB["curr_solar_system"]
+        else:
+            solar_default = (
+                "Our Solar System consists of our Sun and eight planets orbiting around it bound by gravity. "
+                "The four inner rocky planets are Mercury, Venus, Earth, and Mars. "
+                "The four outer giant planets are Jupiter, Saturn, Uranus, and Neptune. "
+                "Earth is the only planet with liquid oceans and breathable air."
+            )
+            lesson_plan = pdf_service.generate_ai_lesson_plan(solar_default, "Our_Solar_System.pdf")
+            lesson_plan.curriculum_id = "curr_solar_system"
+            LESSON_PLANS_DB["curr_solar_system"] = lesson_plan
+            save_cached_curriculums()
 
     avatar_config = AvatarConfig(
         gender=gender,
