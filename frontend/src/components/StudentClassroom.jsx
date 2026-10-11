@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AvatarCanvas from './AvatarCanvas';
 import SlideBoard from './SlideBoard';
-import { Volume2, Mic, Tv, ArrowRight, ArrowLeft, Star, Award, CheckCircle, HelpCircle, MessageSquare, Sparkles, Send, Brain, Sliders, RefreshCw, AlertCircle, ThumbsUp, HelpCircle as HelpIcon, Smile } from 'lucide-react';
+import { Volume2, Mic, Tv, ArrowRight, ArrowLeft, Star, Award, CheckCircle, CheckCircle2, HelpCircle, MessageSquare, Sparkles, Send, Brain, Sliders, RefreshCw, AlertCircle, ThumbsUp, HelpCircle as HelpIcon, Smile } from 'lucide-react';
 
 export default function StudentClassroom({ sessionData, onLessonFinished, onBackToSetup }) {
   const [currentResponse, setCurrentResponse] = useState(sessionData?.current_response || null);
@@ -22,6 +22,8 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
   // Interactive Doubt Clarification State
   const [studentDoubtText, setStudentDoubtText] = useState('');
   const [doubtsList, setDoubtsList] = useState([]);
+  const [activeDoubt, setActiveDoubt] = useState(null); // { query, explanation, visemes }
+  const [pendingLessonResponse, setPendingLessonResponse] = useState(null); // holds lesson state to resume
   const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState(false);
   
   // D-Pad Remote Focus State for TV
@@ -276,10 +278,28 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
     }
   };
 
-  // Handle Interactive Doubt Clarification
+  // Handle Interactive Doubt Clarification with Full Conversational Memory & Lesson Pause
   const handleAskDoubt = async (e) => {
-    if (e) e.preventDefault();
-    if (!studentDoubtText.trim()) return;
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!studentDoubtText || !studentDoubtText.trim()) return;
+
+    // 1. Immediately STOP ongoing teacher speech so teacher listens to query
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    if (visemeIntervalRef.current) {
+      clearInterval(visemeIntervalRef.current);
+    }
+    setIsSpeaking(false);
+    setCurrentViseme(null);
+
+    // Save what the teacher was teaching before doubt so we can resume smoothly
+    if (!pendingLessonResponse && currentResponse) {
+      setPendingLessonResponse(currentResponse);
+    }
 
     const query = studentDoubtText.trim();
     setStudentDoubtText('');
@@ -297,26 +317,148 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
 
       const doubtData = await res.json();
       setIsThinking(false);
-      setDoubtsList((prev) => [...prev, { query, explanation: doubtData.teacher_explanation }]);
 
-      speakTeacherResponse(doubtData.teacher_explanation, doubtData.visemes);
+      const rawExplanation = doubtData?.teacher_explanation;
+      const explanation = typeof rawExplanation === 'string'
+        ? rawExplanation
+        : (rawExplanation?.teacher_explanation || JSON.stringify(rawExplanation || ''));
+      const visemes = doubtData?.visemes || [];
+
+      // Record in doubt history
+      setDoubtsList((prev) => [...prev, { query, explanation }]);
+
+      // Set active doubt state to show clear doubt clarification banner
+      setActiveDoubt({
+        query,
+        explanation,
+        action_type: doubtData?.action_type || 'answer_doubt',
+        switched_topic_id: doubtData?.switched_topic_id,
+        switched_slide: doubtData?.slide,
+        switched_question: doubtData?.question
+      });
+
+      // 2. Teacher immediately speaks and explains the student's doubt!
+      speakTeacherResponse(explanation, visemes);
     } catch (err) {
       console.warn('Fallback doubt handling:', err);
       setIsThinking(false);
-      const fallbackAns = `That is a wonderful question, ${childName}! In this chapter, '${query}' helps us connect all the core ideas together. Let's keep exploring!`;
+      const fallbackAns = `That is a wonderful question, ${childName}! In this chapter, '${query}' helps us understand the fundamental ideas. Is it clear now, beta? Shall we continue with what we were learning?`;
       setDoubtsList((prev) => [...prev, { query, explanation: fallbackAns }]);
+      setActiveDoubt({
+        query,
+        explanation: fallbackAns,
+        action_type: 'answer_doubt'
+      });
       speakTeacherResponse(fallbackAns, []);
     }
   };
 
-  const triggerVoiceDoubtSim = () => {
-    setIsListening(true);
-    setTimeout(() => {
+  // Student confirms doubt is clear: "Yeah, I am clear! Let's continue"
+  const handleResumeLessonAfterDoubt = (userConfirmed = true) => {
+    if (!userConfirmed) {
+      // Student wants further re-explanation of the doubt
+      if (activeDoubt) {
+        setStudentDoubtText(`Please explain '${activeDoubt.query}' once more in an even simpler way!`);
+      }
+      return;
+    }
+
+    // Stop current doubt speech
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setIsSpeaking(false);
+    setCurrentViseme(null);
+
+    // Check if the doubt requested switching to a different topic
+    if (activeDoubt?.action_type === 'switch_topic' && activeDoubt.switched_slide) {
+      const switchedTopic = lessonPlan?.topics?.find(t => t.topic_id === activeDoubt.switched_topic_id);
+      const speech = `Shabash ${childName}! Let's now explore ${switchedTopic ? switchedTopic.title : 'this unit'} together!`;
+      setCurrentResponse({
+        topic_id: activeDoubt.switched_topic_id || 'topic_1',
+        speech_text: speech,
+        slide: activeDoubt.switched_slide,
+        question: activeDoubt.switched_question
+      });
+      setSelectedOption(null);
+      setEvalResult(null);
+      setPendingLessonResponse(null);
+      setActiveDoubt(null);
+      speakTeacherResponse(speech, []);
+      return;
+    }
+
+    // Otherwise, RESUME the topic that was being taught before the student asked the query!
+    const resumeResponse = pendingLessonResponse || currentResponse;
+    setActiveDoubt(null);
+    setPendingLessonResponse(null);
+
+    if (resumeResponse) {
+      const resumeSpeech = `Bahut achha, ${childName}! Now that your doubt is completely clear, let us continue with our lesson on ${resumeResponse.slide?.headline || 'our chapter'}!`;
+      setCurrentResponse({
+        ...resumeResponse,
+        speech_text: resumeSpeech
+      });
+      speakTeacherResponse(resumeSpeech, []);
+    }
+  };
+
+  const recognitionRef = useRef(null);
+
+  const startVoiceInput = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      // Fallback if browser doesn't support Web Speech API
+      setIsListening(true);
+      setTimeout(() => {
+        setIsListening(false);
+        const teacherName = avatarConfig?.name || 'Teacher';
+        const simQuery = `${teacherName}, can you explain this topic again simply?`;
+        setStudentDoubtText(simQuery);
+      }, 1500);
+      return;
+    }
+
+    try {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+      recognition.lang = 'en-IN'; // Indian English, fallback handles standard
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          setStudentDoubtText(transcript);
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.warn('Speech recognition error:', event.error);
+        setIsListening(false);
+        if (event.error === 'not-allowed') {
+          alert('Microphone permission was denied. Please allow microphone access in your browser to speak your doubt!');
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.warn('Speech recognition launch error:', err);
       setIsListening(false);
-      const teacherName = avatarConfig?.name || 'Teacher';
-      const simQuery = `${teacherName}, can you explain this topic again simply?`;
-      setStudentDoubtText(simQuery);
-    }, 2000);
+    }
   };
 
   const handleOptionSubmit = async (idx) => {
@@ -449,7 +591,82 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
             teacherName={avatarConfig?.name}
           />
 
-          {currentResponse?.speech_text && (
+          {/* Active Doubt Clarification Box (when teacher is answering child's query) */}
+          {activeDoubt ? (
+            <div style={{
+              padding: '16px 20px',
+              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(99, 102, 241, 0.1) 100%)',
+              borderRadius: '16px',
+              border: '2px solid var(--accent-gold)',
+              boxShadow: '0 4px 14px rgba(245, 158, 11, 0.15)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                  <HelpCircle size={22} color="var(--accent-gold)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      Clarifying {childName}'s Doubt: "{activeDoubt?.query || 'Question'}"
+                    </span>
+                    <p style={{ fontSize: '0.95rem', color: 'var(--text-main)', marginTop: '4px', lineHeight: 1.5, fontWeight: 500 }}>
+                      <strong style={{ color: 'var(--accent-purple)' }}>{avatarConfig?.name || 'Teacher'}:</strong> "{typeof activeDoubt?.explanation === 'string' ? activeDoubt.explanation : (activeDoubt?.explanation?.teacher_explanation || JSON.stringify(activeDoubt?.explanation || ''))}"
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Comprehension Confirmation & Continue Actions */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingTop: '10px',
+                borderTop: '1px solid rgba(245, 158, 11, 0.25)',
+                flexWrap: 'wrap',
+                gap: '10px'
+              }}>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                  Is this clear now, {childName}?
+                </span>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleResumeLessonAfterDoubt(true)}
+                    className="btn-primary"
+                    style={{
+                      padding: '8px 18px',
+                      fontSize: '0.88rem',
+                      background: '#059669',
+                      borderColor: '#059669',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <CheckCircle2 size={16} /> Yes, I am clear! Let's continue
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleResumeLessonAfterDoubt(false)}
+                    className="btn-secondary"
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '0.85rem',
+                      color: '#B45309',
+                      borderColor: 'var(--accent-gold)',
+                      background: '#FFFFFF'
+                    }}
+                  >
+                    <RefreshCw size={14} /> Explain more simply
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : currentResponse?.speech_text ? (
             <div style={{
               padding: '12px 18px',
               background: '#FFFFFF',
@@ -468,10 +685,10 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
             }}>
               <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>💬</span>
               <div>
-                <strong style={{ color: 'var(--accent-purple)' }}>{avatarConfig.name}:</strong> "{currentResponse.speech_text}"
+                <strong style={{ color: 'var(--accent-purple)' }}>{avatarConfig?.name || 'Teacher'}:</strong> "{currentResponse.speech_text}"
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -490,7 +707,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
           <Smile size={24} color="var(--accent-purple)" />
           <div>
             <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-              {childName}, did you understand what {avatarConfig.name} just taught?
+              {childName}, did you understand what {avatarConfig?.name || 'Teacher'} just taught?
             </h4>
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
               Give instant feedback to your teacher so she can repeat or re-explain!
@@ -546,11 +763,21 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
           />
           <button 
             type="button" 
-            onClick={triggerVoiceDoubtSim}
+            onClick={startVoiceInput}
             className="btn-secondary"
-            style={{ background: isListening ? 'rgba(5, 150, 105, 0.15)' : '#FFFFFF' }}
+            style={{
+              background: isListening ? 'rgba(239, 68, 68, 0.15)' : '#FFFFFF',
+              borderColor: isListening ? '#EF4444' : '#CBD5E1',
+              color: isListening ? '#DC2626' : 'var(--text-main)',
+              fontWeight: isListening ? 800 : 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s ease'
+            }}
           >
-            <Mic size={18} color={isListening ? 'var(--accent-green)' : 'var(--text-main)'} /> Speak
+            <Mic size={18} color={isListening ? '#EF4444' : 'var(--text-main)'} className={isListening ? 'animate-pulse' : ''} />
+            {isListening ? 'Listening...' : 'Speak'}
           </button>
           <button type="submit" className="btn-primary" disabled={isThinking}>
             {isThinking ? <Brain size={18} /> : <><Send size={18} /> Ask Teacher</>}
@@ -566,7 +793,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
                   ❓ {childName}'s Doubt: "{d.query}"
                 </p>
                 <p style={{ color: 'var(--text-main)', fontStyle: 'italic' }}>
-                  💬 {avatarConfig.name}: "{d.explanation}"
+                  💬 {avatarConfig?.name || 'Teacher'}: "{typeof d.explanation === 'string' ? d.explanation : (d.explanation?.teacher_explanation || JSON.stringify(d.explanation || ''))}"
                 </p>
               </div>
             ))}
@@ -589,7 +816,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
           <AlertCircle size={24} color="#EF4444" style={{ flexShrink: 0 }} />
           <div>
             <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#DC2626', marginBottom: '2px' }}>
-              💡 Adaptive Remedial Review: {avatarConfig.name} is re-explaining this concept!
+              💡 Adaptive Remedial Review: {avatarConfig?.name || 'Teacher'} is re-explaining this concept!
             </h4>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>
               {avatarConfig?.name || 'Your teacher'} doesn't advance until {childName} understands 100%! Listen to the re-explanation above and try the follow-up question below.

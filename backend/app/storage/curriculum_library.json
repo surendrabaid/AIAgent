@@ -27,11 +27,11 @@
           "question_id": "chk_1",
           "question_text": "Regarding 'Unit Families Communities', which statement accurately reflects what we just learned?",
           "options": [
-            "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families ...",
+            "This section does not apply to Unit Families Communities at all.",
             "Together, we cultivate a variety of \r\nplants and care for different animals, contributing ...",
-            "This section does not apply to Unit Families Communities at all."
+            "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families ..."
           ],
-          "correct_option_index": 0,
+          "correct_option_index": 2,
           "correct_answer_text": "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families ...",
           "rubric_hint": "Child should select statement accurately describing Unit Families Communities."
         }
@@ -57,11 +57,11 @@
           "question_id": "chk_2",
           "question_text": "Regarding 'Family Friends Playing', which statement accurately reflects what we just learned?",
           "options": [
-            "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
             "Welcome to my home!...",
-            "This section does not apply to Family Friends Playing at all."
+            "This section does not apply to Family Friends Playing at all.",
+            "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!"
           ],
-          "correct_option_index": 0,
+          "correct_option_index": 2,
           "correct_answer_text": "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
           "rubric_hint": "Child should select statement accurately describing Family Friends Playing."
         }
@@ -139,8 +139,8 @@
           "question_text": "What traditional game do Bela, Banku Bhaiya, and little Bishu love playing outside together?",
           "options": [
             "Chhupan-chhupai (Hide-and-seek)",
-            "Chess",
-            "Carrom"
+            "Carrom",
+            "Chess"
           ],
           "correct_option_index": 0,
           "correct_answer_text": "Chhupan-chhupai (Hide-and-seek)",
@@ -169,8 +169,8 @@
           "question_text": "What helps different families build a harmonious and supportive community?",
           "options": [
             "Mutual aid and working together cooperatively",
-            "Staying inside and never talking to neighbors",
-            "Competing against each other to see who finishes first"
+            "Competing against each other to see who finishes first",
+            "Staying inside and never talking to neighbors"
           ],
           "correct_option_index": 0,
           "correct_answer_text": "Mutual aid and working together cooperatively",
@@ -198,11 +198,11 @@
           "question_id": "chk_3",
           "question_text": "Why do communities protect and care for plants and animals?",
           "options": [
-            "Because they sustain us with essential resources like food and clothing",
             "Because plants and animals can build houses for us",
-            "Because plants and animals do all our homework"
+            "Because plants and animals do all our homework",
+            "Because they sustain us with essential resources like food and clothing"
           ],
-          "correct_option_index": 0,
+          "correct_option_index": 2,
           "correct_answer_text": "Because they sustain us with essential resources like food and clothing",
           "rubric_hint": "Child should select correct answer."
         }
@@ -229,8 +229,8 @@
           "question_text": "How do celebrations like melas and festivals help a community?",
           "options": [
             "They bring people together to sing, dance, and strengthen friendship",
-            "They make people forget who their neighbors are",
-            "They make everyone stay inside their houses quietly"
+            "They make everyone stay inside their houses quietly",
+            "They make people forget who their neighbors are"
           ],
           "correct_option_index": 0,
           "correct_answer_text": "They bring people together to sing, dance, and strengthen friendship",
@@ -291,11 +291,11 @@
           "question_id": "chk_1",
           "question_text": "Why is Venus the hottest planet in our solar system?",
           "options": [
+            "It is made entirely of burning fire and hot lava.",
             "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
-            "It is the planet closest to the Sun.",
-            "It is made entirely of burning fire and hot lava."
+            "It is the planet closest to the Sun."
           ],
-          "correct_option_index": 0,
+          "correct_option_index": 1,
           "correct_answer_text": "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
           "rubric_hint": "Child should select correct answer."
         }
@@ -322,8 +322,8 @@
           "question_text": "What makes Saturn look like the 'jewel of space'?",
           "options": [
             "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
-            "It is covered in shiny diamonds and gold rocks.",
-            "It shines brighter than the Sun at night."
+            "It shines brighter than the Sun at night.",
+            "It is covered in shiny diamonds and gold rocks."
           ],
           "correct_option_index": 0,
           "correct_answer_text": "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
@@ -351,11 +351,11 @@
           "question_id": "chk_3",
           "question_text": "How is Uranus different in the way it moves compared to other planets?",
           "options": [
-            "It uniquely spins on its side like a rolling barrel.",
+            "It does not spin at all, it only orbits.",
             "It spins backwards and never stops.",
-            "It does not spin at all, it only orbits."
+            "It uniquely spins on its side like a rolling barrel."
           ],
-          "correct_option_index": 0,
+          "correct_option_index": 2,
           "correct_answer_text": "It uniquely spins on its side like a rolling barrel.",
           "rubric_hint": "Child should select correct answer."
         }

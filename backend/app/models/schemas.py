@@ -119,6 +119,10 @@ class DoubtResponse(BaseModel):
     student_query: str
     teacher_explanation: str
     visemes: List[VisemeFrame]
+    slide: Optional[VisualSlide] = None
+    question: Optional[CheckpointQuestion] = None
+    action_type: str = "answer_doubt" # "answer_doubt", "switch_topic", "reexplain_current"
+    switched_topic_id: Optional[str] = None
 
 class QuestionHistoryItem(BaseModel):
     topic_title: str

@@ -1,6 +1,7 @@
 import os
 import re
 import uuid
+import random
 from typing import Dict, Any, List
 from app.models.schemas import LessonPlan, TopicModule, VisualSlide, CheckpointQuestion
 
@@ -53,6 +54,26 @@ class PDFProcessorService:
             llm_topics = []
             for idx, t in enumerate(llm_output["topics"]):
                 chk = t.get("checkpoint", {})
+                raw_options = chk.get("options", ["Correct Concept", "Option B", "Option C"])
+                raw_correct_idx = chk.get("correct_option_index", 0)
+                
+                # Determine correct answer text safely
+                if "correct_answer_text" in chk and chk["correct_answer_text"]:
+                    correct_ans_text = chk["correct_answer_text"]
+                elif 0 <= raw_correct_idx < len(raw_options):
+                    correct_ans_text = raw_options[raw_correct_idx]
+                else:
+                    correct_ans_text = raw_options[0]
+
+                # Make sure correct answer is in options
+                if correct_ans_text not in raw_options:
+                    raw_options[0] = correct_ans_text
+
+                # Shuffle options so the correct answer position is varied and never stuck at 0
+                shuffled_options = list(raw_options)
+                random.shuffle(shuffled_options)
+                final_correct_idx = shuffled_options.index(correct_ans_text)
+
                 llm_topics.append(TopicModule(
                     topic_id=f"topic_{idx+1}",
                     title=t.get("title", f"Unit {idx+1}"),
@@ -66,9 +87,9 @@ class PDFProcessorService:
                     checkpoint=CheckpointQuestion(
                         question_id=f"chk_{idx+1}",
                         question_text=chk.get("question_text", "What is the key takeaway?"),
-                        options=chk.get("options", ["Correct Concept", "Option B", "Option C"]),
-                        correct_option_index=chk.get("correct_option_index", 0),
-                        correct_answer_text=chk.get("correct_answer_text", chk.get("options", ["Correct Concept"])[0]),
+                        options=shuffled_options,
+                        correct_option_index=final_correct_idx,
+                        correct_answer_text=correct_ans_text,
                         rubric_hint="Child should select correct answer."
                     )
                 ))
@@ -237,15 +258,15 @@ class PDFProcessorService:
             distractor_1 = f"Ignoring how {keyword} interacts with other elements"
             distractor_2 = f"Assuming that {keyword} never changes under any circumstances"
 
+        options_pool = [correct_option, distractor_1, distractor_2]
+        random.shuffle(options_pool)
+        correct_index = options_pool.index(correct_option)
+
         return CheckpointQuestion(
             question_id=f"chk_{q_idx}",
             question_text=question_text,
-            options=[
-                correct_option,
-                distractor_1,
-                distractor_2
-            ],
-            correct_option_index=0,
+            options=options_pool,
+            correct_option_index=correct_index,
             correct_answer_text=correct_option,
             rubric_hint=f"Child should demonstrate understanding of {section_title}."
         )

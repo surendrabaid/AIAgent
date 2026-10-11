@@ -51,10 +51,11 @@ Return a structured JSON response with:
      }}
    - "checkpoint": {{
        "question_text": "A clear, meaningful question testing real understanding of this unit (e.g., 'What essential role do green leaves play according to our lesson?')",
-       "options": ["A clear, factual correct answer", "A plausible, realistic distractor", "Another realistic distractor"],
-       "correct_option_index": 0,
-       "correct_answer_text": "A clear, factual correct answer"
+       "options": ["A plausible option", "Another plausible option", "Another plausible option"],
+       "correct_option_index": 1,
+       "correct_answer_text": "Exact matching text from options that is correct"
      }}
+NOTE: CRITICAL REQUIREMENT: Randomly vary "correct_option_index" (0, 1, or 2) across units so the correct answer is NEVER always in the first position!
 2. "key_vocabulary": Array of {{"word": "Term", "definition": "Simple kid-friendly definition"}}
 
 Return ONLY valid JSON matching this schema.
@@ -123,43 +124,79 @@ Return ONLY valid JSON matching this schema.
 
         return None
 
-    def generate_gemini_doubt_response(self, student_query: str, chapter_title: str, full_pdf_text: str, child_name: str) -> Optional[str]:
+    def generate_gemini_doubt_response(
+        self,
+        student_query: str,
+        chapter_title: str,
+        current_topic_title: str,
+        all_topics_summary: str,
+        child_name: str,
+        teacher_name: str = "Miss Priya"
+    ) -> Optional[Dict[str, Any]]:
         """
-        Answers a student's doubt interactively using Google Gemini API and uploaded PDF RAG context.
+        Understands the student's query with full pedagogical memory:
+        - Remembers what is currently being taught (current_topic_title)
+        - Knows all units in the curriculum (all_topics_summary)
+        - If student asks to review or re-teach a previous/specific topic, triggers topic switch
+        - Answers the query clearly and warmly, concluding with a conversational bridge like:
+          "Is it clear now, beta? Shall we continue with [current/next concept]?"
         """
         if not self.is_configured():
             return None
 
         prompt = f"""
-You are Miss Priya, an encouraging Indian AI Teacher powered by Google Gemini.
-Student Name: {child_name}
-Chapter Title: {chapter_title}
-Uploaded Textbook Context: {full_pdf_text[:4000]}
+You are {teacher_name}, an extraordinary, warm, empathetic Indian AI Teacher powered by Google Gemini.
+You are currently teaching {child_name} the chapter: "{chapter_title}".
 
-Student Doubt: \"{student_query}\"
+CURRENT CLASSROOM CONTEXT & MEMORY:
+- You are currently in the middle of teaching: "{current_topic_title}"
+- Full chapter units available:
+{all_topics_summary}
 
-Respond as Miss Priya in 2-3 warm, encouraging sentences explaining the doubt clearly using facts from the textbook context. Start with a warm greeting like "Namaste {child_name}!" or "Aapne bahut achha sawal poocha!".
+STUDENT'S SPOKEN/TYPED QUERY:
+"{student_query}"
+
+TEACHER INSTRUCTIONS:
+1. Pay close attention to what {child_name} is asking:
+   - Case A: If {child_name} asks you to re-explain, teach again, or go back to an earlier topic (e.g., "teach me xyz again", "can we go back to the Sun", "I didn't understand the inner planets"), you should gladly agree, explain that concept simply and warmly, and set "action_type": "switch_topic" or "reexplain_current", specifying the target "matched_topic_id" if it matches one of the chapter units.
+   - Case B: If {child_name} asks a factual question, curiosity doubt, or clarification about what was just taught, explain the concept vividly with a quick real-world analogy.
+2. In your explanation, address {child_name} warmly (e.g. "Namaste {child_name} beta!", "Aapne bahut achha sawal poocha!").
+3. CRITICAL CONVERSATIONAL CONCLUSION:
+   Always conclude your answer by checking comprehension and asking to continue with what you were teaching, for example:
+   "Is it clear now, beta? Shall we continue with our lesson on '{current_topic_title}'?" or "Does that make sense? Can we now continue learning about '{current_topic_title}'?"
+
+Return a JSON object:
+{{
+  "teacher_explanation": "Warm, encouraging 2-4 sentence explanation ending with the comprehension check and invitation to continue with {current_topic_title}",
+  "action_type": "answer_doubt" (or "switch_topic" if asking to teach an earlier topic),
+  "target_topic_title": "Title of topic to switch to if requested, else null"
+}}
+Return ONLY valid JSON.
 """
         try:
             from google import genai
             client = genai.Client(api_key=self.gemini_api_key)
             response = client.models.generate_content(
-                model="gemini-3.8-flash",
+                model="gemini-3.5-flash-lite",
                 contents=prompt
             )
             if response and response.text:
-                return response.text.strip()
-        except Exception:
-            pass
+                clean_json = response.text.replace("```json", "").replace("```", "").strip()
+                return json.loads(clean_json)
+        except Exception as sdk_e:
+            print(f"Gemini SDK doubt error, trying REST: {sdk_e}")
 
-        try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={self.gemini_api_key}"
-            body = {"contents": [{"parts": [{"text": prompt}]}]}
-            res = requests.post(url, json=body, timeout=10)
-            if res.status_code == 200:
-                return res.json()["candidates"][0]["content"]["parts"][0]["text"]
-        except Exception as e:
-            print(f"Google Gemini Doubt Exception: {e}")
+        for model_name in ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.5-flash", "gemini-3.8-flash"]:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={self.gemini_api_key}"
+                body = {"contents": [{"parts": [{"text": prompt}]}]}
+                res = requests.post(url, json=body, timeout=15)
+                if res.status_code == 200:
+                    text_out = res.json()["candidates"][0]["content"]["parts"][0]["text"]
+                    clean_json = text_out.replace("```json", "").replace("```", "").strip()
+                    return json.loads(clean_json)
+            except Exception as e:
+                print(f"Gemini Doubt model {model_name} exception: {e}")
 
         return None
 

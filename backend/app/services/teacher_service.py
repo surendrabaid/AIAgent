@@ -95,7 +95,18 @@ class TeacherStateService:
                 lesson_completed=False
             )
 
-        current_topic = session.lesson_plan.topics[session.current_topic_index]
+        topics = session.lesson_plan.topics
+        if session.current_topic_index >= len(topics):
+            return EvaluationResult(
+                topic_id=submission.topic_id,
+                is_correct=True,
+                score=1.0,
+                feedback_type="praise",
+                teacher_verbal_response="Lesson already completed! Shabash!",
+                lesson_completed=True
+            )
+
+        current_topic = topics[session.current_topic_index]
         active_checkpoint = session.remedial_question if session.is_in_remedial_loop else current_topic.checkpoint
         
         is_correct = False
@@ -276,40 +287,97 @@ class TeacherStateService:
         child_name = session.child_name if session else "Beta"
         teacher_name = session.avatar_config.name if session else "Miss Priya"
         chapter = session.lesson_plan.chapter_title if session else "this chapter"
-        full_text = session.lesson_plan.full_pdf_text if (session and session.lesson_plan.full_pdf_text) else ""
+        
+        current_topic_idx = session.current_topic_index if session else 0
+        topics = session.lesson_plan.topics if (session and session.lesson_plan) else []
+        current_topic = topics[current_topic_idx] if (topics and current_topic_idx < len(topics)) else (topics[0] if topics else None)
+        current_topic_title = current_topic.title if current_topic else "Overview"
 
-        # Exclusive Google Gemini API Doubt Response
+        # Build clean summary of all topics
+        all_topics_summary = "\n".join([f"- Unit {i+1} ({t.topic_id}): {t.title} -> {t.concept_summary[:120]}..." for i, t in enumerate(topics)])
+
+        # Query Google Gemini with rich classroom memory
         from app.services.llm_service import llm_service
-        gemini_explanation = llm_service.generate_gemini_doubt_response(student_query, chapter, full_text, child_name)
+        gemini_result = llm_service.generate_gemini_doubt_response(
+            student_query=student_query,
+            chapter_title=chapter,
+            current_topic_title=current_topic_title,
+            all_topics_summary=all_topics_summary,
+            child_name=child_name,
+            teacher_name=teacher_name
+        )
 
-        if gemini_explanation:
-            explanation = gemini_explanation
-        else:
-            # Fallback search if API key not set
-            matched_context = ""
-            query_words = [w.lower() for w in student_query.split() if len(w) > 3]
-            if full_text and query_words:
-                for sentence in full_text.split(". "):
-                    if any(qw in sentence.lower() for qw in query_words):
-                        matched_context += sentence + ". "
-                        if len(matched_context) > 300:
+        action_type = "answer_doubt"
+        target_topic_id = None
+        explanation = ""
+
+        if gemini_result and isinstance(gemini_result, dict):
+            explanation = gemini_result.get("teacher_explanation", "")
+            action_type = gemini_result.get("action_type", "answer_doubt")
+            target_title = gemini_result.get("target_topic_title")
+
+            # Check if student requested a switch to a specific topic
+            if target_title and topics:
+                for idx, t in enumerate(topics):
+                    if target_title.lower() in t.title.lower() or t.title.lower() in str(target_title).lower():
+                        target_topic_id = t.topic_id
+                        session.current_topic_index = idx
+                        session.is_in_remedial_loop = False
+                        break
+        elif gemini_result and isinstance(gemini_result, str):
+            explanation = gemini_result
+
+        # Heuristic fallback if LLM offline or returned general answer
+        if not explanation:
+            # Check if student asked to teach something again (e.g. "teach me xyz again", "explain xyz again")
+            matched_idx = None
+            query_lower = student_query.lower()
+            if any(k in query_lower for k in ["again", "back to", "teach me", "explain again", "repeat"]):
+                for idx, t in enumerate(topics):
+                    for word in t.title.lower().split():
+                        if len(word) > 3 and word in query_lower:
+                            matched_idx = idx
                             break
+                    if matched_idx is not None:
+                        break
 
-            if matched_context:
-                explanation = f"Aapne bahut achha sawal poocha, {child_name}! From our chapter on {chapter}: {matched_context.strip()} Does that help clarify your doubt?"
+            if matched_idx is not None and matched_idx != current_topic_idx:
+                target_topic = topics[matched_idx]
+                target_topic_id = target_topic.topic_id
+                session.current_topic_index = matched_idx
+                session.is_in_remedial_loop = False
+                action_type = "switch_topic"
+                explanation = (
+                    f"Bilkul, {child_name}! Let's go back and explore '{target_topic.title}' again! "
+                    f"{target_topic.concept_summary[:180]}. "
+                    f"Is it clear now, beta? Shall we continue with '{current_topic_title}'?"
+                )
             else:
-                explanation = f"That is a brilliant question, {child_name}! In {chapter}, when we look closely at '{student_query}', it helps us understand the key concept step by step. Feel free to ask me anything else!"
+                explanation = (
+                    f"Aapne bahut achha sawal poocha, {child_name}! In {chapter}, regarding '{student_query}', "
+                    f"it connects directly to what we are studying. "
+                    f"Is it clear now, beta? Shall we continue with '{current_topic_title}'?"
+                )
 
         if session:
             session.doubts_asked.append({"query": student_query, "answer": explanation})
 
         visemes = tts_viseme_service.generate_visemes_for_text(explanation)
 
+        # Active slide and question after doubt
+        active_topic = topics[session.current_topic_index] if (session and topics and session.current_topic_index < len(topics)) else current_topic
+        slide_out = active_topic.visual_slide if active_topic else None
+        question_out = active_topic.checkpoint if active_topic else None
+
         return DoubtResponse(
             session_id=session_id,
             student_query=student_query,
             teacher_explanation=explanation,
-            visemes=visemes
+            visemes=visemes,
+            slide=slide_out,
+            question=question_out,
+            action_type=action_type,
+            switched_topic_id=target_topic_id
         )
 
     def generate_parent_report(self, session_id: str) -> ParentReport:
