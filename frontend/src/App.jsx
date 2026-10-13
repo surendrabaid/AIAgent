@@ -3,9 +3,12 @@ import ParentSetup from './components/ParentSetup';
 import StudentClassroom from './components/StudentClassroom';
 import ParentReportView from './components/ParentReportView';
 import ReceptionistDemo from './components/ReceptionistDemo';
-import { Bot, GraduationCap, BarChart3, Building2, Tv, Sparkles } from 'lucide-react';
+import LiveAvatarApp from './live-avatar/LiveAvatarApp';
+import { Bot, GraduationCap, BarChart3, Building2, Tv, Sparkles, User, Video, ArrowLeft, ExternalLink } from 'lucide-react';
 
 export default function App() {
+  // null = Launch Mode Selection Screen, 'static' = Static Avatar Home, 'live' = AI Home Tutor Live Avatar
+  const [selectedMode, setSelectedMode] = useState(null);
   const [activeTab, setActiveTab] = useState('setup'); // 'setup', 'classroom', 'report', 'receptionist'
   const [sessionData, setSessionData] = useState(null);
   const [reportData, setReportData] = useState(null);
@@ -76,9 +79,310 @@ export default function App() {
     setActiveTab('report');
   };
 
+  // Option 2: Gemini Live Avatar -> Integrated AI Home Tutor Native Component
+  if (selectedMode === 'live') {
+    return (
+      <LiveAvatarApp onBackToSelection={() => setSelectedMode(null)} />
+    );
+  }
+
+  // Before launch home screen: Choose between Static Avatar and Gemini Live Avatar
+  if (selectedMode === null) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+        background: 'radial-gradient(circle at 50% 20%, rgba(99, 102, 241, 0.12) 0%, rgba(248, 250, 252, 0.95) 100%)',
+        boxSizing: 'border-box'
+      }}>
+        <div style={{
+          maxWidth: '780px',
+          width: '100%',
+          textAlign: 'center'
+        }}>
+          {/* Header */}
+          <div style={{ marginBottom: '36px' }}>
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(99, 102, 241, 0.12)',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+              color: 'var(--accent-purple)',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              fontSize: '0.82rem',
+              fontWeight: 800,
+              marginBottom: '14px',
+              letterSpacing: '0.04em'
+            }}>
+              <Sparkles size={14} /> AI HOME TUTOR ECOSYSTEM
+            </span>
+            <h1 style={{
+              fontSize: '2.5rem',
+              fontWeight: 900,
+              color: 'var(--text-main)',
+              marginBottom: '10px',
+              letterSpacing: '-0.02em'
+            }}>
+              Select Avatar Option
+            </h1>
+            <p style={{
+              fontSize: '1rem',
+              color: 'var(--text-muted)',
+              maxWidth: '520px',
+              margin: '0 auto',
+              lineHeight: 1.5
+            }}>
+              Please choose an avatar mode to begin your learning experience.
+            </p>
+          </div>
+
+          {/* Two Main Option Cards */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+            gap: '22px',
+            textAlign: 'left'
+          }}>
+            {/* Option 1: Static Avatar */}
+            <div
+              onClick={() => {
+                setSelectedMode('static');
+                setActiveTab('setup');
+              }}
+              className="glass-panel"
+              style={{
+                padding: '28px',
+                borderRadius: '24px',
+                border: '2px solid var(--accent-purple)',
+                cursor: 'pointer',
+                transition: 'all 0.25s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                background: '#FFFFFF',
+                boxShadow: '0 10px 30px rgba(99, 102, 241, 0.12)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 18px 40px rgba(99, 102, 241, 0.22)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 10px 30px rgba(99, 102, 241, 0.12)';
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <div style={{
+                    width: '54px',
+                    height: '54px',
+                    borderRadius: '16px',
+                    background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#FFF',
+                    boxShadow: '0 8px 16px rgba(99, 102, 241, 0.3)'
+                  }}>
+                    <GraduationCap size={28} />
+                  </div>
+                  <span style={{
+                    background: 'rgba(99, 102, 241, 0.12)',
+                    color: 'var(--accent-purple)',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    padding: '4px 10px',
+                    borderRadius: '14px',
+                    border: '1px solid rgba(99, 102, 241, 0.25)'
+                  }}>
+                    OPTION 1
+                  </span>
+                </div>
+
+                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>
+                  Static Avatar
+                </h3>
+                <p style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-purple)', marginBottom: '10px' }}>
+                  2D Viseme Teacher (Miss Priya / Mr. Rajesh)
+                </p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '24px' }}>
+                  Interactive 1-on-1 tutoring with real-time lip-sync, Socratic slide board, quizzes, and doubt clarification.
+                </p>
+              </div>
+
+              <button
+                style={{
+                  width: '100%',
+                  padding: '13px',
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+                  color: '#FFFFFF',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)'
+                }}
+              >
+                <span>Launch Static Avatar</span>
+              </button>
+            </div>
+
+            {/* Option 2: Gemini Live Avatar */}
+            <div
+              onClick={() => {
+                setSelectedMode('live');
+              }}
+              className="glass-panel"
+              style={{
+                padding: '28px',
+                borderRadius: '24px',
+                border: '1px solid #CBD5E1',
+                cursor: 'pointer',
+                transition: 'all 0.25s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                background: '#FFFFFF',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.borderColor = '#0284C7';
+                e.currentTarget.style.boxShadow = '0 18px 40px rgba(2, 132, 199, 0.18)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.borderColor = '#CBD5E1';
+                e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.05)';
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <div style={{
+                    width: '54px',
+                    height: '54px',
+                    borderRadius: '16px',
+                    background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#FFF',
+                    boxShadow: '0 8px 16px rgba(2, 132, 199, 0.3)'
+                  }}>
+                    <Video size={26} />
+                  </div>
+                  <span style={{
+                    background: 'rgba(2, 132, 199, 0.1)',
+                    color: '#0284C7',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    padding: '4px 10px',
+                    borderRadius: '14px',
+                    border: '1px solid rgba(2, 132, 199, 0.25)'
+                  }}>
+                    OPTION 2
+                  </span>
+                </div>
+
+                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>
+                  Gemini Live Avatar
+                </h3>
+                <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0284C7', marginBottom: '10px' }}>
+                  AI Home Tutor • Gemini 3.8 Live Stream
+                </p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '24px' }}>
+                  Live bidirectional video (24 FPS) & audio streaming with Teacher Jay, Quiz Master HUD, and real-time transcription.
+                </p>
+              </div>
+
+              <button
+                style={{
+                  width: '100%',
+                  padding: '13px',
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+                  color: '#FFFFFF',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(2, 132, 199, 0.3)'
+                }}
+              >
+                <span>Launch Gemini Live Avatar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Option 1: Static Avatar Home Screen (Parent Setup, Classroom, Report)
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* View Content Routing (Header hidden to maximize screen space) */}
+      {/* Top Bar with Switch Mode action */}
+      <header style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '10px 20px',
+        background: 'rgba(255, 255, 255, 0.85)',
+        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid #E2E8F0'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <GraduationCap size={20} color="var(--accent-purple)" />
+          <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+            HelpMe AI Tutor
+          </span>
+          <span style={{ fontSize: '0.72rem', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent-purple)', fontWeight: 800, padding: '2px 8px', borderRadius: '12px' }}>
+            Static Avatar Mode
+          </span>
+        </div>
+
+        <button
+          onClick={() => {
+            if ('speechSynthesis' in window) {
+              window.speechSynthesis.cancel();
+            }
+            setSelectedMode(null);
+          }}
+          style={{
+            background: '#F1F5F9',
+            border: '1px solid #CBD5E1',
+            borderRadius: '14px',
+            padding: '5px 12px',
+            fontSize: '0.78rem',
+            fontWeight: 700,
+            color: 'var(--text-main)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+          title="Return to Avatar Selection"
+        >
+          <ArrowLeft size={13} /> Switch Avatar Mode
+        </button>
+      </header>
+
+      {/* Main Content */}
       <main style={{ flex: 1, padding: '10px' }}>
         {activeTab === 'setup' && (
           <ParentSetup 

@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GCP Vertex AI Avatar Live Stream Flow Guide (Gemini 3.8 Live)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #6366f1;
+      --primary-dark: #3730a3;
+      --primary-bg: #eef2ff;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-300: #cbd5e1;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
+      --emerald: #10b981;
+      --emerald-bg: #ecfdf5;
+      --amber: #f59e0b;
+      --amber-bg: #fffbeb;
+      --cyan: #06b6d4;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #f8fafc;
+      color: var(--slate-800);
+      line-height: 1.65;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      border-radius: 20px;
+      padding: 48px;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    }
+
+    header {
+      border-bottom: 2px solid var(--slate-100);
+      padding-bottom: 28px;
+      margin-bottom: 36px;
+    }
+
+    .badge-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .badge-primary {
+      background: var(--primary-bg);
+      color: var(--primary);
+      border: 1px solid rgba(79, 70, 229, 0.2);
+    }
+
+    .badge-emerald {
+      background: var(--emerald-bg);
+      color: var(--emerald);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .badge-dark {
+      background: var(--slate-900);
+      color: #fff;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--slate-900);
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 1.05rem;
+      color: var(--slate-600);
+      font-weight: 500;
+    }
+
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--slate-900);
+      letter-spacing: -0.02em;
+      margin-top: 36px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h2 .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: var(--primary-bg);
+      color: var(--primary);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 800;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--slate-800);
+      margin-top: 24px;
+      margin-bottom: 10px;
+    }
+
+    p, li {
+      font-size: 0.95rem;
+      color: var(--slate-700);
+    }
+
+    p {
+      margin-bottom: 14px;
+    }
+
+    ul, ol {
+      margin-left: 20px;
+      margin-bottom: 16px;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 14px;
+      padding: 20px;
+      margin: 18px 0;
+    }
+
+    .card-highlight {
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.03) 0%, rgba(99, 102, 241, 0.08) 100%);
+      border: 1px solid rgba(79, 70, 229, 0.2);
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 18px 0;
+      border: 1px solid var(--slate-200);
+      border-radius: 12px;
+      overflow: hidden;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--slate-100);
+      color: var(--slate-800);
+      font-weight: 700;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--slate-200);
+    }
+
+    td {
+      border-bottom: 1px solid var(--slate-200);
+      color: var(--slate-700);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #fafbfc;
+    }
+
+    /* Code Blocks */
+    pre {
+      background: var(--slate-900);
+      color: #e2e8f0;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      padding: 18px 20px;
+      border-radius: 14px;
+      overflow-x: auto;
+      margin: 14px 0 20px 0;
+      line-height: 1.55;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    code {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85em;
+      background: var(--slate-100);
+      color: var(--primary-dark);
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--slate-200);
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border: none;
+    }
+
+    /* Diagram Block */
+    .diagram-container {
+      background: #0b1120;
+      color: #94a3b8;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 24px;
+      margin: 20px 0;
+      overflow-x: auto;
+    }
+
+    .diagram-container pre {
+      background: transparent;
+      box-shadow: none;
+      border: none;
+      padding: 0;
+      margin: 0;
+      color: #38bdf8;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    /* Steps list */
+    .step-box {
+      border-left: 3px solid var(--primary);
+      padding-left: 18px;
+      margin: 24px 0;
+    }
+
+    .step-box h3 {
+      margin-top: 0;
+      color: var(--slate-900);
+    }
+
+    .checklist {
+      list-style: none;
+      margin-left: 0;
+    }
+
+    .checklist li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .checklist .check {
+      color: var(--emerald);
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--slate-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--slate-600);
+    }
+
+    .print-btn {
+      background: var(--slate-900);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .print-btn:hover {
+      background: var(--primary);
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+      .container {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+      }
+      .print-btn {
+        display: none;
+      }
+      pre {
+        background: #111827 !important;
+        color: #f9fafb !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="badge-bar">
+        <span class="badge badge-primary">Google Cloud Vertex AI</span>
+        <span class="badge badge-emerald">Gemini 3.8 Live</span>
+        <span class="badge badge-dark">LlmBidiService / BidiGenerateContent</span>
+      </div>
+      <h1>GCP Vertex AI Avatar Live Stream Flow Guide</h1>
+      <p class="subtitle">Real-Time Full-Duplex Bidirectional Video & Audio Streaming Protocol Architecture</p>
+    </header>
+
+    <!-- Section 1 -->
+    <section>
+      <h2><span class="num">1</span> Overview of the GCP Flow</h2>
+      <p>
+        The AI Avatar live stream operates as a <strong>full-duplex bidirectional streaming WebSocket pipeline</strong> connected directly to Google Cloud Vertex AI's low-latency streaming cluster.
+      </p>
+      <div class="card card-highlight">
+        <ol style="margin-bottom: 0;">
+          <li><strong>Session Handshake:</strong> Client connects to Vertex AI over WebSocket and issues a <code>setup</code> configuration requiring the <code>VIDEO</code> response modality and target avatar persona.</li>
+          <li><strong>GCP Allocation:</strong> GCP Vertex AI acknowledges session creation and streams back a <code>setupComplete</code> confirmation containing a unique <code>sessionId</code>.</li>
+          <li><strong>User Speech Ingestion:</strong> Client captures user microphone audio at 16,000 Hz, encodes raw 16-bit linear PCM Little-Endian chunks, and transmits them upstream.</li>
+          <li><strong>Avatar Video Generation:</strong> GCP generates and streams back sequential <strong>fragmented MP4 chunks (<code>video/mp4</code>)</strong> containing lip-synced facial motion and synthesized voice.</li>
+          <li><strong>Client Playback:</strong> HTML5 <strong>MediaSource Extensions (MSE)</strong> appends the incoming MP4 chunks in sequence mode directly to the video element with sub-second latency.</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Section 2 -->
+    <section>
+      <h2><span class="num">2</span> GCP Endpoint & Model Specifications</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>GCP Specification Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>GCP Service</strong></td>
+            <td>Vertex AI Studio / Generative AI Platform</td>
+          </tr>
+          <tr>
+            <td><strong>RPC Service Name</strong></td>
+            <td><code>google.cloud.aiplatform.v1beta1.LlmBidiService</code></td>
+          </tr>
+          <tr>
+            <td><strong>RPC Method</strong></td>
+            <td><code>BidiGenerateContent</code></td>
+          </tr>
+          <tr>
+            <td><strong>Protocol</strong></td>
+            <td>Secure WebSocket (<code>wss://</code>)</td>
+          </tr>
+          <tr>
+            <td><strong>Upstream WSS URL</strong></td>
+            <td><code>wss://us-central1-aiplatform.googleapis.com//ws/google.cloud.aiplatform.v1beta1.LlmBidiService/BidiGenerateContent</code></td>
+          </tr>
+          <tr>
+            <td><strong>Model Resource Path</strong></td>
+            <td><code>projects/{GCP_PROJECT_ID}/locations/{LOCATION}/publishers/google/models/gemini-3.8-live</code></td>
+          </tr>
+          <tr>
+            <td><strong>Streaming Region</strong></td>
+            <td><code>us-central1</code> (Vertex AI live avatar acceleration cluster)</td>
+          </tr>
+          <tr>
+            <td><strong>Authentication</strong></td>
+            <td>Google Cloud OAuth2 Bearer Token in HTTP Upgrade headers</td>
+          </tr>
+          <tr>
+            <td><strong>Required IAM Role</strong></td>
+            <td><code>roles/aiplatform.user</code> (Vertex AI User)</td>
+          </tr>
+          <tr>
+            <td><strong>Output Modality</strong></td>
+            <td><code>responseModalities: ["VIDEO"]</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 3 -->
+    <section>
+      <h2><span class="num">3</span> End-to-End Sequence Diagram</h2>
+      <div class="diagram-container">
+<pre>
+ CLIENT (Browser)              LOCAL PROXY (Node.js)             GCP VERTEX AI
+      │                                 │                              │
+      │ 1. Connect ws://.../ws-proxy    │                              │
+      │────────────────────────────────►│                              │
+      │                                 │ 2. Fetch GCP OAuth2 Token    │
+      │                                 │    (ADC / gcloud CLI)        │
+      │                                 │                              │
+      │                                 │ 3. WSS Upgrade + Bearer      │
+      │                                 │    wss://us-central1-...     │
+      │                                 │─────────────────────────────►│
+      │                                 │                              │
+      │ 4. WebSocket Established        │                              │
+      │◄────────────────────────────────│                              │
+      │                                 │                              │
+      │ 5. SETUP FRAME                  │                              │
+      │    model: gemini-3.8-live       │                              │
+      │    modalities: ["VIDEO"]        │                              │
+      │    avatar: "Jay", voice: fenrir │                              │
+      │────────────────────────────────►│ 6. Inject Full Model Path    │
+      │                                 │    projects/{ID}/...         │
+      │                                 │─────────────────────────────►│
+      │                                 │                              │
+      │                                 │ 7. SETUP COMPLETE            │
+      │                                 │    { sessionId: "..." }      │
+      │ 8. Forward setupComplete        │◄─────────────────────────────│
+      │◄────────────────────────────────│                              │
+      │                                 │                              │
+      │ ─── CONTINUOUS LIVE CONVERSATION LOOP ───────────────────────  │
+      │                                 │                              │
+      │ 9. USER AUDIO (16kHz PCM)       │                              │
+      │    realtimeInput: mediaChunks   │                              │
+      │────────────────────────────────►│─────────────────────────────►│
+      │                                 │                              │
+      │                                 │ 10. AVATAR STREAM CHUNKS     │
+      │                                 │     parts: [inlineData:      │
+      │                                 │       video/mp4; base64]     │
+      │ 11. Forward video/mp4 chunks    │     outputTranscription      │
+      │◄────────────────────────────────│◄─────────────────────────────│
+      │                                 │                              │
+      │ 12. MediaSource (MSE) Appends   │                              │
+      │     SourceBuffer.appendBuffer() │                              │
+      │     Native &lt;video&gt; plays avatar │                              │
+      │                                 │                              │
+      │ ─── BARGE-IN / INTERRUPTION (IF USER SPEAKS) ────────────────  │
+      │                                 │                              │
+      │ 13. USER SPEAKS (16kHz PCM)     │                              │
+      │────────────────────────────────►│─────────────────────────────►│
+      │                                 │ 14. INTERRUPTED SIGNAL       │
+      │                                 │     serverContent.interrupted│
+      │ 15. Clear MSE queue & stop talk │◄─────────────────────────────│
+      │◄────────────────────────────────│                              │
+      │                                 │                              │
+      │                                 │ 16. TURN COMPLETE            │
+      │ 17. Forward turnComplete        │     serverContent.turnComplete│
+      │◄────────────────────────────────│◄─────────────────────────────│
+</pre>
+      </div>
+    </section>
+
+    <!-- Section 4 -->
+    <section>
+      <h2><span class="num">4</span> Detailed Step-by-Step Flow & Payloads</h2>
+
+      <div class="step-box">
+        <h3>Step 1: Upstream Authentication & WSS Handshake</h3>
+        <p>The proxy establishes a WebSocket connection to Vertex AI passing the GCP Bearer token in the HTTP upgrade request:</p>
+<pre>GET //ws/google.cloud.aiplatform.v1beta1.LlmBidiService/BidiGenerateContent HTTP/1.1
+Host: us-central1-aiplatform.googleapis.com
+Upgrade: websocket
+Connection: Upgrade
+Authorization: Bearer ya29.a0AX07...
+Content-Type: application/json</pre>
+      </div>
+
+      <div class="step-box">
+        <h3>Step 2: Session Setup Frame (Client &rarr; GCP)</h3>
+        <p>The very first payload sent specifies model resource name, <code>"VIDEO"</code> response modality, voice, and avatar:</p>
+<pre>{
+  "setup": {
+    "model": "projects/my-gcp-project/locations/global/publishers/google/models/gemini-3.8-live",
+    "generationConfig": {
+      "responseModalities": [
+        "VIDEO"
+      ],
+      "speechConfig": {
+        "voiceConfig": {
+          "prebuiltVoiceConfig": {
+            "voiceName": "fenrir"
+          }
+        }
+      }
+    },
+    "avatarConfig": {
+      "avatarName": "Jay"
+    },
+    "systemInstruction": "You are a warm, world-class 1-on-1 AI Tutor...",
+    "inputAudioTranscription": {},
+    "outputAudioTranscription": {}
+  }
+}</pre>
+      </div>
+
+      <div class="step-box">
+        <h3>Step 3: Setup Confirmation (GCP &rarr; Client)</h3>
+        <p>GCP validates the request and acknowledges with the session identifier:</p>
+<pre>{
+  "setupComplete": {
+    "sessionId": "8a7061ff-0c2e-49c5-ae70-0c8006efcbe4"
+  }
+}</pre>
+      </div>
+
+      <div class="step-box">
+        <h3>Step 4: Real-Time Audio Ingestion (Client &rarr; GCP)</h3>
+        <p>Microphone audio is captured at 16,000 Hz, converted to 16-bit linear PCM Little-Endian, and streamed continuously:</p>
+<pre>{
+  "realtimeInput": {
+    "mediaChunks": [
+      {
+        "mimeType": "audio/pcm;rate=16000",
+        "data": "AP///wEAAAD9//7/..."
+      }
+    ]
+  }
+}</pre>
+      </div>
+
+      <div class="step-box">
+        <h3>Step 5: Fragmented MP4 Video Delivery (GCP &rarr; Client)</h3>
+        <p>GCP streams sequential fragmented MP4 boxes containing video and synchronized audio:</p>
+<pre>{
+  "serverContent": {
+    "modelTurn": {
+      "parts": [
+        {
+          "inlineData": {
+            "mimeType": "video/mp4",
+            "data": "AAAAHGZ0eXBkYXNoAAAAAGlzbzZhdmMxbXA0MQAABKltb29mAAAA..."
+          }
+        }
+      ]
+    },
+    "outputTranscription": {
+      "text": "Hello! I am ready to guide you."
+    }
+  }
+}</pre>
+        <ul>
+          <li><strong>Container:</strong> Fragmented MP4 (<code>ftyp</code> + <code>moof</code> + <code>mdat</code> per segment).</li>
+          <li><strong>Video Codec:</strong> H.264 / AVC (<code>avc1.42E01E</code>).</li>
+          <li><strong>Audio Codec:</strong> AAC (<code>mp4a.40.2</code>).</li>
+        </ul>
+      </div>
+
+      <div class="step-box">
+        <h3>Step 6: Client Playback via MediaSource Extensions (MSE)</h3>
+        <p>HTML5 MediaSource decodes incoming buffers directly into the video element:</p>
+<pre>// 1. Initialize MediaSource
+const mediaSource = new MediaSource();
+videoElement.src = URL.createObjectURL(mediaSource);
+
+mediaSource.addEventListener('sourceopen', () => {
+  const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.42E01E, mp4a.40.2"');
+  sourceBuffer.mode = 'sequence'; // Sequence mode for continuous chunking
+});
+
+// 2. Append incoming base64 video chunks
+function onVideoChunkReceived(base64Data) {
+  const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+  sourceBuffer.appendBuffer(binaryData.buffer);
+}
+
+// 3. Prune old buffer (keep last 5 seconds to avoid high memory)
+if (videoElement.currentTime > 6 && !sourceBuffer.updating) {
+  sourceBuffer.remove(0, videoElement.currentTime - 5);
+}</pre>
+      </div>
+
+      <div class="step-box">
+        <h3>Step 7: Barge-in / Interruption Handling</h3>
+        <p>If the user speaks while the avatar is talking, GCP halts video generation and returns an interruption signal:</p>
+<pre>{
+  "serverContent": {
+    "interrupted": true
+  }
+}</pre>
+        <p><em>Client immediately flushes the pending video buffer queue and switches the avatar back to the active listening state.</em></p>
+      </div>
+
+      <div class="step-box">
+        <h3>Step 8: Turn Completion</h3>
+        <p>When the avatar finishes its response, GCP signals turn completion:</p>
+<pre>{
+  "serverContent": {
+    "turnComplete": true
+  }
+}</pre>
+      </div>
+    </section>
+
+    <!-- Section 5 -->
+    <section>
+      <h2><span class="num">5</span> Summary Checklist of GCP Requirements</h2>
+      <ul class="checklist">
+        <li><span class="check">✓</span> GCP Project with Vertex AI API enabled (<code>aiplatform.googleapis.com</code>)</li>
+        <li><span class="check">✓</span> OAuth2 Bearer token with <code>cloud-platform</code> scope (ADC or <code>gcloud auth</code>)</li>
+        <li><span class="check">✓</span> Upstream WebSocket endpoint: <code>wss://us-central1-aiplatform.googleapis.com//ws/.../BidiGenerateContent</code></li>
+        <li><span class="check">✓</span> Model path: <code>projects/{ID}/locations/{LOC}/publishers/google/models/gemini-3.8-live</code></li>
+        <li><span class="check">✓</span> Output modality: <code>responseModalities: ["VIDEO"]</code></li>
+        <li><span class="check">✓</span> Upstream Audio: <code>audio/pcm;rate=16000</code> (16-bit signed Linear PCM Little-Endian)</li>
+        <li><span class="check">✓</span> Downstream Video: <code>video/mp4</code> via MediaSource Extensions (<code>SourceBuffer.mode = 'sequence'</code>)</li>
+      </ul>
+    </section>
+
+    <footer>
+      <span>Google Cloud Vertex AI &bull; Gemini 3.8 Live Avatar Flow Architecture</span>
+      <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+    </footer>
+  </div>
+
+</body>
+</html>

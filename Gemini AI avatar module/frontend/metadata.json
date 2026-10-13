@@ -1,0 +1,8 @@
+{
+  "name": "AI Home Tutor - Live Avatar Learning",
+  "description": "An interactive 1-on-1 AI Home Tutor powered by Gemini Live Avatar. Students can choose chapters across STEM, Humanities, and Coding, engage in real-time conversational voice learning, review concepts on a live study board, and test their understanding.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}
