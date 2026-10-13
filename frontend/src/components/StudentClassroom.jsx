@@ -29,8 +29,13 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
   // D-Pad Remote Focus State for TV
   const [focusedOptionIdx, setFocusedOptionIdx] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [isEvaluating, setIsEvaluating] = useState(false);
   const [evalResult, setEvalResult] = useState(null);
   const [stars, setStars] = useState(5);
+
+  // Topic Teaching completion & QnA readiness state
+  const [isTopicTeachingOver, setIsTopicTeachingOver] = useState(false);
+  const [isQuizReady, setIsQuizReady] = useState(false);
 
   const visemeIntervalRef = useRef(null);
 
@@ -130,9 +135,21 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
   // Trigger speech synthesis & viseme animation on new teacher response
   useEffect(() => {
     if (currentResponse?.speech_text) {
-      speakTeacherResponse(currentResponse.speech_text, currentResponse.visemes);
+      // Prevent repeating the exact same speech text twice
+      if (lastSpokenSpeechRef.current === currentResponse.speech_text) {
+        return;
+      }
+      lastSpokenSpeechRef.current = currentResponse.speech_text;
+
+      // If this is a topic lesson explanation (no pending eval and no active doubt)
+      const isLesson = !evalResult && !activeDoubt && !isQuizReady;
+      if (isLesson) {
+        setIsTopicTeachingOver(false);
+        setIsQuizReady(false);
+      }
+      speakTeacherResponse(currentResponse.speech_text, currentResponse.visemes, isLesson);
     }
-  }, [currentResponse]);
+  }, [currentResponse?.speech_text, currentResponse?.topic_id]);
 
   // Stop all speech synthesis and viseme timers
   const stopAllSpeechAndSession = () => {
@@ -173,17 +190,29 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
         setFocusedOptionIdx((prev) => (prev - 1 + optionsCount) % optionsCount);
       } else if (e.key === 'Enter' || e.key === ' ') {
-        handleOptionSubmit(focusedOptionIdx);
+        if (!isEvaluating && !(evalResult && evalResult.is_correct)) {
+          handleOptionSubmit(focusedOptionIdx);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [focusedOptionIdx, currentResponse]);
+  }, [focusedOptionIdx, currentResponse, isEvaluating, evalResult]);
+
+  const spokenCharIndexRef = useRef(0);
+  const currentSpokenTextRef = useRef('');
+  const lastSpokenSpeechRef = useRef('');
 
   // Speech Synthesis with Selected Voice
-  const speakTeacherResponse = (text, visemes) => {
+  const speakTeacherResponse = (text, visemes, isTopicLesson = false) => {
     setIsSpeaking(true);
+    // When starting a new lesson explanation, ensure topic teaching is not marked over until this finishes
+    if (isTopicLesson) {
+      setIsTopicTeachingOver(false);
+      setIsQuizReady(false);
+    }
+    currentSpokenTextRef.current = text || '';
 
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -192,6 +221,13 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 0.88;
         utterance.pitch = avatarConfig?.gender === 'male' ? 0.95 : 1.1;
+
+        // Track exact spoken character index when teacher speaks so we can resume from exact sentence
+        utterance.onboundary = (event) => {
+          if (event.name === 'word' || event.name === 'sentence') {
+            spokenCharIndexRef.current = event.charIndex || 0;
+          }
+        };
 
         const voices = window.speechSynthesis.getVoices();
         let chosenVoice = null;
@@ -220,20 +256,28 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
           setIsSpeaking(false);
           setCurrentViseme(null);
           if (visemeIntervalRef.current) clearInterval(visemeIntervalRef.current);
+          // Only mark topic teaching as finished if this utterance was the actual lesson explanation!
+          if (isTopicLesson) {
+            setIsTopicTeachingOver(true);
+          }
+        };
+
+        utterance.onerror = (e) => {
+          console.warn('Speech synthesis utterance error:', e);
+          setIsSpeaking(false);
+          setCurrentViseme(null);
+          if (isTopicLesson) {
+            setIsTopicTeachingOver(true);
+          }
         };
 
         window.speechSynthesis.speak(utterance);
       };
 
-      const available = window.speechSynthesis.getVoices();
-      if (!available || available.length === 0) {
-        // Voices not populated yet by browser on initial load/refresh
-        window.speechSynthesis.onvoiceschanged = () => {
-          doSpeak();
-        };
-      } else {
+      // Slight delay avoids Windows Chrome/Edge audio drop after cancel()
+      setTimeout(() => {
         doSpeak();
-      }
+      }, 50);
     }
 
     // Viseme Lip-Sync Animation Engine
@@ -259,6 +303,8 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
   // Student Interactive Feedback Check Handler ("I Understood!" vs "Please Explain Again!")
   const handleFeedbackCheck = async (understood) => {
     setIsFeedbackSubmitting(true);
+    setSelectedOption(null);
+    setEvalResult(null);
     try {
       const res = await fetch('http://localhost:8000/api/feedback-check', {
         method: 'POST',
@@ -270,11 +316,18 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       });
       const responsePayload = await res.json();
       setIsFeedbackSubmitting(false);
+      if (understood) {
+        setIsQuizReady(true);
+      }
+      lastSpokenSpeechRef.current = responsePayload.speech_text;
       setCurrentResponse(responsePayload);
-      speakTeacherResponse(responsePayload.speech_text, responsePayload.visemes);
+      speakTeacherResponse(responsePayload.speech_text, responsePayload.visemes, false);
     } catch (err) {
       console.warn('Feedback check error fallback:', err);
       setIsFeedbackSubmitting(false);
+      if (understood) {
+        setIsQuizReady(true);
+      }
     }
   };
 
@@ -296,9 +349,13 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
     setIsSpeaking(false);
     setCurrentViseme(null);
 
-    // Save what the teacher was teaching before doubt so we can resume smoothly
+    // Save what the teacher was teaching before doubt so we can resume smoothly from exact statement
     if (!pendingLessonResponse && currentResponse) {
-      setPendingLessonResponse(currentResponse);
+      setPendingLessonResponse({
+        ...currentResponse,
+        original_speech_text: currentSpokenTextRef.current || currentResponse.speech_text,
+        interrupted_char_index: spokenCharIndexRef.current || 0
+      });
     }
 
     const query = studentDoubtText.trim();
@@ -342,7 +399,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
     } catch (err) {
       console.warn('Fallback doubt handling:', err);
       setIsThinking(false);
-      const fallbackAns = `That is a wonderful question, ${childName}! In this chapter, '${query}' helps us understand the fundamental ideas. Is it clear now, beta? Shall we continue with what we were learning?`;
+      const fallbackAns = `That is a wonderful question, ${childName}! In this chapter, '${query}' helps us understand the fundamental ideas. Is it clear now, ${childName}? Shall we continue with what we were learning?`;
       setDoubtsList((prev) => [...prev, { query, explanation: fallbackAns }]);
       setActiveDoubt({
         query,
@@ -351,6 +408,41 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       });
       speakTeacherResponse(fallbackAns, []);
     }
+  };
+
+  // Helper to extract remaining sentences from the exact interrupted position
+  const getRemainingLessonText = (fullText, charIdx) => {
+    if (!fullText) return '';
+    if (!charIdx || charIdx <= 0) return fullText;
+
+    // If interrupted near the very end, return full text or last sentence
+    if (charIdx >= fullText.length - 15) {
+      return fullText;
+    }
+
+    // Find the start of the current or next sentence near charIdx
+    // Look backwards up to 60 chars for punctuation to get sentence boundary
+    const lookback = Math.max(0, charIdx - 60);
+    const sub = fullText.substring(lookback, charIdx);
+    const lastPunctuationOffset = Math.max(
+      sub.lastIndexOf('. '),
+      sub.lastIndexOf('! '),
+      sub.lastIndexOf('? ')
+    );
+
+    let startPos = charIdx;
+    if (lastPunctuationOffset !== -1) {
+      // Resume from the beginning of the sentence that was being spoken
+      startPos = lookback + lastPunctuationOffset + 2;
+    } else {
+      // Find start of current word
+      while (startPos > 0 && fullText[startPos - 1] !== ' ') {
+        startPos--;
+      }
+    }
+
+    const remaining = fullText.slice(startPos).trim();
+    return remaining || fullText;
   };
 
   // Student confirms doubt is clear: "Yeah, I am clear! Let's continue"
@@ -384,28 +476,58 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       setEvalResult(null);
       setPendingLessonResponse(null);
       setActiveDoubt(null);
-      speakTeacherResponse(speech, []);
+      setTimeout(() => {
+        speakTeacherResponse(speech, []);
+      }, 150);
       return;
     }
 
-    // Otherwise, RESUME the topic that was being taught before the student asked the query!
+    // Otherwise, RESUME the topic from the EXACT STATEMENT where student interrupted!
     const resumeResponse = pendingLessonResponse || currentResponse;
     setActiveDoubt(null);
     setPendingLessonResponse(null);
 
     if (resumeResponse) {
-      const resumeSpeech = `Bahut achha, ${childName}! Now that your doubt is completely clear, let us continue with our lesson on ${resumeResponse.slide?.headline || 'our chapter'}!`;
+      const origText = resumeResponse.original_speech_text || resumeResponse.speech_text || '';
+      const charIdx = resumeResponse.interrupted_char_index || 0;
+      const remainingSentence = getRemainingLessonText(origText, charIdx);
+
+      const resumeSpeech = `Bahut achha, ${childName}! Continuing where we paused: ${remainingSentence}`;
       setCurrentResponse({
         ...resumeResponse,
         speech_text: resumeSpeech
       });
-      speakTeacherResponse(resumeSpeech, []);
+
+      // Clear any previous interval and trigger speech reliably after short timeout
+      if (visemeIntervalRef.current) clearInterval(visemeIntervalRef.current);
+      setTimeout(() => {
+        speakTeacherResponse(resumeSpeech, []);
+      }, 150);
     }
   };
 
   const recognitionRef = useRef(null);
 
   const startVoiceInput = () => {
+    // 1. Immediately STOP ongoing teacher speech as soon as student clicks "Speak"!
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    if (visemeIntervalRef.current) {
+      clearInterval(visemeIntervalRef.current);
+    }
+    setIsSpeaking(false);
+    setCurrentViseme(null);
+
+    // Save current lesson state along with exact position so teacher can resume from exact sentence
+    if (!pendingLessonResponse && currentResponse) {
+      setPendingLessonResponse({
+        ...currentResponse,
+        original_speech_text: currentSpokenTextRef.current || currentResponse.speech_text,
+        interrupted_char_index: spokenCharIndexRef.current || 0
+      });
+    }
+
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
@@ -438,6 +560,13 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         if (transcript) {
+          const lower = transcript.toLowerCase();
+          // If active doubt is showing and student says "yes", "clear", "continue", or "resume", automatically resume!
+          if (activeDoubt && (lower.includes('clear') || lower.includes('yes') || lower.includes('continue') || lower.includes('resume') || lower.includes('samajh gaya') || lower.includes('theek hai'))) {
+            setStudentDoubtText('');
+            handleResumeLessonAfterDoubt(true);
+            return;
+          }
           setStudentDoubtText(transcript);
         }
       };
@@ -462,7 +591,11 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
   };
 
   const handleOptionSubmit = async (idx) => {
+    if (isEvaluating) return;
+    setIsEvaluating(true);
     setSelectedOption(idx);
+    const chosenText = currentResponse?.question?.options?.[idx] || '';
+    const qId = currentResponse?.question?.question_id || null;
     
     try {
       const res = await fetch('http://localhost:8000/api/submit-answer', {
@@ -472,7 +605,9 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
           session_id: sessionData?.session_id || 'sess_demo',
           topic_id: currentResponse?.topic_id || 'topic_1',
           submission_type: 'dpad_option',
-          selected_option_index: idx
+          selected_option_index: idx,
+          selected_option_text: chosenText,
+          question_id: qId
         })
       });
 
@@ -485,11 +620,33 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
 
       speakTeacherResponse(evalData.teacher_verbal_response, []);
 
-      if (!evalData.is_correct) {
-        setCurrentResponse((prev) => ({
-          ...prev,
-          speech_text: evalData.teacher_verbal_response
-        }));
+      // If correct and topic has more questions, smoothly transition to next question
+      if (evalData.is_correct && !evalData.topic_completed && evalData.next_question) {
+        setTimeout(() => {
+          setSelectedOption(null);
+          setEvalResult(null);
+          setIsEvaluating(false);
+          setCurrentResponse((prev) => ({
+            ...prev,
+            question: evalData.next_question,
+            question_index: evalData.question_index,
+            total_topic_questions: evalData.total_topic_questions
+          }));
+        }, 2200);
+      } else if (!evalData.is_correct) {
+        // Reset selectedOption, unlock evaluation and swap follow-up remedial question in sync
+        setTimeout(() => {
+          setSelectedOption(null);
+          setIsEvaluating(false);
+          if (evalData.next_question) {
+            setCurrentResponse((prev) => ({
+              ...prev,
+              question: evalData.next_question
+            }));
+          }
+        }, 1200);
+      } else {
+        setIsEvaluating(false);
       }
 
       if (evalData.lesson_completed) {
@@ -499,21 +656,31 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       }
     } catch (err) {
       console.warn('Backend connection error fallback:', err);
-      const isCorrect = idx === 0;
+      const q = currentResponse?.question;
+      const isCorrect = q 
+        ? (idx === q.correct_option_index || q.options?.[idx] === q.correct_answer_text) 
+        : (idx === 0);
       setEvalResult({
         is_correct: isCorrect,
         teacher_verbal_response: isCorrect 
           ? `Shabash, ${childName}! You got it right!` 
           : `Bahut achha try, ${childName}! Let me re-explain this concept so you understand 100%.`,
-        lesson_completed: false
+        lesson_completed: false,
+        topic_completed: true
       });
       if (isCorrect) setStars((prev) => prev + 1);
+      setTimeout(() => {
+        setIsEvaluating(false);
+      }, 1200);
     }
   };
 
   const handleNextTopic = async () => {
     setSelectedOption(null);
     setEvalResult(null);
+    setIsTopicTeachingOver(false);
+    setIsQuizReady(false);
+    lastSpokenSpeechRef.current = '';
 
     try {
       const res = await fetch(`http://localhost:8000/api/teacher-next-step/${sessionData?.session_id || 'sess_demo'}`);
@@ -631,22 +798,23 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
                   Is this clear now, {childName}?
                 </span>
 
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   <button
                     type="button"
                     onClick={() => handleResumeLessonAfterDoubt(true)}
                     className="btn-primary"
                     style={{
-                      padding: '8px 18px',
-                      fontSize: '0.88rem',
+                      padding: '10px 20px',
+                      fontSize: '0.92rem',
                       background: '#059669',
                       borderColor: '#059669',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px'
+                      gap: '8px',
+                      boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)'
                     }}
                   >
-                    <CheckCircle2 size={16} /> Yes, I am clear! Let's continue
+                    <CheckCircle2 size={18} /> Yes, I am clear! Resume teaching from where we stopped
                   </button>
 
                   <button
@@ -654,14 +822,14 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
                     onClick={() => handleResumeLessonAfterDoubt(false)}
                     className="btn-secondary"
                     style={{
-                      padding: '8px 16px',
-                      fontSize: '0.85rem',
+                      padding: '10px 18px',
+                      fontSize: '0.88rem',
                       color: '#B45309',
                       borderColor: 'var(--accent-gold)',
                       background: '#FFFFFF'
                     }}
                   >
-                    <RefreshCw size={14} /> Explain more simply
+                    <RefreshCw size={15} /> Explain more simply
                   </button>
                 </div>
               </div>
@@ -692,51 +860,72 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
         </div>
       </div>
 
-      {/* Student Comprehension Feedback Bar ("Did you understand?") */}
-      <div className="glass-panel" style={{
-        padding: '16px 24px',
-        marginBottom: '24px',
-        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(16, 185, 129, 0.06) 100%)',
-        border: '1px solid var(--accent-purple)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderRadius: '16px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Smile size={24} color="var(--accent-purple)" />
-          <div>
-            <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-              {childName}, did you understand what {avatarConfig?.name || 'Teacher'} just taught?
-            </h4>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Give instant feedback to your teacher so she can repeat or re-explain!
-            </span>
+      {/* Student Comprehension Check Bar - Appears ONLY when current topic teaching is over */}
+      {isTopicTeachingOver && !isQuizReady && !evalResult && (
+        <div className="glass-panel" style={{
+          padding: '20px 24px',
+          marginBottom: '24px',
+          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%)',
+          border: '2px solid var(--accent-purple)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderRadius: '16px',
+          animation: 'fadeIn 0.3s ease-in-out'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <Smile size={28} color="var(--accent-purple)" />
+            <div>
+              <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                {childName}, is everything clear to you in this topic?
+              </h4>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                Can we go ahead to check your knowledge of this topic, or would you like {avatarConfig?.name || 'Teacher'} to re-explain?
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button 
+              type="button"
+              onClick={() => handleFeedbackCheck(true)}
+              disabled={isFeedbackSubmitting}
+              className="btn-primary"
+              style={{
+                padding: '12px 22px',
+                fontSize: '0.92rem',
+                background: '#059669',
+                borderColor: '#059669',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)'
+              }}
+            >
+              <CheckCircle2 size={18} /> Yes, it's clear! Let's check knowledge
+            </button>
+
+            <button 
+              type="button"
+              onClick={() => handleFeedbackCheck(false)}
+              disabled={isFeedbackSubmitting}
+              className="btn-secondary"
+              style={{
+                padding: '12px 20px',
+                fontSize: '0.88rem',
+                borderColor: 'var(--accent-gold)',
+                color: '#B45309',
+                background: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              <RefreshCw size={16} /> Re-explain this topic simply
+            </button>
           </div>
         </div>
-
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button 
-            type="button"
-            onClick={() => handleFeedbackCheck(true)}
-            disabled={isFeedbackSubmitting}
-            className="btn-primary"
-            style={{ padding: '10px 20px', fontSize: '0.88rem', background: '#059669', borderColor: '#059669' }}
-          >
-            <ThumbsUp size={16} /> Yes, I Understood!
-          </button>
-
-          <button 
-            type="button"
-            onClick={() => handleFeedbackCheck(false)}
-            disabled={isFeedbackSubmitting}
-            className="btn-secondary"
-            style={{ padding: '10px 20px', fontSize: '0.88rem', borderColor: 'var(--accent-gold)', color: '#B45309' }}
-          >
-            <RefreshCw size={16} /> Please Re-explain in another way!
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Interactive Doubt Clarification Box */}
       <div className="glass-panel" style={{ padding: '20px', marginBottom: '24px', background: 'rgba(245, 158, 11, 0.04)', border: '1px solid rgba(245, 158, 11, 0.25)' }}>
@@ -782,6 +971,23 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
           <button type="submit" className="btn-primary" disabled={isThinking}>
             {isThinking ? <Brain size={18} /> : <><Send size={18} /> Ask Teacher</>}
           </button>
+          {pendingLessonResponse && (
+            <button
+              type="button"
+              onClick={() => handleResumeLessonAfterDoubt(true)}
+              className="btn-primary"
+              style={{
+                background: '#059669',
+                borderColor: '#059669',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              title="Resume teaching from the exact sentence where we paused"
+            >
+              <CheckCircle2 size={16} /> Resume Teaching
+            </button>
+          )}
         </form>
 
         {/* Doubts History Notebook */}
@@ -825,13 +1031,26 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
         </div>
       )}
 
-      {/* Bottom Section: Question & D-Pad Remote Navigation */}
-      {currentResponse?.question && (
+      {/* Bottom Section: Question & D-Pad Remote Navigation (Visible ONLY when topic teaching is over) */}
+      {currentResponse?.question && (isQuizReady || evalResult) && (
         <div className="glass-panel" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <HelpCircle color="var(--accent-purple)" /> {currentResponse.question.question_text}
-            </h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{
+                background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+                color: '#FFFFFF',
+                padding: '4px 12px',
+                borderRadius: '20px',
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                letterSpacing: '0.5px'
+              }}>
+                Question {currentResponse.question_index || 1} of {currentResponse.total_topic_questions || 1}
+              </span>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <HelpCircle color="var(--accent-purple)" size={22} /> {currentResponse.question.question_text}
+              </h3>
+            </div>
 
             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: '#FFFFFF', border: '1px solid #CBD5E1', padding: '4px 10px', borderRadius: '8px' }}>
               Use <strong style={{ color: 'var(--accent-purple)' }}>[↑] [↓] Arrow Keys</strong> & <strong style={{ color: 'var(--accent-purple)' }}>[ENTER]</strong> on TV Remote
@@ -847,12 +1066,14 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
               return (
                 <button
                   key={idx}
+                  disabled={isEvaluating || (evalResult && evalResult.is_correct)}
                   onClick={() => handleOptionSubmit(idx)}
                   className={`glass-card dpad-focusable ${isFocused ? 'dpad-focused' : ''}`}
                   style={{
                     padding: '18px 16px',
                     textAlign: 'left',
-                    cursor: 'pointer',
+                    cursor: (isEvaluating || (evalResult && evalResult.is_correct)) ? 'not-allowed' : 'pointer',
+                    opacity: (isEvaluating || (evalResult && evalResult.is_correct)) ? 0.75 : 1,
                     borderRadius: '14px',
                     color: 'var(--text-main)',
                     display: 'flex',
@@ -878,7 +1099,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
           {/* Action Bar */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid var(--border-glass)' }}>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Interactive Socratic Lesson with {avatarConfig.name}
+              Interactive Socratic Lesson with {avatarConfig.name} &bull; Checkpoint {currentResponse.question_index || 1}/{currentResponse.total_topic_questions || 1}
             </span>
 
             {evalResult && (
@@ -887,10 +1108,12 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
                   fontWeight: 700,
                   color: evalResult.is_correct ? 'var(--accent-green)' : 'var(--accent-gold)'
                 }}>
-                  {evalResult.is_correct ? '✨ Shabash! Correct!' : '💡 Re-explaining Concept...'}
+                  {evalResult.is_correct 
+                    ? (evalResult.topic_completed ? '🎉 Topic Mastered! Outstanding!' : '✨ Shabash! Correct! Loading next question...') 
+                    : '💡 Re-explaining Concept...'}
                 </span>
 
-                {evalResult.is_correct && (
+                {evalResult.is_correct && evalResult.topic_completed && (
                   <button onClick={handleNextTopic} className="btn-primary">
                     Next Topic <ArrowRight size={18} />
                   </button>

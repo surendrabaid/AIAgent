@@ -55,7 +55,8 @@ class TopicModule(BaseModel):
     explanation_script: str
     real_world_analogy: Optional[str] = None # Kid-friendly real world analogy
     visual_slide: VisualSlide
-    checkpoint: CheckpointQuestion
+    checkpoint: Optional[CheckpointQuestion] = None # Backwards compatibility
+    checkpoints: Optional[List[CheckpointQuestion]] = None # Multiple questions per topic
 
 class FeedbackCheckRequest(BaseModel):
     session_id: str
@@ -85,6 +86,8 @@ class AnswerSubmission(BaseModel):
     topic_id: str
     submission_type: str # "voice" or "dpad_option"
     selected_option_index: Optional[int] = None
+    selected_option_text: Optional[str] = None
+    question_id: Optional[str] = None
     voice_transcript: Optional[str] = None
 
 class EvaluationResult(BaseModel):
@@ -95,6 +98,10 @@ class EvaluationResult(BaseModel):
     teacher_verbal_response: str
     next_topic_id: Optional[str] = None
     lesson_completed: bool = False
+    question_index: int = 1
+    total_topic_questions: int = 1
+    topic_completed: bool = False
+    next_question: Optional[CheckpointQuestion] = None
 
 class VisemeFrame(BaseModel):
     time_ms: int
@@ -109,6 +116,8 @@ class TeacherResponsePayload(BaseModel):
     visemes: List[VisemeFrame]
     slide: VisualSlide
     question: Optional[CheckpointQuestion] = None
+    question_index: int = 1
+    total_topic_questions: int = 1
 
 class DoubtRequest(BaseModel):
     session_id: str
@@ -132,6 +141,8 @@ class QuestionHistoryItem(BaseModel):
     correct_answer_text: str
     is_correct: bool
     score: float
+    attempt_number: int = 1
+    is_remedial: bool = False
 
 class ParentReport(BaseModel):
     session_id: str

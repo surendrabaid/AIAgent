@@ -180,7 +180,11 @@ export default function ParentReportView({ reportData, onRestart }) {
                       background: qna.is_correct ? 'rgba(5, 150, 105, 0.15)' : 'rgba(239, 68, 68, 0.15)',
                       color: qna.is_correct ? 'var(--accent-green)' : '#DC2626'
                     }}>
-                      {qna.is_correct ? '✓ Correct on 1st Attempt' : '⚠ Needed Remedial Help'}
+                      {qna.is_correct 
+                        ? ((qna.attempt_number && qna.attempt_number > 1) || qna.is_remedial
+                            ? `✓ Mastered on Attempt ${qna.attempt_number || 2}`
+                            : '✓ Correct on 1st Attempt')
+                        : `⚠ Attempt ${qna.attempt_number || 1}: Needed Remedial Help`}
                     </span>
                   </div>
 

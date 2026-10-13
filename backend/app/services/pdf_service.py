@@ -53,26 +53,50 @@ class PDFProcessorService:
         if llm_output and "topics" in llm_output:
             llm_topics = []
             for idx, t in enumerate(llm_output["topics"]):
-                chk = t.get("checkpoint", {})
-                raw_options = chk.get("options", ["Correct Concept", "Option B", "Option C"])
-                raw_correct_idx = chk.get("correct_option_index", 0)
-                
-                # Determine correct answer text safely
-                if "correct_answer_text" in chk and chk["correct_answer_text"]:
-                    correct_ans_text = chk["correct_answer_text"]
-                elif 0 <= raw_correct_idx < len(raw_options):
-                    correct_ans_text = raw_options[raw_correct_idx]
-                else:
-                    correct_ans_text = raw_options[0]
+                raw_checkpoints = t.get("checkpoints") or []
+                if not raw_checkpoints and t.get("checkpoint"):
+                    raw_checkpoints = [t.get("checkpoint")]
 
-                # Make sure correct answer is in options
-                if correct_ans_text not in raw_options:
-                    raw_options[0] = correct_ans_text
+                parsed_checkpoints = []
+                for q_num, chk in enumerate(raw_checkpoints):
+                    raw_options = chk.get("options", ["Correct Concept", "Option B", "Option C"])
+                    raw_correct_idx = chk.get("correct_option_index", 0)
+                    
+                    # Determine correct answer text safely
+                    if "correct_answer_text" in chk and chk["correct_answer_text"]:
+                        correct_ans_text = chk["correct_answer_text"]
+                    elif 0 <= raw_correct_idx < len(raw_options):
+                        correct_ans_text = raw_options[raw_correct_idx]
+                    else:
+                        correct_ans_text = raw_options[0]
 
-                # Shuffle options so the correct answer position is varied and never stuck at 0
-                shuffled_options = list(raw_options)
-                random.shuffle(shuffled_options)
-                final_correct_idx = shuffled_options.index(correct_ans_text)
+                    # Make sure correct answer is in options
+                    if correct_ans_text not in raw_options:
+                        raw_options[0] = correct_ans_text
+
+                    # Shuffle options so the correct answer position is varied and never stuck at 0
+                    shuffled_options = list(raw_options)
+                    random.shuffle(shuffled_options)
+                    final_correct_idx = shuffled_options.index(correct_ans_text)
+
+                    parsed_checkpoints.append(CheckpointQuestion(
+                        question_id=f"chk_{idx+1}_{q_num+1}",
+                        question_text=chk.get("question_text", "What is the key takeaway?"),
+                        options=shuffled_options,
+                        correct_option_index=final_correct_idx,
+                        correct_answer_text=correct_ans_text,
+                        rubric_hint="Child should select correct answer."
+                    ))
+
+                if not parsed_checkpoints:
+                    parsed_checkpoints.append(CheckpointQuestion(
+                        question_id=f"chk_{idx+1}_1",
+                        question_text="What is the key concept from this unit?",
+                        options=["Core lesson principle", "Opposite meaning", "Unrelated topic"],
+                        correct_option_index=0,
+                        correct_answer_text="Core lesson principle",
+                        rubric_hint="Select correct statement."
+                    ))
 
                 llm_topics.append(TopicModule(
                     topic_id=f"topic_{idx+1}",
@@ -84,14 +108,8 @@ class PDFProcessorService:
                         bullet_points=t.get("slide", {}).get("bullet_points", ["Key concept from textbook"]),
                         diagram_type="concept_map"
                     ),
-                    checkpoint=CheckpointQuestion(
-                        question_id=f"chk_{idx+1}",
-                        question_text=chk.get("question_text", "What is the key takeaway?"),
-                        options=shuffled_options,
-                        correct_option_index=final_correct_idx,
-                        correct_answer_text=correct_ans_text,
-                        rubric_hint="Child should select correct answer."
-                    )
+                    checkpoint=parsed_checkpoints[0],
+                    checkpoints=parsed_checkpoints
                 ))
 
             return LessonPlan(
@@ -136,7 +154,7 @@ class PDFProcessorService:
             
             # Construct complete, detailed teaching script (NO TRUNCATION!)
             explanation_script = (
-                f"Namaste! Let's explore '{section_title}'. "
+                f"Let's explore '{section_title}'. "
                 f"{full_section_text} "
                 f"Notice how this concept helps us understand {chapter_title} deeply!"
             )
@@ -149,14 +167,28 @@ class PDFProcessorService:
             b2 = sentences[1] if len(sentences) > 1 else f"Key insight regarding {chapter_title}"
             b3 = sentences[2] if len(sentences) > 2 else f"Important learning takeaway"
 
-            # Create contextual quiz question with 3 plausible options from document
-            checkpoint = self._create_contextual_question(
+            # Create multiple contextual quiz questions (2 per topic) to thoroughly check knowledge
+            q1 = self._create_contextual_question(
                 topic_id=f"topic_{i+1}",
                 section_title=section_title,
                 section_text=full_section_text,
                 vocab_words=vocab_words,
-                q_idx=i+1
+                q_idx=f"{i+1}_1"
             )
+
+            # Second question testing a different sentence or vocab concept
+            q2_text = full_section_text
+            if len(sentences) > 1:
+                q2_text = " ".join(sentences[1:])
+            q2 = self._create_contextual_question(
+                topic_id=f"topic_{i+1}",
+                section_title=section_title,
+                section_text=q2_text,
+                vocab_words=list(reversed(vocab_words)),
+                q_idx=f"{i+1}_2"
+            )
+
+            topic_checkpoints = [q1, q2]
 
             topics.append(TopicModule(
                 topic_id=f"topic_{i+1}",
@@ -172,7 +204,8 @@ class PDFProcessorService:
                     ],
                     diagram_type="concept_map"
                 ),
-                checkpoint=checkpoint
+                checkpoint=topic_checkpoints[0],
+                checkpoints=topic_checkpoints
             ))
 
         return LessonPlan(
