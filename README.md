@@ -7,16 +7,17 @@
 
 ## 📑 Table of Contents
 1. [Core Features](#-core-features)
-2. [Dual Avatar Architecture: Static vs. Live](#-dual-avatar-architecture-static-vs-live)
-3. [Module & Repository Structure](#-module--repository-structure)
-4. [API & Architecture Deep Dive](#-api--architecture-deep-dive)
+2. [Application Visual Tour (Screenshots)](#-application-visual-tour)
+3. [Dual Avatar Architecture: Static vs. Live](#-dual-avatar-architecture-static-vs-live)
+4. [Module & Repository Structure](#-module--repository-structure)
+5. [API & Architecture Deep Dive](#-api--architecture-deep-dive)
    * [A. Static Avatar Mode Flow (Socratic Loop)](#a-static-avatar-mode-flow-socratic-loop)
    * [B. Live Avatar Mode Flow (GCP Vertex AI Streaming)](#b-live-avatar-mode-flow-gcp-vertex-ai-streaming)
-5. [Quick Setup & Run Guide](#-quick-setup--run-guide)
+6. [Quick Setup & Run Guide](#-quick-setup--run-guide)
    * [One-Command Launch (All Services)](#1-all-in-one-startup-script-recommended)
    * [Manual / Individual Launches](#2-individual-service-setup--manual-launch)
-6. [Environment Configuration](#-environment-configuration)
-7. [Service & Ports Dashboard](#-service--ports-dashboard)
+7. [Environment Configuration](#-environment-configuration)
+8. [Service & Ports Dashboard](#-service--ports-dashboard)
 
 ---
 
@@ -31,6 +32,32 @@
 * 📺 **Android STB & TV Remote Control Ready**: Spatial D-Pad navigation (`UP`, `DOWN`, `LEFT`, `RIGHT`, `ENTER/OK`) with glowing focus rings on quiz cards.
 * 🏢 **AI Receptionist Metamorphosis**: Seamless persona transformation into a front-desk receptionist for corporate check-ins or clinic appointments.
 * 📊 **Parent Analytics Digest**: Comprehension score dial, mastered concepts breakdown, and teacher notes audit log.
+
+---
+
+## 📸 Application Visual Tour
+
+### 1. Launch Mode Selection Screen (First Selection)
+The platform landing screen presents the student or parent with the dual avatar selection:
+
+![01 Launch Mode Selection Screen](screenshots/01_mode_selection.png)
+
+---
+
+### 2. Option 1 Home — Static Avatar Setup & Socratic Classroom
+* **Parent Setup Portal (Option 1 Home)**: Configure student name, grade level, choose your teacher persona (*Miss Priya* or *Professor Sharma*), and upload custom PDF textbooks or pick from saved curriculum chapters.
+* **Live Socratic Classroom**: Live interactive remote studio call with real-time lip-sync, animated topic visual slides, and instant verbal doubt clarification.
+
+| 🛠️ Option 1 Home: Parent Setup & Avatar Preference | 🎓 Live Socratic Classroom Session |
+| :---: | :---: |
+| ![02 Option 1 Home Setup](screenshots/02_static_avatar_home.png) | ![02b Option 1 Classroom Session](screenshots/02b_static_classroom.png) |
+
+---
+
+### 3. Option 2 Home — Gemini Live Avatar Studio
+Real-time bidirectional 24 FPS video and audio streaming classroom with **Tutor Jay** powered by **Google Cloud Vertex AI `gemini-3.8-live`**, featuring live speech transcription, real-time barge-in interruption, and interactive Socratic quiz overlays:
+
+![03 Option 2 Home - Gemini Live Avatar Studio](screenshots/03_live_avatar_home.png)
 
 ---
 
