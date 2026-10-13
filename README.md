@@ -209,16 +209,16 @@ sequenceDiagram
     Vertex-->>Proxy: 4. Handshake Established
     Proxy-->>Client: 5. Connection Acknowledged
 
-    Client->>Proxy: 6. Setup Frame (model: gemini-3.8-live, modalities: ["VIDEO"], avatar: "Jay")
+    Client->>Proxy: 6. Setup Frame (model: gemini-3.8-live, modalities: [VIDEO], avatar: Jay)
     Proxy->>Vertex: 7. Inject Full Model Path (projects/{ID}/locations/global/publishers/google/models/gemini-3.8-live)
     Vertex-->>Proxy: 8. SetupComplete (sessionId assigned)
     Proxy-->>Client: 9. setupComplete Forwarded
 
     loop Continuous Live Stream
         User->>Client: Speaks into Microphone (16kHz PCM audio)
-        Client->>Proxy: realtimeInput: mediaChunks [audio/pcm;rate=16000]
+        Client->>Proxy: realtimeInput: mediaChunks [audio/pcm, rate=16000]
         Proxy->>Vertex: Forward raw PCM chunks
-        Vertex-->>Proxy: serverContent: [inlineData: video/mp4;base64] + outputTranscription
+        Vertex-->>Proxy: serverContent: [inlineData: video/mp4, base64] + outputTranscription
         Proxy-->>Client: Forward fragmented MP4 video frames
         Client->>Client: MediaSource.SourceBuffer.appendBuffer() -> 24 FPS Video Playback
     end
