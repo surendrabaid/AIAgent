@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { TranscriptionPanel } from './components/TranscriptionPanel';
 import { UserWebCamDisplay } from './components/UserWebCamDisplay';
 import { TopBar } from './components/TopBar';
@@ -7,13 +7,12 @@ import { AvatarDisplay } from './components/AvatarDisplay';
 import { ControlBar } from './components/ControlBar';
 import { StudyBoard } from './components/StudyBoard';
 import { ChapterSelectorModal } from './components/ChapterSelectorModal';
-import { LiveQuizOverlay } from './components/LiveQuizOverlay';
 import { useTheme } from './hooks/useTheme';
 import { useMediaDevices } from './hooks/useMediaDevices';
 import { useLiveSession } from './hooks/useLiveSession';
 import { CURRICULUM_DATA } from './data/curriculum';
 import { TUTOR_PERSONAS } from './data/avatars';
-import { VideoMode, Chapter, TeachingMode, QuizSessionState, AvatarPersona, AvatarMood } from './types';
+import { VideoMode, Chapter, TeachingMode, QuizSessionState, AvatarPersona, AvatarMood, ChapterStatus, ChapterScore } from './types';
 
 const App: React.FC = () => {
   const { theme, setTheme } = useTheme();
@@ -38,6 +37,83 @@ const App: React.FC = () => {
   const [teachingMode, setTeachingMode] = useState<TeachingMode>('socratic');
   const [isChapterModalOpen, setIsChapterModalOpen] = useState(false);
 
+  // Chapter Learning Statuses Tracking (In Progress vs Completed)
+  const [chapterStatuses, setChapterStatuses] = useState<Record<string, ChapterStatus>>(() => {
+    try {
+      const saved = localStorage.getItem('live_avatar_chapter_statuses');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Track lesson completion: enabled when tutor completes lesson in transcription, or status marked completed
+  const [isLessonCompleted, setIsLessonCompleted] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('live_avatar_chapter_statuses');
+      const statuses = saved ? JSON.parse(saved) : {};
+      return statuses[CURRICULUM_DATA[0].chapters[0].id] === 'completed';
+    } catch {
+      return false;
+    }
+  });
+
+  // Active StudyBoard Tab ('concepts' | 'quiz' | 'scoreboard')
+  const [activeStudyTab, setActiveStudyTab] = useState<'concepts' | 'quiz' | 'scoreboard'>('concepts');
+
+  // Chapter-wise Quiz Scores Persistence
+  const [chapterScores, setChapterScores] = useState<Record<string, ChapterScore>>(() => {
+    try {
+      const saved = localStorage.getItem('ai_avatar_chapter_scores');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // All Chapters list (Curriculum + Uploaded PDF chapters)
+  const [allChapters, setAllChapters] = useState<Chapter[]>(() => {
+    return CURRICULUM_DATA.flatMap(s => s.chapters);
+  });
+
+  // Fetch backend PDF chapters to populate full scoreboard
+  useEffect(() => {
+    const fetchBackendChapters = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/live-avatar/chapters');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setAllChapters(prev => {
+              const prevIds = new Set(prev.map(c => c.id));
+              const additions = data.filter((c: Chapter) => !prevIds.has(c.id));
+              return [...prev, ...additions];
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Could not fetch backend chapters for scoreboard', err);
+      }
+    };
+    fetchBackendChapters();
+  }, []);
+
+  const handleUpdateChapterStatus = (chapterId: string, status: ChapterStatus) => {
+    setChapterStatuses(prev => {
+      const updated = { ...prev, [chapterId]: status };
+      try {
+        localStorage.setItem('live_avatar_chapter_statuses', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('LocalStorage save error:', e);
+      }
+      return updated;
+    });
+
+    if (status === 'completed' && chapterId === selectedChapter.id) {
+      setIsLessonCompleted(true);
+    }
+  };
+
   // Interactive Quiz Arena State
   const [quizState, setQuizState] = useState<QuizSessionState>({
     isActive: false,
@@ -55,7 +131,30 @@ const App: React.FC = () => {
     isConnected, isConnecting, isWaitingForVideo, hasVideo, error: sessionError,
     chatHistory, liveInput, liveOutput, debugStats, videoRef, agentTalking,
     connect, disconnect, switchMicrophone, sendTextMessage
-  } = useLiveSession(selectedAudioOutputId, isMuted, videoMode !== 'none', webcamVideoRef);
+  } = useLiveSession(
+    selectedAudioOutputId,
+    isMuted,
+    videoMode !== 'none',
+    webcamVideoRef,
+    selectedChapter,
+    activePersona
+  );
+
+  // Monitor transcription to auto-unlock quiz when tutor indicates lesson is completed
+  useEffect(() => {
+    if (isLessonCompleted) return;
+
+    const completionRegex = /(lesson\s+(is\s+)?(completed|finished|done|complete)|completed\s+(our|the|this)\s+lesson|concludes?\s+(our|the|this)\s+(lesson|chapter)|finished\s+(our|the|this)\s+(lesson|chapter)|completed\s+this\s+chapter|chapter\s+completed|wrap(s|ped)?\s+up\s+(our|the)\s+lesson|ready\s+for\s+(the\s+)?quiz|let'?s\s+(start|take)\s+(the\s+)?quiz)/i;
+
+    const lastModelMsg = [...chatHistory].reverse().find(m => m.role === 'model');
+    const textToCheck = `${lastModelMsg?.text || ''} ${liveOutput || ''}`;
+
+    if (completionRegex.test(textToCheck)) {
+      console.log("[LiveAvatar] Lesson completion detected from transcription:", textToCheck);
+      setIsLessonCompleted(true);
+      handleUpdateChapterStatus(selectedChapter.id, 'completed');
+    }
+  }, [chatHistory, liveOutput, isLessonCompleted, selectedChapter.id]);
 
   const handleDeviceChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newDeviceId = e.target.value;
@@ -75,9 +174,19 @@ const App: React.FC = () => {
     setVideoMode('none');
   }, []);
 
-  // When chapter is changed by student
+  // When chapter is changed by student (RAG Context Injection + Proactive Teaching Kickoff)
   const handleSelectChapter = (chapter: Chapter) => {
     setSelectedChapter(chapter);
+    const existingStatus = chapterStatuses[chapter.id];
+    if (existingStatus === 'completed') {
+      setIsLessonCompleted(true);
+    } else {
+      handleUpdateChapterStatus(chapter.id, 'in_progress');
+      setIsLessonCompleted(false);
+    }
+
+    setActiveStudyTab('concepts');
+
     // Reset quiz for the new chapter
     setQuizState({
       isActive: false,
@@ -91,18 +200,19 @@ const App: React.FC = () => {
     setAvatarMood('idle');
 
     if (isConnected) {
-      const modeInstruction =
-        teachingMode === 'socratic'
-          ? 'Use Socratic questioning to see what I already know and guide me.'
-          : teachingMode === 'eli5'
-          ? 'Use simple everyday metaphors and intuitive analogies.'
-          : teachingMode === 'quiz'
-          ? 'Give me a quick practice problem to solve step-by-step.'
-          : 'Give me a rigorous deep-dive explanation.';
+      const firstConcept = chapter.keyConcepts?.[0]?.title || chapter.title;
+      const ragExcerpt = chapter.rawContent ? chapter.rawContent.slice(0, 4000) : chapter.summary;
 
-      sendTextMessage(
-        `Let's switch our focus to Chapter: "${chapter.title}". ${modeInstruction} Please give me a warm greeting to this chapter and ask where we should begin!`
-      );
+      const ragPrompt = `[CHAPTER SWITCH & RAG KNOWLEDGE BASE]: We are now focusing on Chapter: "${chapter.title}".
+CHAPTER RAG SUMMARY: ${chapter.summary}
+OBJECTIVES: ${(chapter.objectives || []).join('; ')}
+KEY CONCEPTS FROM CHAPTER: ${(chapter.keyConcepts || []).map(c => `${c.title}: ${c.summary}`).join(' | ')}
+CHAPTER EXCERPT: ${ragExcerpt}
+
+CRITICAL: Ground all explanations, examples, and answers strictly in this chapter!
+Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactively begin teaching our first core concept: "${firstConcept}" right now!`;
+
+      sendTextMessage(ragPrompt);
     }
   };
 
@@ -121,17 +231,21 @@ const App: React.FC = () => {
     }
     if (isConnected) {
       const descriptions: Record<TeachingMode, string> = {
-        socratic: "Please switch to Socratic mode: ask me guiding questions rather than lecturing.",
-        eli5: "Please switch to Intuitive / ELI5 mode: explain concepts with clear real-world analogies.",
-        quiz: "Please switch to Quiz mode: test my understanding with practice questions.",
-        deepdive: "Please switch to Deep Dive mode: explain with academic rigor and formulas."
+        socratic: 'Socratic Method: ask guiding, thought-provoking questions',
+        eli5: 'Intuitive & Real-World: simplify with relatable everyday analogies',
+        quiz: 'Quiz & Practice: quiz me on chapter key points and test my recall',
+        deepdive: 'Deep Dive: provide rigorous technical explanations and proofs'
       };
-      sendTextMessage(`[Teaching Mode Changed]: ${descriptions[mode]}`);
+      sendTextMessage(`[TEACHING MODE SWITCH]: Please switch your pedagogy to "${mode}". ${descriptions[mode]}. Acknowledge warmly in 1 punchy sentence.`);
     }
   };
 
-  // Launch Live Interactive Quiz
+  // Start Live Interactive Quiz Arena
   const handleStartQuiz = () => {
+    // Ensure Study Board is open and Live Quiz tab is active
+    setIsStudyBoardOpen(true);
+    setActiveStudyTab('quiz');
+
     setQuizState({
       isActive: true,
       currentIndex: 0,
@@ -141,61 +255,49 @@ const App: React.FC = () => {
       isCompleted: false,
       streak: 0
     });
-    setAvatarMood('thinking');
+    setAvatarMood('talking');
 
     const firstQ = selectedChapter.quiz[0];
-    const promptText = `[QUIZ START]: I am starting the interactive quiz on "${selectedChapter.title}". Please enthusiastically announce the quiz! Then read Question 1: "${firstQ.question}", read out the choices: ${firstQ.options.map((opt, i) => `${String.fromCharCode(65 + i)}: ${opt}`).join(', ')}, and invite me to answer!`;
-
-    if (isConnected) {
-      sendTextMessage(promptText);
-    } else {
-      connect(selectedDeviceId);
-      setTimeout(() => {
-        sendTextMessage(promptText);
-      }, 1500);
+    if (isConnected && firstQ) {
+      sendTextMessage(
+        `[QUIZ STARTED]: Let's begin the chapter quiz for "${selectedChapter.title}"! Question 1: "${firstQ.question}". Choices are: ${firstQ.options.map((opt, i) => `${String.fromCharCode(65 + i)}: ${opt}`).join(', ')}. Please read Question 1 to me with enthusiastic energy and invite my answer!`
+      );
     }
   };
 
-  // Handle student answering an interactive quiz option
-  const handleSelectQuizOption = (qIndex: number, optIndex: number) => {
-    const currentQ = selectedChapter.quiz[qIndex];
-    if (!currentQ || quizState.isAnswerSubmitted[qIndex]) return;
+  // Student selects an option in the quiz HUD
+  const handleSelectQuizOption = (qIndex: number, optionIndex: number) => {
+    if (quizState.isAnswerSubmitted[qIndex]) return;
 
-    const isCorrect = optIndex === currentQ.correctIndex;
+    const currentQ = selectedChapter.quiz[qIndex];
+    const isCorrect = optionIndex === currentQ.correctIndex;
+
     const newScore = isCorrect ? quizState.score + 1 : quizState.score;
     const newStreak = isCorrect ? quizState.streak + 1 : 0;
 
     setQuizState(prev => ({
       ...prev,
-      selectedAnswers: { ...prev.selectedAnswers, [qIndex]: optIndex },
+      selectedAnswers: { ...prev.selectedAnswers, [qIndex]: optionIndex },
       isAnswerSubmitted: { ...prev.isAnswerSubmitted, [qIndex]: true },
       score: newScore,
       streak: newStreak
     }));
 
-    // Trigger instant visual avatar reaction
-    if (isCorrect) {
-      setAvatarMood('celebrating');
-      setTimeout(() => setAvatarMood('talking'), 3500);
-    } else {
-      setAvatarMood('empathetic');
-      setTimeout(() => setAvatarMood('talking'), 3500);
-    }
+    setAvatarMood(isCorrect ? 'celebrating' : 'empathetic');
 
-    // Trigger instant verbal reaction from Tutor
     if (isConnected) {
-      const selectedLetter = String.fromCharCode(65 + optIndex);
+      const selectedLetter = String.fromCharCode(65 + optionIndex);
+      const selectedText = currentQ.options[optionIndex];
       const correctLetter = String.fromCharCode(65 + currentQ.correctIndex);
-      const selectedText = currentQ.options[optIndex];
       const correctText = currentQ.options[currentQ.correctIndex];
 
       if (isCorrect) {
         sendTextMessage(
-          `[QUIZ ANSWER]: For Question ${qIndex + 1} ("${currentQ.question}"), I chose ${selectedLetter}: "${selectedText}". That is CORRECT! Please give me instant enthusiastic spoken praise, reinforce why this answer is correct in 2 sentences, and ask if I am ready for the next question!`
+          `[QUIZ ANSWER]: For Question ${qIndex + 1} ("${currentQ.question}"), I chose ${selectedLetter}: "${selectedText}". That is CORRECT! Please give me instant enthusiastic spoken praise, reinforce why this answer is correct according to "${selectedChapter.title}" in 2 sentences, and ask if I am ready for the next question!`
         );
       } else {
         sendTextMessage(
-          `[QUIZ ANSWER]: For Question ${qIndex + 1} ("${currentQ.question}"), I chose ${selectedLetter}: "${selectedText}". The correct answer is ${correctLetter}: "${correctText}". Please give me gentle, encouraging feedback, verbally explain the core concept and why my choice was a common misconception: "${currentQ.explanation}", and cheer me on!`
+          `[QUIZ ANSWER]: For Question ${qIndex + 1} ("${currentQ.question}"), I chose ${selectedLetter}: "${selectedText}". The correct answer is ${correctLetter}: "${correctText}". Please give me gentle, encouraging feedback, verbally explain the chapter concept and why my choice was a common pitfall: "${currentQ.explanation}", and cheer me on!`
         );
       }
     }
@@ -217,12 +319,45 @@ const App: React.FC = () => {
         );
       }
     } else {
-      // Quiz complete
-      setQuizState(prev => ({ ...prev, isCompleted: true }));
+      // Quiz complete: Mark chapter as completed and save score!
+      const totalQ = selectedChapter.quiz.length;
+      const finalScore = quizState.score;
+      const percentage = totalQ > 0 ? Math.round((finalScore / totalQ) * 100) : 0;
+
+      const newScore: ChapterScore = {
+        chapterId: selectedChapter.id,
+        chapterTitle: selectedChapter.title,
+        score: finalScore,
+        total: totalQ,
+        percentage,
+        completedAt: new Date().toLocaleDateString(),
+        details: selectedChapter.quiz.map((q, idx) => ({
+          question: q.question,
+          selectedOption: q.options[quizState.selectedAnswers[idx]] || 'Not answered',
+          correctOption: q.options[q.correctIndex],
+          isCorrect: quizState.selectedAnswers[idx] === q.correctIndex,
+        }))
+      };
+
+      setChapterScores(prev => {
+        const updated = { ...prev, [selectedChapter.id]: newScore };
+        try {
+          localStorage.setItem('ai_avatar_chapter_scores', JSON.stringify(updated));
+        } catch (e) {
+          console.warn('LocalStorage save error:', e);
+        }
+        return updated;
+      });
+
+      setQuizState(prev => ({ ...prev, isCompleted: true, isActive: false }));
       setAvatarMood('celebrating');
+      handleUpdateChapterStatus(selectedChapter.id, 'completed');
+      setActiveStudyTab('scoreboard');
+      setIsStudyBoardOpen(true);
+
       if (isConnected) {
         sendTextMessage(
-          `[QUIZ COMPLETE]: I finished the quiz for "${selectedChapter.title}" with a score of ${quizState.score} out of ${selectedChapter.quiz.length}! Please give me a celebratory summary of my performance, praise my dedication, and give a quick study tip!`
+          `[QUIZ COMPLETE]: I finished the quiz for "${selectedChapter.title}" with a score of ${finalScore} out of ${totalQ}! Please warmly congratulate me on completing this chapter quiz and review my achievement!`
         );
       }
     }
@@ -252,40 +387,37 @@ const App: React.FC = () => {
     setAvatarMood('empathetic');
     if (isConnected && currentQ) {
       sendTextMessage(
-        `${activePersona.name}, can you break down question #${quizState.currentIndex + 1} step-by-step: "${currentQ.question}"? Why is "${currentQ.options[currentQ.correctIndex]}" the right answer?`
+        `${activePersona.name}, can you break down question #${quizState.currentIndex + 1} step-by-step from our chapter: "${currentQ.question}"? Why is "${currentQ.options[currentQ.correctIndex]}" the right answer?`
       );
     }
   };
 
   // Send prompt from study board chips
   const handleSendPrompt = (promptText: string) => {
-    setAvatarMood('listening');
     if (isConnected) {
+      setAvatarMood('talking');
       sendTextMessage(promptText);
-    } else {
-      // Connect first, then send
-      connect(selectedDeviceId);
-      setTimeout(() => {
-        sendTextMessage(promptText);
-      }, 1500);
     }
   };
 
   const error = deviceError || sessionError;
-  const isLoading = isConnecting || isWaitingForVideo;
+  const isLoading = isConnecting;
+  const currentChapterStatus = chapterStatuses[selectedChapter.id] || 'in_progress';
 
   return (
-    <div className="flex w-full h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
+    <div className={`relative flex h-screen w-screen overflow-hidden ${theme === 'dark' ? 'dark bg-slate-950 text-white' : 'bg-slate-100 text-slate-800'}`}>
       {/* Left: Live Transcription & Dialogue */}
       <TranscriptionPanel
         isOpen={isTranscriptionPanelOpen}
         onClose={() => setIsTranscriptionPanelOpen(false)}
         history={chatHistory}
+        chatHistory={chatHistory}
         liveInput={liveInput}
         liveOutput={liveOutput}
         onSendMessage={sendTextMessage}
         isConnected={isConnected}
         isAvatarVisible={isAvatarVisible}
+        activePersona={activePersona}
       />
 
       {/* Center: Live Avatar Stage */}
@@ -305,66 +437,54 @@ const App: React.FC = () => {
           onOpenChapterModal={() => setIsChapterModalOpen(true)}
           activePersona={activePersona}
           onSelectPersona={handleSelectPersona}
+          chapterStatus={currentChapterStatus}
         />
 
         <DebugPanel showDebug={showDebug} debugStats={debugStats} />
 
-        {/* Real AI Avatar Display Stage */}
-        <AvatarDisplay
-          videoRef={videoRef}
-          hasVideo={hasVideo}
-          isConnected={isConnected}
-          isLoading={isLoading}
-          error={error}
-          isAvatarVisible={isAvatarVisible}
-          agentTalking={agentTalking}
-          selectedChapter={selectedChapter}
-          activePersona={activePersona}
-          onSelectPersona={handleSelectPersona}
-          avatarMood={avatarMood}
-          onSendPrompt={handleSendPrompt}
-        />
+        {/* Stage Content: Real AI Avatar Stage + Control Bar (Centered & completely unobstructed) */}
+        <div className="w-full flex-1 flex items-center justify-center p-2 sm:p-4 min-h-0 overflow-y-auto">
+          <div className="flex flex-col items-center justify-center w-full max-w-2xl shrink-0 gap-3">
+            <AvatarDisplay
+              videoRef={videoRef}
+              hasVideo={hasVideo}
+              isConnected={isConnected}
+              isLoading={isLoading}
+              error={error}
+              isAvatarVisible={isAvatarVisible}
+              agentTalking={agentTalking}
+              selectedChapter={selectedChapter}
+              activePersona={activePersona}
+              onSelectPersona={handleSelectPersona}
+              avatarMood={avatarMood}
+              onSendPrompt={handleSendPrompt}
+            />
 
-        {/* Live Interactive Quiz HUD on Avatar Stage */}
-        <LiveQuizOverlay
-          chapter={selectedChapter}
-          quizState={quizState}
-          onSelectOption={(optIdx) => handleSelectQuizOption(quizState.currentIndex, optIdx)}
-          onNextQuestion={handleNextQuizQuestion}
-          onPrevQuestion={handlePrevQuizQuestion}
-          onRestartQuiz={handleStartQuiz}
-          onCloseQuiz={() => {
-            setQuizState(prev => ({ ...prev, isActive: false }));
-            setAvatarMood('idle');
-          }}
-          onAskTutorToSpeakQuestion={handleAskTutorToSpeakQuestion}
-          onAskTutorForDeepExplanation={handleAskTutorForDeepExplanation}
-          isConnected={isConnected}
-        />
-
-        <ControlBar
-          isConnected={isConnected}
-          isConnecting={isConnecting}
-          isLoading={isLoading}
-          connect={handleConnect}
-          disconnect={disconnect}
-          isMuted={isMuted}
-          toggleMute={() => setIsMuted(!isMuted)}
-          audioDevices={audioDevices}
-          selectedDeviceId={selectedDeviceId}
-          handleDeviceChange={handleDeviceChange}
-          audioOutputDevices={audioOutputDevices}
-          selectedAudioOutputId={selectedAudioOutputId}
-          handleAudioOutputChange={handleAudioOutputChange}
-          videoMode={videoMode}
-          setVideoMode={setVideoMode}
-          videoDevices={videoDevices}
-          selectedVideoDeviceId={selectedVideoDeviceId}
-          setSelectedVideoDeviceId={setSelectedVideoDeviceId}
-        />
+            <ControlBar
+              isConnected={isConnected}
+              isConnecting={isConnecting}
+              isLoading={isLoading}
+              connect={handleConnect}
+              disconnect={disconnect}
+              isMuted={isMuted}
+              toggleMute={() => setIsMuted(!isMuted)}
+              audioDevices={audioDevices}
+              selectedDeviceId={selectedDeviceId}
+              handleDeviceChange={handleDeviceChange}
+              audioOutputDevices={audioOutputDevices}
+              selectedAudioOutputId={selectedAudioOutputId}
+              handleAudioOutputChange={handleAudioOutputChange}
+              videoMode={videoMode}
+              setVideoMode={setVideoMode}
+              videoDevices={videoDevices}
+              selectedVideoDeviceId={selectedVideoDeviceId}
+              setSelectedVideoDeviceId={setSelectedVideoDeviceId}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Right: Study Board (Concepts, Practice Quiz & Tutor Prompts) */}
+      {/* Right: Study Board (Concepts, Live Quiz Launcher & Chapter-Wise Scoreboard) */}
       {isStudyBoardOpen && (
         <StudyBoard
           chapter={selectedChapter}
@@ -387,7 +507,37 @@ const App: React.FC = () => {
               streak: 0
             });
             setAvatarMood('idle');
+            setChapterScores(prev => {
+              const updated = { ...prev };
+              delete updated[selectedChapter.id];
+              try {
+                localStorage.setItem('ai_avatar_chapter_scores', JSON.stringify(updated));
+              } catch (e) {
+                console.warn('LocalStorage save error:', e);
+              }
+              return updated;
+            });
           }}
+          chapterStatus={currentChapterStatus}
+          onUpdateChapterStatus={handleUpdateChapterStatus}
+          isLessonCompleted={isLessonCompleted}
+          onUnlockQuiz={() => {
+            setIsLessonCompleted(true);
+            handleUpdateChapterStatus(selectedChapter.id, 'completed');
+          }}
+          chapterScores={chapterScores}
+          allChapters={allChapters}
+          onSelectChapter={handleSelectChapter}
+          activeTab={activeStudyTab}
+          onSetActiveTab={setActiveStudyTab}
+          onNextQuizQuestion={handleNextQuizQuestion}
+          onPrevQuizQuestion={handlePrevQuizQuestion}
+          onCloseQuiz={() => {
+            setQuizState(prev => ({ ...prev, isActive: false }));
+            setAvatarMood('idle');
+          }}
+          onAskTutorToSpeakQuestion={handleAskTutorToSpeakQuestion}
+          onAskTutorForDeepExplanation={handleAskTutorForDeepExplanation}
         />
       )}
 
@@ -405,6 +555,8 @@ const App: React.FC = () => {
         onClose={() => setIsChapterModalOpen(false)}
         selectedChapter={selectedChapter}
         onSelectChapter={handleSelectChapter}
+        chapterStatuses={chapterStatuses}
+        onUpdateChapterStatus={handleUpdateChapterStatus}
       />
     </div>
   );

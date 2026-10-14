@@ -27,6 +27,7 @@ export interface AvatarPersona {
 export interface ConceptCard {
   title: string;
   summary: string;
+  keyPoints?: string[];
   example?: string;
   formula?: string;
 }
@@ -50,6 +51,23 @@ export interface QuizSessionState {
   streak: number;
 }
 
+export type ChapterStatus = 'not_started' | 'in_progress' | 'completed';
+
+export interface ChapterScore {
+  chapterId: string;
+  chapterTitle: string;
+  score: number;
+  total: number;
+  percentage: number;
+  completedAt: string;
+  details?: {
+    question: string;
+    selectedOption: string;
+    correctOption: string;
+    isCorrect: boolean;
+  }[];
+}
+
 export interface Chapter {
   id: string;
   subjectId: string;
@@ -58,8 +76,11 @@ export interface Chapter {
   summary: string;
   objectives: string[];
   keyConcepts: ConceptCard[];
-  quickPrompts: string[];
+  quickPrompts?: string[];
   quiz: QuizQuestion[];
+  status?: ChapterStatus;
+  rawContent?: string;
+  sourcePdf?: string;
 }
 
 export interface Subject {

@@ -99,6 +99,94 @@ def get_curriculum_library():
     library.sort(key=lambda x: x.get("created_at", 0.0), reverse=True)
     return library
 
+@app.get("/api/curriculum/{curriculum_id}")
+def get_curriculum(curriculum_id: str):
+    plan = LESSON_PLANS_DB.get(curriculum_id)
+    if not plan:
+        raise HTTPException(status_code=404, detail="Curriculum not found")
+    return plan
+
+@app.get("/api/live-avatar/chapters")
+def get_live_avatar_chapters():
+    """
+    Returns all PDF-based textbook curricula in the exact format required
+    by the Gemini Live Avatar (Option 2) Study Curriculum & RAG engine.
+    """
+    chapters = []
+    import re
+    for cid, plan in LESSON_PLANS_DB.items():
+        key_concepts = []
+        quiz_questions = []
+        objectives = []
+        seen_question_texts = set()
+        seen_topic_titles = set()
+        
+        for idx, t in enumerate(plan.topics):
+            # Clean title: strip Unit 1:, Chapter 1:, etc.
+            clean_title = re.sub(r'^(Unit|Chapter|Section)\s+\d+:\s*', '', t.title, flags=re.IGNORECASE).strip()
+            if not clean_title or clean_title in seen_topic_titles:
+                continue
+            seen_topic_titles.add(clean_title)
+            objectives.append(clean_title)
+            
+            # Key points extraction from visual slide bullet points or sentences
+            bullet_points = []
+            if t.visual_slide and t.visual_slide.bullet_points:
+                for b in t.visual_slide.bullet_points:
+                    b_clean = b.strip()
+                    if b_clean and len(b_clean) > 8:
+                        bullet_points.append(b_clean)
+            
+            # If no slide bullets, extract first 2-3 clean sentences as key points
+            if not bullet_points and t.concept_summary:
+                raw_sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', t.concept_summary) if len(s.strip()) > 15]
+                bullet_points = raw_sentences[:3]
+
+            bullet_text = " • ".join(bullet_points) if bullet_points else t.concept_summary
+            
+            key_concepts.append({
+                "title": clean_title,
+                "summary": bullet_text or clean_title,
+                "keyPoints": bullet_points,
+                "example": t.real_world_analogy or (bullet_points[0] if bullet_points else None)
+            })
+            
+            # Quiz checkpoint questions strictly prepared from the chapter text (Zero Duplicates)
+            checkpoints = t.checkpoints or ([t.checkpoint] if t.checkpoint else [])
+            for q_idx, chk in enumerate(checkpoints):
+                q_text = chk.question_text.strip()
+                if not q_text or q_text in seen_question_texts:
+                    continue
+                seen_question_texts.add(q_text)
+                
+                quiz_questions.append({
+                    "id": chk.question_id or f"{cid}_q_{idx}_{q_idx}",
+                    "question": q_text,
+                    "options": chk.options,
+                    "correctIndex": chk.correct_option_index,
+                    "explanation": f"Based on '{clean_title}': {chk.correct_answer_text}",
+                    "hint": chk.rubric_hint or "Review the chapter section above."
+                })
+        
+        chapters.append({
+            "id": cid,
+            "subjectId": "pdf-curriculum",
+            "title": plan.chapter_title,
+            "gradeLevel": plan.grade_level,
+            "summary": f"Textbook chapter containing {len(key_concepts)} key concepts and {len(quiz_questions)} concept checkpoints.",
+            "objectives": objectives,
+            "keyConcepts": key_concepts,
+            "quickPrompts": [
+                f"Tutor Jay, please explain the core principles of {plan.chapter_title}.",
+                f"Can you give me an intuitive real-world analogy for {plan.chapter_title}?",
+                f"Quiz me on {plan.chapter_title} step-by-step!"
+            ],
+            "quiz": quiz_questions,
+            "rawContent": getattr(plan, "full_pdf_text", "") or "\n\n".join([t.concept_summary for t in plan.topics if t.concept_summary]),
+            "sourcePdf": getattr(plan, "subject", "Uploaded PDF Textbook")
+        })
+    return chapters
+
 @app.post("/api/upload-curriculum", response_model=CurriculumUploadResponse)
 async def upload_curriculum(
     file: Optional[UploadFile] = File(None),

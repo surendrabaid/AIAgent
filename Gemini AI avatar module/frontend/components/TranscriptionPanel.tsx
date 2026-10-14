@@ -1,39 +1,46 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChatMessage } from '../types';
+import { ChatMessage, AvatarPersona } from '../types';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  history: ChatMessage[];
-  liveInput: string;
-  liveOutput: string;
-  onSendMessage: (text: string) => void;
-  isConnected: boolean;
-  isAvatarVisible: boolean;
+  history?: ChatMessage[];
+  chatHistory?: ChatMessage[];
+  liveInput?: string;
+  liveOutput?: string;
+  onSendMessage?: (text: string) => void;
+  isConnected?: boolean;
+  isAvatarVisible?: boolean;
+  activePersona?: AvatarPersona;
 }
 
 export const TranscriptionPanel: React.FC<Props> = ({ 
   isOpen,
   onClose,
   history,
-  liveInput,
-  liveOutput,
+  chatHistory,
+  liveInput = '',
+  liveOutput = '',
   onSendMessage,
-  isConnected,
-  isAvatarVisible
+  isConnected = false,
+  isAvatarVisible = true,
+  activePersona
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [inputText, setInputText] = useState('');
+
+  const messageList = history || chatHistory || [];
+  const tutorName = activePersona?.name || 'Tutor Jay';
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [history, liveInput, liveOutput, isOpen]);
+  }, [messageList, liveInput, liveOutput, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputText.trim() && isConnected) {
+    if (inputText.trim() && isConnected && onSendMessage) {
       onSendMessage(inputText);
       setInputText('');
     }
@@ -76,7 +83,7 @@ export const TranscriptionPanel: React.FC<Props> = ({
 
         {/* Chat History */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3.5" ref={scrollRef}>
-          {history.length === 0 && !liveInput && !liveOutput && (
+          {messageList.length === 0 && !liveInput && !liveOutput && (
             <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 text-xs text-center px-4 gap-3">
               <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500 flex items-center justify-center">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,16 +91,16 @@ export const TranscriptionPanel: React.FC<Props> = ({
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-slate-700 dark:text-slate-300">Ready to speak with Tutor Jay</p>
+                <p className="font-semibold text-slate-700 dark:text-slate-300">Ready to speak with {tutorName}</p>
                 <p className="text-slate-400 mt-1">Start the lesson or ask any question. Spoken words will transcribe in real time.</p>
               </div>
             </div>
           )}
 
-          {history.map((msg) => (
+          {messageList.map((msg) => (
             <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
               <span className="text-[10px] font-semibold text-slate-400 mb-1 px-1">
-                {msg.role === 'user' ? 'You' : 'Tutor Jay'}
+                {msg.role === 'user' ? 'You' : tutorName}
               </span>
               <div className={`max-w-[88%] rounded-2xl px-4 py-2.5 text-xs shadow-xs leading-relaxed ${
                 msg.role === 'user'
@@ -116,7 +123,7 @@ export const TranscriptionPanel: React.FC<Props> = ({
 
           {liveOutput && (
             <div className="flex flex-col items-start">
-              <span className="text-[10px] font-semibold text-indigo-500 mb-1 px-1">Tutor Jay (Explaining...)</span>
+              <span className="text-[10px] font-semibold text-indigo-500 mb-1 px-1">{tutorName} (Explaining...)</span>
               <div className="max-w-[88%] rounded-2xl px-4 py-2.5 text-xs shadow-xs leading-relaxed bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-xs border border-indigo-300 dark:border-indigo-700 animate-pulse">
                 {liveOutput}
               </div>
@@ -131,7 +138,7 @@ export const TranscriptionPanel: React.FC<Props> = ({
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder={isConnected ? "Type a question for Tutor Jay..." : "Connect to start conversation..."}
+              placeholder={isConnected ? `Type a question for ${tutorName}...` : "Connect to start conversation..."}
               disabled={!isConnected}
               className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed transition"
             />

@@ -79,10 +79,80 @@ export default function App() {
     setActiveTab('report');
   };
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error("LiveAvatarApp ErrorBoundary caught:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px',
+          background: '#0F172A',
+          color: '#F8FAFC',
+          textAlign: 'center'
+        }}>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '12px' }}>
+            Oops! An issue occurred in Gemini Live Avatar
+          </h2>
+          <p style={{ color: '#94A3B8', maxWidth: '500px', marginBottom: '24px', fontSize: '0.95rem' }}>
+            {this.state.error?.message || 'Unexpected application error.'}
+          </p>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button
+              onClick={() => this.setState({ hasError: false, error: null })}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '12px',
+                background: '#6366F1',
+                color: '#FFF',
+                fontWeight: 700,
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              Try Again
+            </button>
+            <button
+              onClick={this.props.onBack}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '12px',
+                background: '#334155',
+                color: '#FFF',
+                fontWeight: 700,
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              Back to Selection
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
   // Option 2: Gemini Live Avatar -> Integrated AI Home Tutor Native Component
   if (selectedMode === 'live') {
     return (
-      <LiveAvatarApp onBackToSelection={() => setSelectedMode(null)} />
+      <ErrorBoundary onBack={() => setSelectedMode(null)}>
+        <LiveAvatarApp onBackToSelection={() => setSelectedMode(null)} />
+      </ErrorBoundary>
     );
   }
 

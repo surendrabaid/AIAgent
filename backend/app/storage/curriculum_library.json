@@ -1,645 +1,882 @@
 {
- "curr_fc6c47ec35": {
- "curriculum_id": "curr_fc6c47ec35",
- "chapter_title": "Unit 1",
- "subject": "Textbook Unit",
- "grade_level": "Grade 4",
- "target_age": 9,
- "topics": [
- {
- "topic_id": "topic_1",
- "title": "Unit 1: Unit Families Communities",
- "concept_summary": "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families that live close \r\nto one another in supportive and cooperative \r\ncommunities. Together, we cultivate a variety of \r\nplants and care for different animals, contributing \r\nto the well-being of our shared environment. \r\nThrough mutual aid and collective efforts, we \r\nbuild vibrant and harmonious communities.\r\nThis unit explores the many facets of our \r\nfamilies and communities, highlighting our \r\ncollaborative work and mutual support. We \r\nare dedicated to maintaining and respecting \r\nour surroundings, protecting the plants and \r\nanimals that sustain us with food, clothing, \r\nand more. Celebrations, such as melas \r\nand festivals, bring us together \r\nto play, sing, and dance, \r\nwhile we also express \r\ngratitude by respecting \r\nthe natural elements \r\nincluding the sun, \r\nmoon, air, water, \r\nand soil.",
- "explanation_script": "Namaste! Let's explore 'Unit Families Communities'. Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families that live close \r\nto one another in supportive and cooperative \r\ncommunities. Together, we cultivate a variety of \r\nplants and care for different animals, contributing \r\nto the well-being of our shared environment. \r\nThrough mutual aid and collective efforts, we \r\nbuild vibrant and harmonious communities.\r\nThis unit explores the many facets of our \r\nfamilies and communities, highlighting our \r\ncollaborative work and mutual support. We \r\nare dedicated to maintaining and respecting \r\nour surroundings, protecting the plants and \r\nanimals that sustain us with food, clothing, \r\nand more. Celebrations, such as melas \r\nand festivals, bring us together \r\nto play, sing, and dance, \r\nwhile we also express \r\ngratitude by respecting \r\nthe natural elements \r\nincluding the sun, \r\nmoon, air, water, \r\nand soil. Notice how this concept helps us understand Unit 1 deeply!",
- "real_world_analogy": null,
- "visual_slide": {
- "headline": "Unit Families Communities",
- "bullet_points": [
- "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families that live ...",
- "Together, we cultivate a variety of \r\nplants and care for different animals, contributing \r\nto the w...",
- "Through mutual aid and collective efforts, we \r\nbuild vibrant and harmonious communities.\r\nThis unit..."
- ],
- "diagram_type": "concept_map",
- "image_prompt": null,
- "svg_illustration": null
- },
- "checkpoint": {
- "question_id": "chk_1",
- "question_text": "Regarding 'Unit Families Communities', which statement accurately reflects what we just learned?",
- "options": [
- "This section does not apply to Unit Families Communities at all.",
- "Together, we cultivate a variety of \r\nplants and care for different animals, contributing ...",
- "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families ..."
- ],
- "correct_option_index": 2,
- "correct_answer_text": "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families ...",
- "rubric_hint": "Child should select statement accurately describing Unit Families Communities."
- },
- "checkpoints": [
- {
- "question_id": "chk_1_1",
- "question_text": "Regarding 'Unit Families Communities', which statement accurately reflects what we just learned?",
- "options": [
- "This section does not apply to Unit Families Communities at all.",
- "Together, we cultivate a variety of \r\nplants and care for different animals, contributing ...",
- "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families ..."
- ],
- "correct_option_index": 2,
- "correct_answer_text": "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families ...",
- "rubric_hint": "Child should select statement accurately describing Unit Families Communities."
- },
- {
- "question_id": "chk_1_2",
- "question_text": "To confirm your deep understanding of Unit 1: Unit Families Communities, which of the following is also true?",
- "options": [
- "This section does not apply to Unit Families Communities at all.",
- "Together, we cultivate a variety of \r\nplants and care for different animals, contributing ...",
- "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families ..."
- ],
- "correct_option_index": 2,
- "correct_answer_text": "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families ...",
- "rubric_hint": "Child should select statement accurately describing Unit Families Communities."
- }
- ]
- },
- {
- "topic_id": "topic_2",
- "title": "Unit 2: Family Friends Playing",
- "concept_summary": "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste! Welcome to my home! \r\nMy name is Bela. I have two brothers \r\n— Banku Bhaiya and little Bishu. We \r\nenjoy playing chhupan-chhupai outside \r\ntogether. Do you know how to play \r\nchhupan-chhupai (hide and seek)?",
- "explanation_script": "Namaste! Let's explore 'Family Friends Playing'. Family and Friends\r\n1\r\nPlaying Together\r\nNamaste! Welcome to my home! \r\nMy name is Bela. I have two brothers \r\n— Banku Bhaiya and little Bishu. We \r\nenjoy playing chhupan-chhupai outside \r\ntogether. Do you know how to play \r\nchhupan-chhupai (hide and seek)? Notice how this concept helps us understand Unit 1 deeply!",
- "real_world_analogy": null,
- "visual_slide": {
- "headline": "Family Friends Playing",
- "bullet_points": [
- "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
- "Welcome to my home!",
- "My name is Bela."
- ],
- "diagram_type": "concept_map",
- "image_prompt": null,
- "svg_illustration": null
- },
- "checkpoint": {
- "question_id": "chk_2",
- "question_text": "Regarding 'Family Friends Playing', which statement accurately reflects what we just learned?",
- "options": [
- "Welcome to my home!...",
- "This section does not apply to Family Friends Playing at all.",
- "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!"
- ],
- "correct_option_index": 2,
- "correct_answer_text": "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
- "rubric_hint": "Child should select statement accurately describing Family Friends Playing."
- },
- "checkpoints": [
- {
- "question_id": "chk_2_1",
- "question_text": "Regarding 'Family Friends Playing', which statement accurately reflects what we just learned?",
- "options": [
- "Welcome to my home!...",
- "This section does not apply to Family Friends Playing at all.",
- "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!"
- ],
- "correct_option_index": 2,
- "correct_answer_text": "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
- "rubric_hint": "Child should select statement accurately describing Family Friends Playing."
- },
- {
- "question_id": "chk_2_2",
- "question_text": "To confirm your deep understanding of Unit 2: Family Friends Playing, which of the following is also true?",
- "options": [
- "Welcome to my home!...",
- "This section does not apply to Family Friends Playing at all.",
- "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!"
- ],
- "correct_option_index": 2,
- "correct_answer_text": "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
- "rubric_hint": "Child should select statement accurately describing Family Friends Playing."
- }
- ]
- },
- {
- "topic_id": "topic_3",
- "title": "Unit 3: Family Friends Playing",
- "concept_summary": "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste! Welcome to my home! \r\nMy name is Bela. I have two brothers \r\n— Banku Bhaiya and little Bishu. We \r\nenjoy playing chhupan-chhupai outside \r\ntogether. Do you know how to play \r\nchhupan-chhupai (hide and seek)?",
- "explanation_script": "Namaste! Let's explore 'Family Friends Playing'. Family and Friends\r\n1\r\nPlaying Together\r\nNamaste! Welcome to my home! \r\nMy name is Bela. I have two brothers \r\n— Banku Bhaiya and little Bishu. We \r\nenjoy playing chhupan-chhupai outside \r\ntogether. Do you know how to play \r\nchhupan-chhupai (hide and seek)? Notice how this concept helps us understand Unit 1 deeply!",
- "real_world_analogy": null,
- "visual_slide": {
- "headline": "Family Friends Playing",
- "bullet_points": [
- "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
- "Welcome to my home!",
- "My name is Bela."
- ],
- "diagram_type": "concept_map",
- "image_prompt": null,
- "svg_illustration": null
- },
- "checkpoint": {
- "question_id": "chk_3",
- "question_text": "Regarding 'Family Friends Playing', which statement accurately reflects what we just learned?",
- "options": [
- "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
- "Welcome to my home!...",
- "This section does not apply to Family Friends Playing at all."
- ],
- "correct_option_index": 0,
- "correct_answer_text": "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
- "rubric_hint": "Child should select statement accurately describing Family Friends Playing."
- },
- "checkpoints": [
- {
- "question_id": "chk_3_1",
- "question_text": "Regarding 'Family Friends Playing', which statement accurately reflects what we just learned?",
- "options": [
- "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
- "Welcome to my home!...",
- "This section does not apply to Family Friends Playing at all."
- ],
- "correct_option_index": 0,
- "correct_answer_text": "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
- "rubric_hint": "Child should select statement accurately describing Family Friends Playing."
- },
- {
- "question_id": "chk_3_2",
- "question_text": "To confirm your deep understanding of Unit 3: Family Friends Playing, which of the following is also true?",
- "options": [
- "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
- "Welcome to my home!...",
- "This section does not apply to Family Friends Playing at all."
- ],
- "correct_option_index": 0,
- "correct_answer_text": "Family and Friends\r\n1\r\nPlaying Together\r\nNamaste!",
- "rubric_hint": "Child should select statement accurately describing Family Friends Playing."
- }
- ]
- }
- ],
- "key_vocabulary": [
- {
- "word": "Families",
- "definition": "Key term from Unit 1 explaining fundamental concepts."
- },
- {
- "word": "Communities",
- "definition": "Key term from Unit 1 explaining fundamental concepts."
- }
- ],
- "full_pdf_text": "Unit 1\r\nOur Families and Communities\r\nAbout the unit\r\nWe all come from different families that live close \r\nto one another in supportive and cooperative \r\ncommunities. Together, we cultivate a variety of \r\nplants and care for different animals, contributing \r\nto the well-being of our shared environment. \r\nThrough mutual aid and collective efforts, we \r\nbuild vibrant and harmonious communities.\r\nThis unit explores the many facets of our \r\nfamilies and communities, highlighting our \r\ncollaborative work and mutual support. We \r\nare dedicated to maintaining and respecting \r\nour surroundings, protecting the plants and \r\nanimals that sustain us with food, clothing, \r\nand more. Celebrations, such as melas \r\nand festivals, bring us together \r\nto play, sing, and dance, \r\nwhile we also express \r\ngratitude by respecting \r\nthe natural elements \r\nincluding the sun, \r\nmoon, air, water, \r\nand soil.\r\n\r\n\r\n\r\nChapter 1\r\n\r\nFamily and Friends\r\n1\r\nPlaying Together\r\nNamaste! Welcome to my home! \r\nMy name is Bela. I have two brothers \r\n— Banku Bhaiya and little Bishu. We \r\nenjoy playing chhupan-chhupai outside \r\ntogether. Do you know how to play \r\nchhupan-chhupai (hide and seek)? \r\n",
- "created_at": 1791703250.977126
- },
- "curr_0d643337fc": {
- "curriculum_id": "curr_0d643337fc",
- "chapter_title": "Unit 1 : Our Families And Communities",
- "subject": "Textbook Unit",
- "grade_level": "Grade 3",
- "target_age": 8,
- "topics": [
- {
- "topic_id": "topic_1",
- "title": "Family and Fun: Playing Together with Bela",
- "concept_summary": "Namaste Vihana! Come, let us step into the cheerful world of our friend Bela! Bela lives with her wonderful brothers—Banku Bhaiya, her older brother, and sweet little Bishu. Have you ever wondered why playing together makes brothers, sisters, and friends feel so close? When Bela and her brothers play 'chhupan-chhupai'—which is the Hindi name for hide-and-seek—they learn to take turns, look out for one another, and share joyful giggles. A family is like a little team where everyone cares for each other, whether during study time or playful outdoor games. Isn't that lovely, Vihana?",
- "explanation_script": "Namaste Vihana! Come, let us step into the cheerful world of our friend Bela! Bela lives with her wonderful brothers—Banku Bhaiya, her older brother, and sweet little Bishu. Have you ever wondered why playing together makes brothers, sisters, and friends feel so close? When Bela and her brothers play 'chhupan-chhupai'—which is the Hindi name for hide-and-seek—they learn to take turns, look out for one another, and share joyful giggles. A family is like a little team where everyone cares for each other, whether during study time or playful outdoor games. Isn't that lovely, Vihana?",
- "real_world_analogy": null,
- "visual_slide": {
- "headline": "Family and Fun: Playing Together with Bela",
- "bullet_points": [
- "Bela lives with her brothers, Banku Bhaiya and little Bishu.",
- "They love playing traditional games like chhupan-chhupai (hide-and-seek).",
- "Playing games builds love, trust, and teamwork among siblings and friends."
- ],
- "diagram_type": "concept_map",
- "image_prompt": null,
- "svg_illustration": null
- },
- "checkpoint": {
- "question_id": "chk_1",
- "question_text": "What traditional game do Bela, Banku Bhaiya, and little Bishu love playing outside together?",
- "options": [
- "Chhupan-chhupai (Hide-and-seek)",
- "Carrom",
- "Chess"
- ],
- "correct_option_index": 0,
- "correct_answer_text": "Chhupan-chhupai (Hide-and-seek)",
- "rubric_hint": "Child should select correct answer."
- },
- "checkpoints": [
- {
- "question_id": "chk_1_1",
- "question_text": "What traditional game do Bela, Banku Bhaiya, and little Bishu love playing outside together?",
- "options": [
- "Chhupan-chhupai (Hide-and-seek)",
- "Carrom",
- "Chess"
- ],
- "correct_option_index": 0,
- "correct_answer_text": "Chhupan-chhupai (Hide-and-seek)",
- "rubric_hint": "Child should select correct answer."
- },
- {
- "question_id": "chk_1_2",
- "question_text": "To confirm your deep understanding of Family and Fun: Playing Together with Bela, which of the following is also true?",
- "options": [
- "Chhupan-chhupai (Hide-and-seek)",
- "Carrom",
- "Chess"
- ],
- "correct_option_index": 0,
- "correct_answer_text": "Chhupan-chhupai (Hide-and-seek)",
- "rubric_hint": "Child should select correct answer."
- }
- ]
- },
- {
- "topic_id": "topic_2",
- "title": "What is a Community? Helping Hands Together",
- "concept_summary": "Now, Vihana, let's look beyond Bela's front door to all the houses nearby! Many different families live close to one another, and together they form what we call a 'community'. But why do we live in communities instead of living all alone in the woods? We live together because of 'mutual aid', which means helping each other out whenever someone is in need. When neighbors share tools, help fix a fence, or clean the street together, that collective effort creates a peaceful, harmonious neighborhood. When we cooperate, difficult jobs become light and easy for everyone!",
- "explanation_script": "Now, Vihana, let's look beyond Bela's front door to all the houses nearby! Many different families live close to one another, and together they form what we call a 'community'. But why do we live in communities instead of living all alone in the woods? We live together because of 'mutual aid', which means helping each other out whenever someone is in need. When neighbors share tools, help fix a fence, or clean the street together, that collective effort creates a peaceful, harmonious neighborhood. When we cooperate, difficult jobs become light and easy for everyone!",
- "real_world_analogy": null,
- "visual_slide": {
- "headline": "What is a Community? Helping Hands Together",
- "bullet_points": [
- "A community is made of different families living close to one another.",
- "Mutual aid means supporting neighbors through collective, shared efforts.",
- "Cooperation turns big challenges into easy, shared accomplishments."
- ],
- "diagram_type": "concept_map",
- "image_prompt": null,
- "svg_illustration": null
- },
- "checkpoint": {
- "question_id": "chk_2",
- "question_text": "What helps different families build a harmonious and supportive community?",
- "options": [
- "Mutual aid and working together cooperatively",
- "Competing against each other to see who finishes first",
- "Staying inside and never talking to neighbors"
- ],
- "correct_option_index": 0,
- "correct_answer_text": "Mutual aid and working together cooperatively",
- "rubric_hint": "Child should select correct answer."
- },
- "checkpoints": [
- {
- "question_id": "chk_2_1",
- "question_text": "What helps different families build a harmonious and supportive community?",
- "options": [
- "Mutual aid and working together cooperatively",
- "Competing against each other to see who finishes first",
- "Staying inside and never talking to neighbors"
- ],
- "correct_option_index": 0,
- "correct_answer_text": "Mutual aid and working together cooperatively",
- "rubric_hint": "Child should select correct answer."
- },
- {
- "question_id": "chk_2_2",
- "question_text": "To confirm your deep understanding of What is a Community? Helping Hands Together, which of the following is also true?",
- "options": [
- "Mutual aid and working together cooperatively",
- "Competing against each other to see who finishes first",
- "Staying inside and never talking to neighbors"
- ],
- "correct_option_index": 0,
- "correct_answer_text": "Mutual aid and working together cooperatively",
- "rubric_hint": "Child should select correct answer."
- }
- ]
- },
- {
- "topic_id": "topic_3",
- "title": "Caring for Nature: Plants, Animals, and the Elements",
- "concept_summary": "Vihana, did you know that our community includes more than just humans? Yes, our animal friends and green plants are part of our shared home too! Communities cultivate crops and look after farm animals because they generously provide us with delicious food, cozy clothing, and clean air. We also show deep respect and gratitude to natural elements like the bright sun, glowing moon, fresh air, cool water, and rich soil. When we protect our environment, we are thanking Mother Nature for giving us everything we need to stay healthy and strong. Isn't that a wonderful duty to have?",
- "explanation_script": "Vihana, did you know that our community includes more than just humans? Yes, our animal friends and green plants are part of our shared home too! Communities cultivate crops and look after farm animals because they generously provide us with delicious food, cozy clothing, and clean air. We also show deep respect and gratitude to natural elements like the bright sun, glowing moon, fresh air, cool water, and rich soil. When we protect our environment, we are thanking Mother Nature for giving us everything we need to stay healthy and strong. Isn't that a wonderful duty to have?",
- "real_world_analogy": null,
- "visual_slide": {
- "headline": "Caring for Nature: Plants, Animals, and the Elements",
- "bullet_points": [
- "Communities care for plants and animals that provide food and clothing.",
- "We express gratitude to the sun, moon, air, water, and soil.",
- "Protecting our shared environment keeps our whole community healthy."
- ],
- "diagram_type": "concept_map",
- "image_prompt": null,
- "svg_illustration": null
- },
- "checkpoint": {
- "question_id": "chk_3",
- "question_text": "Why do communities protect and care for plants and animals?",
- "options": [
- "Because plants and animals can build houses for us",
- "Because plants and animals do all our homework",
- "Because they sustain us with essential resources like food and clothing"
- ],
- "correct_option_index": 2,
- "correct_answer_text": "Because they sustain us with essential resources like food and clothing",
- "rubric_hint": "Child should select correct answer."
- },
- "checkpoints": [
- {
- "question_id": "chk_3_1",
- "question_text": "Why do communities protect and care for plants and animals?",
- "options": [
- "Because plants and animals can build houses for us",
- "Because plants and animals do all our homework",
- "Because they sustain us with essential resources like food and clothing"
- ],
- "correct_option_index": 2,
- "correct_answer_text": "Because they sustain us with essential resources like food and clothing",
- "rubric_hint": "Child should select correct answer."
- },
- {
- "question_id": "chk_3_2",
- "question_text": "To confirm your deep understanding of Caring for Nature: Plants, Animals, and the Elements, which of the following is also true?",
- "options": [
- "Because plants and animals can build houses for us",
- "Because plants and animals do all our homework",
- "Because they sustain us with essential resources like food and clothing"
- ],
- "correct_option_index": 2,
- "correct_answer_text": "Because they sustain us with essential resources like food and clothing",
- "rubric_hint": "Child should select correct answer."
- }
- ]
- },
- {
- "topic_id": "topic_4",
- "title": "Celebrations and Melas: Joy Brings Us Together",
- "concept_summary": "Put on your festive clothes, Vihana, because it is time to celebrate! In our communities, we gather for wonderful festivals and vibrant village fairs called 'melas'. Why do we celebrate together instead of just partying at home? When everyone comes out to the mela to sing folk songs, dance to the beat of the dholak, and play fun games, all differences melt away! Melas remind us that we belong to one big, joyous family under the sky. Sharing happiness multiplies it, making our bond with our neighbors stronger and sweeter than a warm jalebi!",
- "explanation_script": "Put on your festive clothes, Vihana, because it is time to celebrate! In our communities, we gather for wonderful festivals and vibrant village fairs called 'melas'. Why do we celebrate together instead of just partying at home? When everyone comes out to the mela to sing folk songs, dance to the beat of the dholak, and play fun games, all differences melt away! Melas remind us that we belong to one big, joyous family under the sky. Sharing happiness multiplies it, making our bond with our neighbors stronger and sweeter than a warm jalebi!",
- "real_world_analogy": null,
- "visual_slide": {
- "headline": "Celebrations and Melas: Joy Brings Us Together",
- "bullet_points": [
- "Melas (fairs) and festivals bring community members together in joy.",
- "People sing, dance, play games, and share traditions collectively.",
- "Shared celebrations build friendship and a strong sense of harmony."
- ],
- "diagram_type": "concept_map",
- "image_prompt": null,
- "svg_illustration": null
- },
- "checkpoint": {
- "question_id": "chk_4",
- "question_text": "How do celebrations like melas and festivals help a community?",
- "options": [
- "They bring people together to sing, dance, and strengthen friendship",
- "They make everyone stay inside their houses quietly",
- "They make people forget who their neighbors are"
- ],
- "correct_option_index": 0,
- "correct_answer_text": "They bring people together to sing, dance, and strengthen friendship",
- "rubric_hint": "Child should select correct answer."
- },
- "checkpoints": [
- {
- "question_id": "chk_4_1",
- "question_text": "How do celebrations like melas and festivals help a community?",
- "options": [
- "They bring people together to sing, dance, and strengthen friendship",
- "They make everyone stay inside their houses quietly",
- "They make people forget who their neighbors are"
- ],
- "correct_option_index": 0,
- "correct_answer_text": "They bring people together to sing, dance, and strengthen friendship",
- "rubric_hint": "Child should select correct answer."
- },
- {
- "question_id": "chk_4_2",
- "question_text": "To confirm your deep understanding of Celebrations and Melas: Joy Brings Us Together, which of the following is also true?",
- "options": [
- "They bring people together to sing, dance, and strengthen friendship",
- "They make everyone stay inside their houses quietly",
- "They make people forget who their neighbors are"
- ],
- "correct_option_index": 0,
- "correct_answer_text": "They bring people together to sing, dance, and strengthen friendship",
- "rubric_hint": "Child should select correct answer."
- }
- ]
- }
- ],
- "key_vocabulary": [
- {
- "word": "Community",
- "definition": "A group of different families who live near each other and help one another."
- },
- {
- "word": "Mutual Aid",
- "definition": "People helping and supporting one another willingly as a team."
- },
- {
- "word": "Chhupan-chhupai",
- "definition": "The popular Indian game of hide-and-seek played among friends and siblings."
- },
- {
- "word": "Cultivate",
- "definition": "To prepare land and grow crops, plants, or gardens with care."
- },
- {
- "word": "Mela",
- "definition": "A lively traditional fair or gathering filled with games, food, music, and celebration."
- }
- ],
- "full_pdf_text": "Unit 1 : Our Families and Communities\r\n\r\nWe all come from different families that live close to one another in supportive and cooperative communities. Together, we cultivate a variety of plants and care for different animals, contributing to the well-being of our shared environment. \r\n\r\nThrough mutual aid and collective efforts, we build vibrant and harmonious communities.This unit explores the many facets of our \r\nfamilies and communities, highlighting our collaborative work and mutual support. We are dedicated to maintaining and respecting our surroundings, protecting the plants and animals that sustain us with food, clothing, \r\nand more. Celebrations, such as melas and festivals, bring us together \r\nto play, sing, and dance, while we also express gratitude by respecting \r\nthe natural elements including the sun, moon, air, water, and soil.\r\n\r\n\r\nChapter 1 : Family and Friends Playing Together\r\n\r\nNamaste! Welcome to my home! \r\nMy name is Bela. I have two brothers \r\n— Banku Bhaiya and little Bishu. We \r\nenjoy playing chhupan-chhupai outside \r\ntogether. Do you know how to play \r\nchhupan-chhupai (hide and seek)? \r\n",
- "created_at": 1791706850.977126
- },
- "curr_solar_system": {
- "curriculum_id": "curr_solar_system",
- "chapter_title": "Our Solar System",
- "subject": "Textbook Unit",
- "grade_level": "Grade 3",
- "target_age": 8,
- "topics": [
- {
- "topic_id": "topic_1",
- "title": "The Sun and the Inner Rocky Planets (Mercury, Venus, Earth, Mars)",
- "concept_summary": "Namaste Student! Today, we are going on a magical journey through space to explore 'Our Solar System'. At the very center of our cosmic neighborhood is the Sun, which is a giant, magnificent star made of blazing hot gas. It acts like the king of the house, holding everything together with an invisible superpower called gravity while giving us light and warmth. Close to the Sun are the first four planets—Mercury, Venus, Earth, and Mars—which are made of hard rock, just like the stones we walk on here on Earth. Mercury is closest and feels like a fiery oven by day and an ice cube by night, while Venus is the hottest of all because its thick clouds trap the heat. Then comes our very own Earth, our beautiful blue home filled with fresh air and oceans, followed by Mars, the Red Planet with rusty soil and the biggest volcano in space!",
- "explanation_script": "Namaste Student! Today, we are going on a magical journey through space to explore 'Our Solar System'. At the very center of our cosmic neighborhood is the Sun, which is a giant, magnificent star made of blazing hot gas. It acts like the king of the house, holding everything together with an invisible superpower called gravity while giving us light and warmth. Close to the Sun are the first four planets—Mercury, Venus, Earth, and Mars—which are made of hard rock, just like the stones we walk on here on Earth. Mercury is closest and feels like a fiery oven by day and an ice cube by night, while Venus is the hottest of all because its thick clouds trap the heat. Then comes our very own Earth, our beautiful blue home filled with fresh air and oceans, followed by Mars, the Red Planet with rusty soil and the biggest volcano in space!",
- "real_world_analogy": null,
- "visual_slide": {
- "headline": "The Sun and the Inner Rocky Planets (Mercury, Venus, Earth, Mars)",
- "bullet_points": [
- "The Sun is a blazing star at the center holding planets with gravity.",
- "Mercury, Venus, Earth, and Mars are small, rocky worlds close to the Sun.",
- "Earth is our blue home with water; Mars is the Red Planet with rusty soil."
- ],
- "diagram_type": "concept_map",
- "image_prompt": null,
- "svg_illustration": null
- },
- "checkpoint": {
- "question_id": "chk_1",
- "question_text": "Why is Venus the hottest planet in our solar system?",
- "options": [
- "It is made entirely of burning fire and hot lava.",
- "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
- "It is the planet closest to the Sun."
- ],
- "correct_option_index": 1,
- "correct_answer_text": "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
- "rubric_hint": "Child should select correct answer."
- },
- "checkpoints": [
- {
- "question_id": "chk_1_1",
- "question_text": "Why is Venus the hottest planet in our solar system?",
- "options": [
- "It is made entirely of burning fire and hot lava.",
- "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
- "It is the planet closest to the Sun."
- ],
- "correct_option_index": 1,
- "correct_answer_text": "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
- "rubric_hint": "Child should select correct answer."
- },
- {
- "question_id": "chk_1_2",
- "question_text": "To confirm your deep understanding of The Sun and the Inner Rocky Planets (Mercury, Venus, Earth, Mars), which of the following is also true?",
- "options": [
- "It is made entirely of burning fire and hot lava.",
- "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
- "It is the planet closest to the Sun."
- ],
- "correct_option_index": 1,
- "correct_answer_text": "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
- "rubric_hint": "Child should select correct answer."
- }
- ]
- },
- {
- "topic_id": "topic_2",
- "title": "The Asteroid Belt and the Giant Outer Planets (Jupiter and Saturn)",
- "concept_summary": "Let's travel further out into space, Student! After we pass the rocky planets, we cross a busy highway of floating space rocks called the Asteroid Belt, which sits right between Mars and Jupiter. Once we cross this belt, we enter the kingdom of the colossal gas giants! Jupiter is the biggest giant of them all, sporting a famous swirling storm called the Great Red Spot that is so huge it could swallow Earth whole. Right next door is Saturn, the absolute jewel of space, famous for wearing a dazzling crown of bright rings made of billions of ice chunks and space dust. Isn't that just breathtaking to imagine?",
- "explanation_script": "Let's travel further out into space, Student! After we pass the rocky planets, we cross a busy highway of floating space rocks called the Asteroid Belt, which sits right between Mars and Jupiter. Once we cross this belt, we enter the kingdom of the colossal gas giants! Jupiter is the biggest giant of them all, sporting a famous swirling storm called the Great Red Spot that is so huge it could swallow Earth whole. Right next door is Saturn, the absolute jewel of space, famous for wearing a dazzling crown of bright rings made of billions of ice chunks and space dust. Isn't that just breathtaking to imagine?",
- "real_world_analogy": null,
- "visual_slide": {
- "headline": "The Asteroid Belt and the Giant Outer Planets (Jupiter and Saturn)",
- "bullet_points": [
- "The Asteroid Belt is a region of thousands of rocky boulders between Mars and Jupiter.",
- "Jupiter is the largest planet with the giant swirling Great Red Spot.",
- "Saturn is the jewel of space with dazzling rings made of ice chunks."
- ],
- "diagram_type": "concept_map",
- "image_prompt": null,
- "svg_illustration": null
- },
- "checkpoint": {
- "question_id": "chk_2",
- "question_text": "What makes Saturn look like the 'jewel of space'?",
- "options": [
- "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
- "It shines brighter than the Sun at night.",
- "It is covered in shiny diamonds and gold rocks."
- ],
- "correct_option_index": 0,
- "correct_answer_text": "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
- "rubric_hint": "Child should select correct answer."
- },
- "checkpoints": [
- {
- "question_id": "chk_2_1",
- "question_text": "What makes Saturn look like the 'jewel of space'?",
- "options": [
- "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
- "It shines brighter than the Sun at night.",
- "It is covered in shiny diamonds and gold rocks."
- ],
- "correct_option_index": 0,
- "correct_answer_text": "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
- "rubric_hint": "Child should select correct answer."
- },
- {
- "question_id": "chk_2_2",
- "question_text": "To confirm your deep understanding of The Asteroid Belt and the Giant Outer Planets (Jupiter and Saturn), which of the following is also true?",
- "options": [
- "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
- "It shines brighter than the Sun at night.",
- "It is covered in shiny diamonds and gold rocks."
- ],
- "correct_option_index": 0,
- "correct_answer_text": "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
- "rubric_hint": "Child should select correct answer."
- }
- ]
- },
- {
- "topic_id": "topic_3",
- "title": "The Chilly Ice Giants (Uranus, Neptune) and the Outer Edges",
- "concept_summary": "We are reaching the very edge of our solar system now! Here in the deep freeze live the chilly ice giants: Uranus and Neptune. Uranus is a very quirky planet because it doesn't spin upright like a spinning top; instead, it rolls around on its side like a rolling barrel! Farther out is Neptune, a brilliant deep blue world where the wildest, fastest winds in the solar system sweep across its surface. And if we go even further beyond Neptune, we find the mysterious Kuiper Belt, which is home to icy comets and tiny dwarf planets like Pluto. Isn't our solar system full of wonderful surprises?",
- "explanation_script": "We are reaching the very edge of our solar system now! Here in the deep freeze live the chilly ice giants: Uranus and Neptune. Uranus is a very quirky planet because it doesn't spin upright like a spinning top; instead, it rolls around on its side like a rolling barrel! Farther out is Neptune, a brilliant deep blue world where the wildest, fastest winds in the solar system sweep across its surface. And if we go even further beyond Neptune, we find the mysterious Kuiper Belt, which is home to icy comets and tiny dwarf planets like Pluto. Isn't our solar system full of wonderful surprises?",
- "real_world_analogy": null,
- "visual_slide": {
- "headline": "The Chilly Ice Giants (Uranus, Neptune) and the Outer Edges",
- "bullet_points": [
- "Uranus is a chilly ice giant that uniquely spins on its side like a barrel.",
- "Neptune is the farthest planet with the fastest, wildest winds.",
- "The Kuiper Belt lies beyond Neptune, holding icy comets and dwarf planets like Pluto."
- ],
- "diagram_type": "concept_map",
- "image_prompt": null,
- "svg_illustration": null
- },
- "checkpoint": {
- "question_id": "chk_3",
- "question_text": "How is Uranus different in the way it moves compared to other planets?",
- "options": [
- "It does not spin at all, it only orbits.",
- "It spins backwards and never stops.",
- "It uniquely spins on its side like a rolling barrel."
- ],
- "correct_option_index": 2,
- "correct_answer_text": "It uniquely spins on its side like a rolling barrel.",
- "rubric_hint": "Child should select correct answer."
- },
- "checkpoints": [
- {
- "question_id": "chk_3_1",
- "question_text": "How is Uranus different in the way it moves compared to other planets?",
- "options": [
- "It does not spin at all, it only orbits.",
- "It spins backwards and never stops.",
- "It uniquely spins on its side like a rolling barrel."
- ],
- "correct_option_index": 2,
- "correct_answer_text": "It uniquely spins on its side like a rolling barrel.",
- "rubric_hint": "Child should select correct answer."
- },
- {
- "question_id": "chk_3_2",
- "question_text": "To confirm your deep understanding of The Chilly Ice Giants (Uranus, Neptune) and the Outer Edges, which of the following is also true?",
- "options": [
- "It does not spin at all, it only orbits.",
- "It spins backwards and never stops.",
- "It uniquely spins on its side like a rolling barrel."
- ],
- "correct_option_index": 2,
- "correct_answer_text": "It uniquely spins on its side like a rolling barrel.",
- "rubric_hint": "Child should select correct answer."
- }
- ]
- }
- ],
- "key_vocabulary": [
- {
- "word": "Gravity",
- "definition": "An invisible pulling force that keeps planets orbiting around the Sun."
- },
- {
- "word": "Asteroid Belt",
- "definition": "A region between Mars and Jupiter filled with thousands of rocky space boulders."
- },
- {
- "word": "Great Red Spot",
- "definition": "A massive, famous swirling storm on Jupiter that is bigger than Earth."
- },
- {
- "word": "Kuiper Belt",
- "definition": "A distant cold region beyond Neptune containing icy comets and dwarf planets."
- }
- ],
- "full_pdf_text": "Our Solar System is a cosmic neighborhood consisting of the Sun and eight wonderful planets orbiting around it, held together by the invisible pull of gravity.\nAt the center is our Sun, a magnificent star of blazing hot gas that provides light, warmth, and energy to everything around it.\nThe four inner planets closest to the Sun are small, rocky worlds: Mercury, Venus, Earth, and Mars.\nMercury is the closest to the Sun and has extreme temperatures with boiling hot days and freezing cold nights.\nVenus is the hottest planet, covered in thick swirling yellow clouds that trap heat like a giant oven.\nEarth is our beautiful blue home planet, the only known place with liquid oceans, fresh air with oxygen, and living creatures.\nMars is called the Red Planet because its soil contains iron oxide rust, and it has the tallest volcano in the solar system named Olympus Mons.\nBetween Mars and Jupiter is the Asteroid Belt, where thousands of rocky space boulders orbit the Sun.\nNext come the outer planets, which are colossal giants!\nJupiter is the largest planet in our solar system, with a famous swirling storm called the Great Red Spot that is bigger than Earth.\nSaturn is the jewel of space, adorned with dazzling rings made of billions of ice chunks and space dust.\nUranus is a chilly ice giant that uniquely spins on its side like a rolling barrel.\nNeptune is the farthest planet, a brilliant deep blue world swept by the fastest, wildest winds in the solar system.\nBeyond Neptune lies the Kuiper Belt, home to icy comets and dwarf planets like Pluto.",
- "created_at": 1791710450.977126
- }
+  "curr_0d643337fc": {
+    "curriculum_id": "curr_0d643337fc",
+    "chapter_title": "Unit 1 : Our Families And Communities",
+    "subject": "Textbook Unit",
+    "grade_level": "Grade 3",
+    "target_age": 8,
+    "topics": [
+      {
+        "topic_id": "topic_1",
+        "title": "Family and Fun: Playing Together with Bela",
+        "concept_summary": "Namaste Vihana! Come, let us step into the cheerful world of our friend Bela! Bela lives with her wonderful brothers—Banku Bhaiya, her older brother, and sweet little Bishu. Have you ever wondered why playing together makes brothers, sisters, and friends feel so close? When Bela and her brothers play 'chhupan-chhupai'—which is the Hindi name for hide-and-seek—they learn to take turns, look out for one another, and share joyful giggles. A family is like a little team where everyone cares for each other, whether during study time or playful outdoor games. Isn't that lovely, Vihana?",
+        "explanation_script": "Namaste Vihana! Come, let us step into the cheerful world of our friend Bela! Bela lives with her wonderful brothers—Banku Bhaiya, her older brother, and sweet little Bishu. Have you ever wondered why playing together makes brothers, sisters, and friends feel so close? When Bela and her brothers play 'chhupan-chhupai'—which is the Hindi name for hide-and-seek—they learn to take turns, look out for one another, and share joyful giggles. A family is like a little team where everyone cares for each other, whether during study time or playful outdoor games. Isn't that lovely, Vihana?",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Family and Fun: Playing Together with Bela",
+          "bullet_points": [
+            "Bela lives with her brothers, Banku Bhaiya and little Bishu.",
+            "They love playing traditional games like chhupan-chhupai (hide-and-seek).",
+            "Playing games builds love, trust, and teamwork among siblings and friends."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_1",
+          "question_text": "What traditional game do Bela, Banku Bhaiya, and little Bishu love playing outside together?",
+          "options": [
+            "Chhupan-chhupai (Hide-and-seek)",
+            "Carrom",
+            "Chess"
+          ],
+          "correct_option_index": 0,
+          "correct_answer_text": "Chhupan-chhupai (Hide-and-seek)",
+          "rubric_hint": "Child should select correct answer."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_1_1",
+            "question_text": "What traditional game do Bela, Banku Bhaiya, and little Bishu love playing outside together?",
+            "options": [
+              "Chhupan-chhupai (Hide-and-seek)",
+              "Carrom",
+              "Chess"
+            ],
+            "correct_option_index": 0,
+            "correct_answer_text": "Chhupan-chhupai (Hide-and-seek)",
+            "rubric_hint": "Child should select correct answer."
+          },
+          {
+            "question_id": "chk_1_2",
+            "question_text": "To confirm your deep understanding of Family and Fun: Playing Together with Bela, which of the following is also true?",
+            "options": [
+              "Chhupan-chhupai (Hide-and-seek)",
+              "Carrom",
+              "Chess"
+            ],
+            "correct_option_index": 0,
+            "correct_answer_text": "Chhupan-chhupai (Hide-and-seek)",
+            "rubric_hint": "Child should select correct answer."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_2",
+        "title": "What is a Community? Helping Hands Together",
+        "concept_summary": "Now, Vihana, let's look beyond Bela's front door to all the houses nearby! Many different families live close to one another, and together they form what we call a 'community'. But why do we live in communities instead of living all alone in the woods? We live together because of 'mutual aid', which means helping each other out whenever someone is in need. When neighbors share tools, help fix a fence, or clean the street together, that collective effort creates a peaceful, harmonious neighborhood. When we cooperate, difficult jobs become light and easy for everyone!",
+        "explanation_script": "Now, Vihana, let's look beyond Bela's front door to all the houses nearby! Many different families live close to one another, and together they form what we call a 'community'. But why do we live in communities instead of living all alone in the woods? We live together because of 'mutual aid', which means helping each other out whenever someone is in need. When neighbors share tools, help fix a fence, or clean the street together, that collective effort creates a peaceful, harmonious neighborhood. When we cooperate, difficult jobs become light and easy for everyone!",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "What is a Community? Helping Hands Together",
+          "bullet_points": [
+            "A community is made of different families living close to one another.",
+            "Mutual aid means supporting neighbors through collective, shared efforts.",
+            "Cooperation turns big challenges into easy, shared accomplishments."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_2",
+          "question_text": "What helps different families build a harmonious and supportive community?",
+          "options": [
+            "Mutual aid and working together cooperatively",
+            "Competing against each other to see who finishes first",
+            "Staying inside and never talking to neighbors"
+          ],
+          "correct_option_index": 0,
+          "correct_answer_text": "Mutual aid and working together cooperatively",
+          "rubric_hint": "Child should select correct answer."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_2_1",
+            "question_text": "What helps different families build a harmonious and supportive community?",
+            "options": [
+              "Mutual aid and working together cooperatively",
+              "Competing against each other to see who finishes first",
+              "Staying inside and never talking to neighbors"
+            ],
+            "correct_option_index": 0,
+            "correct_answer_text": "Mutual aid and working together cooperatively",
+            "rubric_hint": "Child should select correct answer."
+          },
+          {
+            "question_id": "chk_2_2",
+            "question_text": "To confirm your deep understanding of What is a Community? Helping Hands Together, which of the following is also true?",
+            "options": [
+              "Mutual aid and working together cooperatively",
+              "Competing against each other to see who finishes first",
+              "Staying inside and never talking to neighbors"
+            ],
+            "correct_option_index": 0,
+            "correct_answer_text": "Mutual aid and working together cooperatively",
+            "rubric_hint": "Child should select correct answer."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_3",
+        "title": "Caring for Nature: Plants, Animals, and the Elements",
+        "concept_summary": "Vihana, did you know that our community includes more than just humans? Yes, our animal friends and green plants are part of our shared home too! Communities cultivate crops and look after farm animals because they generously provide us with delicious food, cozy clothing, and clean air. We also show deep respect and gratitude to natural elements like the bright sun, glowing moon, fresh air, cool water, and rich soil. When we protect our environment, we are thanking Mother Nature for giving us everything we need to stay healthy and strong. Isn't that a wonderful duty to have?",
+        "explanation_script": "Vihana, did you know that our community includes more than just humans? Yes, our animal friends and green plants are part of our shared home too! Communities cultivate crops and look after farm animals because they generously provide us with delicious food, cozy clothing, and clean air. We also show deep respect and gratitude to natural elements like the bright sun, glowing moon, fresh air, cool water, and rich soil. When we protect our environment, we are thanking Mother Nature for giving us everything we need to stay healthy and strong. Isn't that a wonderful duty to have?",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Caring for Nature: Plants, Animals, and the Elements",
+          "bullet_points": [
+            "Communities care for plants and animals that provide food and clothing.",
+            "We express gratitude to the sun, moon, air, water, and soil.",
+            "Protecting our shared environment keeps our whole community healthy."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_3",
+          "question_text": "Why do communities protect and care for plants and animals?",
+          "options": [
+            "Because plants and animals can build houses for us",
+            "Because plants and animals do all our homework",
+            "Because they sustain us with essential resources like food and clothing"
+          ],
+          "correct_option_index": 2,
+          "correct_answer_text": "Because they sustain us with essential resources like food and clothing",
+          "rubric_hint": "Child should select correct answer."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_3_1",
+            "question_text": "Why do communities protect and care for plants and animals?",
+            "options": [
+              "Because plants and animals can build houses for us",
+              "Because plants and animals do all our homework",
+              "Because they sustain us with essential resources like food and clothing"
+            ],
+            "correct_option_index": 2,
+            "correct_answer_text": "Because they sustain us with essential resources like food and clothing",
+            "rubric_hint": "Child should select correct answer."
+          },
+          {
+            "question_id": "chk_3_2",
+            "question_text": "To confirm your deep understanding of Caring for Nature: Plants, Animals, and the Elements, which of the following is also true?",
+            "options": [
+              "Because plants and animals can build houses for us",
+              "Because plants and animals do all our homework",
+              "Because they sustain us with essential resources like food and clothing"
+            ],
+            "correct_option_index": 2,
+            "correct_answer_text": "Because they sustain us with essential resources like food and clothing",
+            "rubric_hint": "Child should select correct answer."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_4",
+        "title": "Celebrations and Melas: Joy Brings Us Together",
+        "concept_summary": "Put on your festive clothes, Vihana, because it is time to celebrate! In our communities, we gather for wonderful festivals and vibrant village fairs called 'melas'. Why do we celebrate together instead of just partying at home? When everyone comes out to the mela to sing folk songs, dance to the beat of the dholak, and play fun games, all differences melt away! Melas remind us that we belong to one big, joyous family under the sky. Sharing happiness multiplies it, making our bond with our neighbors stronger and sweeter than a warm jalebi!",
+        "explanation_script": "Put on your festive clothes, Vihana, because it is time to celebrate! In our communities, we gather for wonderful festivals and vibrant village fairs called 'melas'. Why do we celebrate together instead of just partying at home? When everyone comes out to the mela to sing folk songs, dance to the beat of the dholak, and play fun games, all differences melt away! Melas remind us that we belong to one big, joyous family under the sky. Sharing happiness multiplies it, making our bond with our neighbors stronger and sweeter than a warm jalebi!",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Celebrations and Melas: Joy Brings Us Together",
+          "bullet_points": [
+            "Melas (fairs) and festivals bring community members together in joy.",
+            "People sing, dance, play games, and share traditions collectively.",
+            "Shared celebrations build friendship and a strong sense of harmony."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_4",
+          "question_text": "How do celebrations like melas and festivals help a community?",
+          "options": [
+            "They bring people together to sing, dance, and strengthen friendship",
+            "They make everyone stay inside their houses quietly",
+            "They make people forget who their neighbors are"
+          ],
+          "correct_option_index": 0,
+          "correct_answer_text": "They bring people together to sing, dance, and strengthen friendship",
+          "rubric_hint": "Child should select correct answer."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_4_1",
+            "question_text": "How do celebrations like melas and festivals help a community?",
+            "options": [
+              "They bring people together to sing, dance, and strengthen friendship",
+              "They make everyone stay inside their houses quietly",
+              "They make people forget who their neighbors are"
+            ],
+            "correct_option_index": 0,
+            "correct_answer_text": "They bring people together to sing, dance, and strengthen friendship",
+            "rubric_hint": "Child should select correct answer."
+          },
+          {
+            "question_id": "chk_4_2",
+            "question_text": "To confirm your deep understanding of Celebrations and Melas: Joy Brings Us Together, which of the following is also true?",
+            "options": [
+              "They bring people together to sing, dance, and strengthen friendship",
+              "They make everyone stay inside their houses quietly",
+              "They make people forget who their neighbors are"
+            ],
+            "correct_option_index": 0,
+            "correct_answer_text": "They bring people together to sing, dance, and strengthen friendship",
+            "rubric_hint": "Child should select correct answer."
+          }
+        ]
+      }
+    ],
+    "key_vocabulary": [
+      {
+        "word": "Community",
+        "definition": "A group of different families who live near each other and help one another."
+      },
+      {
+        "word": "Mutual Aid",
+        "definition": "People helping and supporting one another willingly as a team."
+      },
+      {
+        "word": "Chhupan-chhupai",
+        "definition": "The popular Indian game of hide-and-seek played among friends and siblings."
+      },
+      {
+        "word": "Cultivate",
+        "definition": "To prepare land and grow crops, plants, or gardens with care."
+      },
+      {
+        "word": "Mela",
+        "definition": "A lively traditional fair or gathering filled with games, food, music, and celebration."
+      }
+    ],
+    "full_pdf_text": "Unit 1 : Our Families and Communities\r\n\r\nWe all come from different families that live close to one another in supportive and cooperative communities. Together, we cultivate a variety of plants and care for different animals, contributing to the well-being of our shared environment. \r\n\r\nThrough mutual aid and collective efforts, we build vibrant and harmonious communities.This unit explores the many facets of our \r\nfamilies and communities, highlighting our collaborative work and mutual support. We are dedicated to maintaining and respecting our surroundings, protecting the plants and animals that sustain us with food, clothing, \r\nand more. Celebrations, such as melas and festivals, bring us together \r\nto play, sing, and dance, while we also express gratitude by respecting \r\nthe natural elements including the sun, moon, air, water, and soil.\r\n\r\n\r\nChapter 1 : Family and Friends Playing Together\r\n\r\nNamaste! Welcome to my home! \r\nMy name is Bela. I have two brothers \r\n— Banku Bhaiya and little Bishu. We \r\nenjoy playing chhupan-chhupai outside \r\ntogether. Do you know how to play \r\nchhupan-chhupai (hide and seek)? \r\n",
+    "created_at": 1791706850.977126
+  },
+  "curr_solar_system": {
+    "curriculum_id": "curr_solar_system",
+    "chapter_title": "Our Solar System",
+    "subject": "Textbook Unit",
+    "grade_level": "Grade 3",
+    "target_age": 8,
+    "topics": [
+      {
+        "topic_id": "topic_1",
+        "title": "The Sun and the Inner Rocky Planets (Mercury, Venus, Earth, Mars)",
+        "concept_summary": "Namaste Student! Today, we are going on a magical journey through space to explore 'Our Solar System'. At the very center of our cosmic neighborhood is the Sun, which is a giant, magnificent star made of blazing hot gas. It acts like the king of the house, holding everything together with an invisible superpower called gravity while giving us light and warmth. Close to the Sun are the first four planets—Mercury, Venus, Earth, and Mars—which are made of hard rock, just like the stones we walk on here on Earth. Mercury is closest and feels like a fiery oven by day and an ice cube by night, while Venus is the hottest of all because its thick clouds trap the heat. Then comes our very own Earth, our beautiful blue home filled with fresh air and oceans, followed by Mars, the Red Planet with rusty soil and the biggest volcano in space!",
+        "explanation_script": "Namaste Student! Today, we are going on a magical journey through space to explore 'Our Solar System'. At the very center of our cosmic neighborhood is the Sun, which is a giant, magnificent star made of blazing hot gas. It acts like the king of the house, holding everything together with an invisible superpower called gravity while giving us light and warmth. Close to the Sun are the first four planets—Mercury, Venus, Earth, and Mars—which are made of hard rock, just like the stones we walk on here on Earth. Mercury is closest and feels like a fiery oven by day and an ice cube by night, while Venus is the hottest of all because its thick clouds trap the heat. Then comes our very own Earth, our beautiful blue home filled with fresh air and oceans, followed by Mars, the Red Planet with rusty soil and the biggest volcano in space!",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "The Sun and the Inner Rocky Planets (Mercury, Venus, Earth, Mars)",
+          "bullet_points": [
+            "The Sun is a blazing star at the center holding planets with gravity.",
+            "Mercury, Venus, Earth, and Mars are small, rocky worlds close to the Sun.",
+            "Earth is our blue home with water; Mars is the Red Planet with rusty soil."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_1",
+          "question_text": "Why is Venus the hottest planet in our solar system?",
+          "options": [
+            "It is made entirely of burning fire and hot lava.",
+            "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
+            "It is the planet closest to the Sun."
+          ],
+          "correct_option_index": 1,
+          "correct_answer_text": "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
+          "rubric_hint": "Child should select correct answer."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_1_1",
+            "question_text": "Why is Venus the hottest planet in our solar system?",
+            "options": [
+              "It is made entirely of burning fire and hot lava.",
+              "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
+              "It is the planet closest to the Sun."
+            ],
+            "correct_option_index": 1,
+            "correct_answer_text": "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
+            "rubric_hint": "Child should select correct answer."
+          },
+          {
+            "question_id": "chk_1_2",
+            "question_text": "To confirm your deep understanding of The Sun and the Inner Rocky Planets (Mercury, Venus, Earth, Mars), which of the following is also true?",
+            "options": [
+              "It is made entirely of burning fire and hot lava.",
+              "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
+              "It is the planet closest to the Sun."
+            ],
+            "correct_option_index": 1,
+            "correct_answer_text": "It is covered in thick swirling yellow clouds that trap heat like a giant oven.",
+            "rubric_hint": "Child should select correct answer."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_2",
+        "title": "The Asteroid Belt and the Giant Outer Planets (Jupiter and Saturn)",
+        "concept_summary": "Let's travel further out into space, Student! After we pass the rocky planets, we cross a busy highway of floating space rocks called the Asteroid Belt, which sits right between Mars and Jupiter. Once we cross this belt, we enter the kingdom of the colossal gas giants! Jupiter is the biggest giant of them all, sporting a famous swirling storm called the Great Red Spot that is so huge it could swallow Earth whole. Right next door is Saturn, the absolute jewel of space, famous for wearing a dazzling crown of bright rings made of billions of ice chunks and space dust. Isn't that just breathtaking to imagine?",
+        "explanation_script": "Let's travel further out into space, Student! After we pass the rocky planets, we cross a busy highway of floating space rocks called the Asteroid Belt, which sits right between Mars and Jupiter. Once we cross this belt, we enter the kingdom of the colossal gas giants! Jupiter is the biggest giant of them all, sporting a famous swirling storm called the Great Red Spot that is so huge it could swallow Earth whole. Right next door is Saturn, the absolute jewel of space, famous for wearing a dazzling crown of bright rings made of billions of ice chunks and space dust. Isn't that just breathtaking to imagine?",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "The Asteroid Belt and the Giant Outer Planets (Jupiter and Saturn)",
+          "bullet_points": [
+            "The Asteroid Belt is a region of thousands of rocky boulders between Mars and Jupiter.",
+            "Jupiter is the largest planet with the giant swirling Great Red Spot.",
+            "Saturn is the jewel of space with dazzling rings made of ice chunks."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_2",
+          "question_text": "What makes Saturn look like the 'jewel of space'?",
+          "options": [
+            "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
+            "It shines brighter than the Sun at night.",
+            "It is covered in shiny diamonds and gold rocks."
+          ],
+          "correct_option_index": 0,
+          "correct_answer_text": "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
+          "rubric_hint": "Child should select correct answer."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_2_1",
+            "question_text": "What makes Saturn look like the 'jewel of space'?",
+            "options": [
+              "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
+              "It shines brighter than the Sun at night.",
+              "It is covered in shiny diamonds and gold rocks."
+            ],
+            "correct_option_index": 0,
+            "correct_answer_text": "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
+            "rubric_hint": "Child should select correct answer."
+          },
+          {
+            "question_id": "chk_2_2",
+            "question_text": "To confirm your deep understanding of The Asteroid Belt and the Giant Outer Planets (Jupiter and Saturn), which of the following is also true?",
+            "options": [
+              "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
+              "It shines brighter than the Sun at night.",
+              "It is covered in shiny diamonds and gold rocks."
+            ],
+            "correct_option_index": 0,
+            "correct_answer_text": "It is adorned with dazzling rings made of billions of ice chunks and space dust.",
+            "rubric_hint": "Child should select correct answer."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_3",
+        "title": "The Chilly Ice Giants (Uranus, Neptune) and the Outer Edges",
+        "concept_summary": "We are reaching the very edge of our solar system now! Here in the deep freeze live the chilly ice giants: Uranus and Neptune. Uranus is a very quirky planet because it doesn't spin upright like a spinning top; instead, it rolls around on its side like a rolling barrel! Farther out is Neptune, a brilliant deep blue world where the wildest, fastest winds in the solar system sweep across its surface. And if we go even further beyond Neptune, we find the mysterious Kuiper Belt, which is home to icy comets and tiny dwarf planets like Pluto. Isn't our solar system full of wonderful surprises?",
+        "explanation_script": "We are reaching the very edge of our solar system now! Here in the deep freeze live the chilly ice giants: Uranus and Neptune. Uranus is a very quirky planet because it doesn't spin upright like a spinning top; instead, it rolls around on its side like a rolling barrel! Farther out is Neptune, a brilliant deep blue world where the wildest, fastest winds in the solar system sweep across its surface. And if we go even further beyond Neptune, we find the mysterious Kuiper Belt, which is home to icy comets and tiny dwarf planets like Pluto. Isn't our solar system full of wonderful surprises?",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "The Chilly Ice Giants (Uranus, Neptune) and the Outer Edges",
+          "bullet_points": [
+            "Uranus is a chilly ice giant that uniquely spins on its side like a barrel.",
+            "Neptune is the farthest planet with the fastest, wildest winds.",
+            "The Kuiper Belt lies beyond Neptune, holding icy comets and dwarf planets like Pluto."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_3",
+          "question_text": "How is Uranus different in the way it moves compared to other planets?",
+          "options": [
+            "It does not spin at all, it only orbits.",
+            "It spins backwards and never stops.",
+            "It uniquely spins on its side like a rolling barrel."
+          ],
+          "correct_option_index": 2,
+          "correct_answer_text": "It uniquely spins on its side like a rolling barrel.",
+          "rubric_hint": "Child should select correct answer."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_3_1",
+            "question_text": "How is Uranus different in the way it moves compared to other planets?",
+            "options": [
+              "It does not spin at all, it only orbits.",
+              "It spins backwards and never stops.",
+              "It uniquely spins on its side like a rolling barrel."
+            ],
+            "correct_option_index": 2,
+            "correct_answer_text": "It uniquely spins on its side like a rolling barrel.",
+            "rubric_hint": "Child should select correct answer."
+          },
+          {
+            "question_id": "chk_3_2",
+            "question_text": "To confirm your deep understanding of The Chilly Ice Giants (Uranus, Neptune) and the Outer Edges, which of the following is also true?",
+            "options": [
+              "It does not spin at all, it only orbits.",
+              "It spins backwards and never stops.",
+              "It uniquely spins on its side like a rolling barrel."
+            ],
+            "correct_option_index": 2,
+            "correct_answer_text": "It uniquely spins on its side like a rolling barrel.",
+            "rubric_hint": "Child should select correct answer."
+          }
+        ]
+      }
+    ],
+    "key_vocabulary": [
+      {
+        "word": "Gravity",
+        "definition": "An invisible pulling force that keeps planets orbiting around the Sun."
+      },
+      {
+        "word": "Asteroid Belt",
+        "definition": "A region between Mars and Jupiter filled with thousands of rocky space boulders."
+      },
+      {
+        "word": "Great Red Spot",
+        "definition": "A massive, famous swirling storm on Jupiter that is bigger than Earth."
+      },
+      {
+        "word": "Kuiper Belt",
+        "definition": "A distant cold region beyond Neptune containing icy comets and dwarf planets."
+      }
+    ],
+    "full_pdf_text": "Our Solar System is a cosmic neighborhood consisting of the Sun and eight wonderful planets orbiting around it, held together by the invisible pull of gravity.\nAt the center is our Sun, a magnificent star of blazing hot gas that provides light, warmth, and energy to everything around it.\nThe four inner planets closest to the Sun are small, rocky worlds: Mercury, Venus, Earth, and Mars.\nMercury is the closest to the Sun and has extreme temperatures with boiling hot days and freezing cold nights.\nVenus is the hottest planet, covered in thick swirling yellow clouds that trap heat like a giant oven.\nEarth is our beautiful blue home planet, the only known place with liquid oceans, fresh air with oxygen, and living creatures.\nMars is called the Red Planet because its soil contains iron oxide rust, and it has the tallest volcano in the solar system named Olympus Mons.\nBetween Mars and Jupiter is the Asteroid Belt, where thousands of rocky space boulders orbit the Sun.\nNext come the outer planets, which are colossal giants!\nJupiter is the largest planet in our solar system, with a famous swirling storm called the Great Red Spot that is bigger than Earth.\nSaturn is the jewel of space, adorned with dazzling rings made of billions of ice chunks and space dust.\nUranus is a chilly ice giant that uniquely spins on its side like a rolling barrel.\nNeptune is the farthest planet, a brilliant deep blue world swept by the fastest, wildest winds in the solar system.\nBeyond Neptune lies the Kuiper Belt, home to icy comets and dwarf planets like Pluto.",
+    "created_at": 1791710450.977126
+  },
+  "curr_de1dcd0ffd": {
+    "curriculum_id": "curr_de1dcd0ffd",
+    "chapter_title": "The Inspiring Life Of Dr. A. P. J. Abdul Kalam",
+    "subject": "Textbook Unit",
+    "grade_level": "Grade 4",
+    "target_age": 8,
+    "topics": [
+      {
+        "topic_id": "topic_1",
+        "title": "Early Life, Family Roots & Humble Beginnings",
+        "concept_summary": "The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rameswaram, a small\ntown in Tamil Nadu, India. He grew up in a humble family and learned the values\nof hard work, honesty, and kindness from his parents.",
+        "explanation_script": "Let's focus on 'Early Life, Family Roots & Humble Beginnings'. The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rameswaram, a small\ntown in Tamil Nadu, India. He grew up in a humble family and learned the values\nof hard work, honesty, and kindness from his parents. This key principle is central to understanding The Inspiring Life Of Dr. A. P. J. Abdul Kalam.",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Early Life, Family Roots & Humble Beginnings",
+          "bullet_points": [
+            "The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rameswaram, a small\ntown...",
+            "He grew up in a humble family and learned the values\nof hard work, honesty, and kindness from his parents."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_1_1",
+          "question_text": "According to the chapter, where and when was the subject born?",
+          "options": [
+            "Born overseas and relocated during retirement",
+            "The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rame...",
+            "Focused on He grew up in a humble family and learned the values\nof..."
+          ],
+          "correct_option_index": 1,
+          "correct_answer_text": "The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rame...",
+          "rubric_hint": "Review the facts directly stated in Early Life, Family Roots & Humble Beginnings."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_1_1",
+            "question_text": "According to the chapter, where and when was the subject born?",
+            "options": [
+              "Born overseas and relocated during retirement",
+              "The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rame...",
+              "Focused on He grew up in a humble family and learned the values\nof..."
+            ],
+            "correct_option_index": 1,
+            "correct_answer_text": "The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rame...",
+            "rubric_hint": "Review the facts directly stated in Early Life, Family Roots & Humble Beginnings."
+          },
+          {
+            "question_id": "chk_1_2",
+            "question_text": "How did the student demonstrate resilience and determination during childhood?",
+            "options": [
+              "He grew up in a humble family and learned the values\nof hard work, honesty, and kindness from his parents",
+              "By leaving formal education early to work abroad",
+              "By receiving a private royal tutor and avoiding labor"
+            ],
+            "correct_option_index": 0,
+            "correct_answer_text": "He grew up in a humble family and learned the values\nof hard work, honesty, and kindness from his parents",
+            "rubric_hint": "Review the facts directly stated in Early Life, Family Roots & Humble Beginnings."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_2",
+        "title": "Early Life, Family Roots & Humble Beginnings",
+        "concept_summary": "As a child, he helped his\nfamily by distributing newspapers while continuing his studies with great\ndetermination. His love for learning and science led him to become an aerospace\nscientist, and he played an important role in India’s space and missile\ndevelopment programmes.",
+        "explanation_script": "Let's focus on 'Early Life, Family Roots & Humble Beginnings'. As a child, he helped his\nfamily by distributing newspapers while continuing his studies with great\ndetermination. His love for learning and science led him to become an aerospace\nscientist, and he played an important role in India’s space and missile\ndevelopment programmes. This key principle is central to understanding The Inspiring Life Of Dr. A. P. J. Abdul Kalam.",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Early Life, Family Roots & Humble Beginnings",
+          "bullet_points": [
+            "As a child, he helped his\nfamily by distributing newspapers while continuing his studies with great\ndetermination.",
+            "His love for learning and science led him to become an aerospace\nscientist, and he played an important role in India’s space an..."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_2_2",
+          "question_text": "What key fact does the chapter highlight in 'Early Life, Family Roots & Humble Beginnings'?",
+          "options": [
+            "That outcomes occur without any effort, planning, or study",
+            "Rather than His love for learning and science led hi..., the lesson focused exclusively on theory",
+            "His love for learning and science led him to become an aerospace\nscientist, and he played an important role..."
+          ],
+          "correct_option_index": 2,
+          "correct_answer_text": "His love for learning and science led him to become an aerospace\nscientist, and he played an important role...",
+          "rubric_hint": "Review the facts directly stated in Early Life, Family Roots & Humble Beginnings."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_2_2",
+            "question_text": "What key fact does the chapter highlight in 'Early Life, Family Roots & Humble Beginnings'?",
+            "options": [
+              "That outcomes occur without any effort, planning, or study",
+              "Rather than His love for learning and science led hi..., the lesson focused exclusively on theory",
+              "His love for learning and science led him to become an aerospace\nscientist, and he played an important role..."
+            ],
+            "correct_option_index": 2,
+            "correct_answer_text": "His love for learning and science led him to become an aerospace\nscientist, and he played an important role...",
+            "rubric_hint": "Review the facts directly stated in Early Life, Family Roots & Humble Beginnings."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_3",
+        "title": "Aerospace Achievements & Missile Man of India",
+        "concept_summary": "Because of his contributions, he became widely\nknown as the “Missile Man of India.” In 2002, he became the 11th President of\nIndia, serving the country with humility and inspiring millions of young people to\ndream big, work hard, and use their knowledge to help others. Even after his\npresidency, he continued to teach and encourage students.",
+        "explanation_script": "Let's focus on 'Aerospace Achievements & Missile Man of India'. Because of his contributions, he became widely\nknown as the “Missile Man of India.” In 2002, he became the 11th President of\nIndia, serving the country with humility and inspiring millions of young people to\ndream big, work hard, and use their knowledge to help others. Even after his\npresidency, he continued to teach and encourage students. This key principle is central to understanding The Inspiring Life Of Dr. A. P. J. Abdul Kalam.",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Aerospace Achievements & Missile Man of India",
+          "bullet_points": [
+            "Because of his contributions, he became widely\nknown as the “Missile Man of India.” In 2002, he became the 11th President of\nIn...",
+            "Even after his\npresidency, he continued to teach and encourage students."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_3_1",
+          "question_text": "What renowned title was earned for contributions to space and missile development?",
+          "options": [
+            "Known as the Chief Financial Architect of Industrial Trade",
+            "Widely known as the 'Missile Man of India.'",
+            "Known as the Commander of Naval Fleet Operations"
+          ],
+          "correct_option_index": 1,
+          "correct_answer_text": "Widely known as the 'Missile Man of India.'",
+          "rubric_hint": "Review the facts directly stated in Aerospace Achievements & Missile Man of India."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_3_1",
+            "question_text": "What renowned title was earned for contributions to space and missile development?",
+            "options": [
+              "Known as the Chief Financial Architect of Industrial Trade",
+              "Widely known as the 'Missile Man of India.'",
+              "Known as the Commander of Naval Fleet Operations"
+            ],
+            "correct_option_index": 1,
+            "correct_answer_text": "Widely known as the 'Missile Man of India.'",
+            "rubric_hint": "Review the facts directly stated in Aerospace Achievements & Missile Man of India."
+          },
+          {
+            "question_id": "chk_3_2",
+            "question_text": "What was the subject doing in final moments that reflected a lifelong love of education?",
+            "options": [
+              "Attending a political convention in the capital",
+              "Even after his\npresidency, he continued to teach and encourage students",
+              "Conducting solitary laboratory experiments without students"
+            ],
+            "correct_option_index": 1,
+            "correct_answer_text": "Even after his\npresidency, he continued to teach and encourage students",
+            "rubric_hint": "Review the facts directly stated in Aerospace Achievements & Missile Man of India."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_4",
+        "title": "Dedication to Teaching & Empowering Youth",
+        "concept_summary": "Dr. Kalam passed\naway on 27 July 2015 while delivering a lecture to students, doing what he loved\nmost. His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desire to serve our nation.",
+        "explanation_script": "Let's focus on 'Dedication to Teaching & Empowering Youth'. Dr. Kalam passed\naway on 27 July 2015 while delivering a lecture to students, doing what he loved\nmost. His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desire to serve our nation. This key principle is central to understanding The Inspiring Life Of Dr. A. P. J. Abdul Kalam.",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Dedication to Teaching & Empowering Youth",
+          "bullet_points": [
+            "Dr. Kalam passed\naway on 27 July 2015 while delivering a lecture to students, doing what he loved\nmost.",
+            "His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desire to serve our nation."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_4_2",
+          "question_text": "What key fact does the chapter highlight in 'Dedication to Teaching & Empowering Youth'?",
+          "options": [
+            "His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desi...",
+            "Rather than His life reminds us that great achieveme..., the lesson focused exclusively on theory",
+            "That outcomes occur without any effort, planning, or study"
+          ],
+          "correct_option_index": 0,
+          "correct_answer_text": "His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desi...",
+          "rubric_hint": "Review the facts directly stated in Dedication to Teaching & Empowering Youth."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_4_2",
+            "question_text": "What key fact does the chapter highlight in 'Dedication to Teaching & Empowering Youth'?",
+            "options": [
+              "His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desi...",
+              "Rather than His life reminds us that great achieveme..., the lesson focused exclusively on theory",
+              "That outcomes occur without any effort, planning, or study"
+            ],
+            "correct_option_index": 0,
+            "correct_answer_text": "His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desi...",
+            "rubric_hint": "Review the facts directly stated in Dedication to Teaching & Empowering Youth."
+          }
+        ]
+      }
+    ],
+    "key_vocabulary": [
+      {
+        "word": "Inspiring",
+        "definition": "Key term from The Inspiring Life Of Dr. A. P. J. Abdul Kalam explaining fundamental concepts."
+      },
+      {
+        "word": "Life",
+        "definition": "Key term from The Inspiring Life Of Dr. A. P. J. Abdul Kalam explaining fundamental concepts."
+      },
+      {
+        "word": "Abdul",
+        "definition": "Key term from The Inspiring Life Of Dr. A. P. J. Abdul Kalam explaining fundamental concepts."
+      },
+      {
+        "word": "Kalam",
+        "definition": "Key term from The Inspiring Life Of Dr. A. P. J. Abdul Kalam explaining fundamental concepts."
+      }
+    ],
+    "full_pdf_text": "The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rameswaram, a small\ntown in Tamil Nadu, India. He grew up in a humble family and learned the values\nof hard work, honesty, and kindness from his parents. As a child, he helped his\nfamily by distributing newspapers while continuing his studies with great\ndetermination. His love for learning and science led him to become an aerospace\nscientist, and he played an important role in India’s space and missile\ndevelopment programmes. Because of his contributions, he became widely\nknown as the “Missile Man of India.” In 2002, he became the 11th President of\nIndia, serving the country with humility and inspiring millions of young people to\ndream big, work hard, and use their knowledge to help others. Even after his\npresidency, he continued to teach and encourage students. Dr. Kalam passed\naway on 27 July 2015 while delivering a lecture to students, doing what he loved\nmost. His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desire to serve our nation.",
+    "created_at": 1791948019.896836
+  },
+  "curr_b39c1c8b9b": {
+    "curriculum_id": "curr_b39c1c8b9b",
+    "chapter_title": "The Solar System",
+    "subject": "Textbook Unit",
+    "grade_level": "Grade 4",
+    "target_age": 8,
+    "topics": [
+      {
+        "topic_id": "topic_1",
+        "title": "Solar & System",
+        "concept_summary": "The Solar System\n1. The Solar System is made up of the Sun and all the objects that orbit it. The Sun is a star at the center of the Solar System. Its gravity keeps the planets moving around it. There are eight planets in the Solar System. Mercury is the closest planet to the Sun.",
+        "explanation_script": "Let's focus on 'Solar & System'. The Solar System\n1. The Solar System is made up of the Sun and all the objects that orbit it. The Sun is a star at the center of the Solar System. Its gravity keeps the planets moving around it. There are eight planets in the Solar System. Mercury is the closest planet to the Sun. This key principle is central to understanding The Solar System.",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Solar & System",
+          "bullet_points": [
+            "The Solar System\n1.",
+            "The Solar System is made up of the Sun and all the objects that orbit it.",
+            "The Sun is a star at the center of the Solar System."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_1_1",
+          "question_text": "What key fact does the chapter highlight in 'Solar & System'?",
+          "options": [
+            "Rather than The Solar System\n1..., the lesson focused exclusively on theory",
+            "That outcomes occur without any effort, planning, or study",
+            "The Solar System\n1"
+          ],
+          "correct_option_index": 2,
+          "correct_answer_text": "The Solar System\n1",
+          "rubric_hint": "Review the facts directly stated in Solar & System."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_1_1",
+            "question_text": "What key fact does the chapter highlight in 'Solar & System'?",
+            "options": [
+              "Rather than The Solar System\n1..., the lesson focused exclusively on theory",
+              "That outcomes occur without any effort, planning, or study",
+              "The Solar System\n1"
+            ],
+            "correct_option_index": 2,
+            "correct_answer_text": "The Solar System\n1",
+            "rubric_hint": "Review the facts directly stated in Solar & System."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_2",
+        "title": "Venus & Hottest",
+        "concept_summary": "Venus is the hottest planet because of its thick atmosphere. Earth is our home and the only planet known to support life. Mars is called the Red Planet because of its reddish surface. Jupiter is the largest planet in the Solar System. Saturn is famous for its beautiful rings.",
+        "explanation_script": "Let's focus on 'Venus & Hottest'. Venus is the hottest planet because of its thick atmosphere. Earth is our home and the only planet known to support life. Mars is called the Red Planet because of its reddish surface. Jupiter is the largest planet in the Solar System. Saturn is famous for its beautiful rings. This key principle is central to understanding The Solar System.",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Venus & Hottest",
+          "bullet_points": [
+            "Venus is the hottest planet because of its thick atmosphere.",
+            "Earth is our home and the only planet known to support life.",
+            "Mars is called the Red Planet because of its reddish surface."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_2_1",
+          "question_text": "What key fact does the chapter highlight in 'Venus & Hottest'?",
+          "options": [
+            "That outcomes occur without any effort, planning, or study",
+            "Venus is the hottest planet because of its thick atmosphere",
+            "Rather than Venus is the hottest planet because of i..., the lesson focused exclusively on theory"
+          ],
+          "correct_option_index": 1,
+          "correct_answer_text": "Venus is the hottest planet because of its thick atmosphere",
+          "rubric_hint": "Review the facts directly stated in Venus & Hottest."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_2_1",
+            "question_text": "What key fact does the chapter highlight in 'Venus & Hottest'?",
+            "options": [
+              "That outcomes occur without any effort, planning, or study",
+              "Venus is the hottest planet because of its thick atmosphere",
+              "Rather than Venus is the hottest planet because of i..., the lesson focused exclusively on theory"
+            ],
+            "correct_option_index": 1,
+            "correct_answer_text": "Venus is the hottest planet because of its thick atmosphere",
+            "rubric_hint": "Review the facts directly stated in Venus & Hottest."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_3",
+        "title": "Uranus & Rotates",
+        "concept_summary": "Uranus rotates on its side compared with most planets. Neptune is the farthest planet from the Sun. Planets travel around the Sun in paths called orbits. The Moon is Earth's natural satellite. Some planets have many moons, while others have few or none.",
+        "explanation_script": "Let's focus on 'Uranus & Rotates'. Uranus rotates on its side compared with most planets. Neptune is the farthest planet from the Sun. Planets travel around the Sun in paths called orbits. The Moon is Earth's natural satellite. Some planets have many moons, while others have few or none. This key principle is central to understanding The Solar System.",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Uranus & Rotates",
+          "bullet_points": [
+            "Uranus rotates on its side compared with most planets.",
+            "Neptune is the farthest planet from the Sun.",
+            "Planets travel around the Sun in paths called orbits."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_3_1",
+          "question_text": "What key fact does the chapter highlight in 'Uranus & Rotates'?",
+          "options": [
+            "Rather than Uranus rotates on its side compared with..., the lesson focused exclusively on theory",
+            "Uranus rotates on its side compared with most planets",
+            "That outcomes occur without any effort, planning, or study"
+          ],
+          "correct_option_index": 1,
+          "correct_answer_text": "Uranus rotates on its side compared with most planets",
+          "rubric_hint": "Review the facts directly stated in Uranus & Rotates."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_3_1",
+            "question_text": "What key fact does the chapter highlight in 'Uranus & Rotates'?",
+            "options": [
+              "Rather than Uranus rotates on its side compared with..., the lesson focused exclusively on theory",
+              "Uranus rotates on its side compared with most planets",
+              "That outcomes occur without any effort, planning, or study"
+            ],
+            "correct_option_index": 1,
+            "correct_answer_text": "Uranus rotates on its side compared with most planets",
+            "rubric_hint": "Review the facts directly stated in Uranus & Rotates."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_4",
+        "title": "Asteroids & Rocky",
+        "concept_summary": "Asteroids are rocky objects that orbit the Sun. Comets are made mostly of ice, dust, and rock. The Solar System also contains dwarf planets, such as Pluto. Light from the Sun takes about eight minutes to reach Earth. Studying the Solar System helps us understand space and our place in it.",
+        "explanation_script": "Let's focus on 'Asteroids & Rocky'. Asteroids are rocky objects that orbit the Sun. Comets are made mostly of ice, dust, and rock. The Solar System also contains dwarf planets, such as Pluto. Light from the Sun takes about eight minutes to reach Earth. Studying the Solar System helps us understand space and our place in it. This key principle is central to understanding The Solar System.",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Asteroids & Rocky",
+          "bullet_points": [
+            "Asteroids are rocky objects that orbit the Sun.",
+            "Comets are made mostly of ice, dust, and rock.",
+            "The Solar System also contains dwarf planets, such as Pluto."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_4_1",
+          "question_text": "What key fact does the chapter highlight in 'Asteroids & Rocky'?",
+          "options": [
+            "That outcomes occur without any effort, planning, or study",
+            "Asteroids are rocky objects that orbit the Sun",
+            "Rather than Asteroids are rocky objects that orbit t..., the lesson focused exclusively on theory"
+          ],
+          "correct_option_index": 1,
+          "correct_answer_text": "Asteroids are rocky objects that orbit the Sun",
+          "rubric_hint": "Review the facts directly stated in Asteroids & Rocky."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_4_1",
+            "question_text": "What key fact does the chapter highlight in 'Asteroids & Rocky'?",
+            "options": [
+              "That outcomes occur without any effort, planning, or study",
+              "Asteroids are rocky objects that orbit the Sun",
+              "Rather than Asteroids are rocky objects that orbit t..., the lesson focused exclusively on theory"
+            ],
+            "correct_option_index": 1,
+            "correct_answer_text": "Asteroids are rocky objects that orbit the Sun",
+            "rubric_hint": "Review the facts directly stated in Asteroids & Rocky."
+          }
+        ]
+      }
+    ],
+    "key_vocabulary": [
+      {
+        "word": "Solar",
+        "definition": "Key term from The Solar System explaining fundamental concepts."
+      },
+      {
+        "word": "System",
+        "definition": "Key term from The Solar System explaining fundamental concepts."
+      },
+      {
+        "word": "Mercury",
+        "definition": "Key term from The Solar System explaining fundamental concepts."
+      }
+    ],
+    "full_pdf_text": "The Solar System\n1. The Solar System is made up of the Sun and all the objects that orbit it.\n2. The Sun is a star at the center of the Solar System.\n3. Its gravity keeps the planets moving around it.\n4. There are eight planets in the Solar System.\n5. Mercury is the closest planet to the Sun.\n6. Venus is the hottest planet because of its thick atmosphere.\n7. Earth is our home and the only planet known to support life.\n8. Mars is called the Red Planet because of its reddish surface.\n9. Jupiter is the largest planet in the Solar System.\n10. Saturn is famous for its beautiful rings.\n11. Uranus rotates on its side compared with most planets.\n12. Neptune is the farthest planet from the Sun.\n13. Planets travel around the Sun in paths called orbits.\n14. The Moon is Earth's natural satellite.\n15. Some planets have many moons, while others have few or none.\n16. Asteroids are rocky objects that orbit the Sun.\n17. Comets are made mostly of ice, dust, and rock.\n18. The Solar System also contains dwarf planets, such as Pluto.\n19. Light from the Sun takes about eight minutes to reach Earth.\n20. Studying the Solar System helps us understand space and our place in it.",
+    "created_at": 1791948456.1512818
+  }
 }

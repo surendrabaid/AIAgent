@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { GoogleGenAI, LiveServerMessage } from '@google/genai';
-import { liveServiceConfiguration } from '../resources/live_service_configuration';
+import { liveServiceConfiguration, buildChapterRAGSystemInstruction } from '../resources/live_service_configuration';
 import { decode, createBlob } from '../services/audioUtils';
-import { ChatMessage } from '../types';
+import { ChatMessage, Chapter, AvatarPersona } from '../types';
 
 const LIVE_API_MODEL_NAME = 'gemini-live-2.5-flash-native-audio';
 
@@ -10,7 +10,9 @@ export const useLiveSession = (
   selectedAudioOutputId: string,
   isMuted: boolean,
   isVideoEnabled: boolean,
-  webcamVideoRef: React.RefObject<HTMLVideoElement | null>
+  webcamVideoRef: React.RefObject<HTMLVideoElement | null>,
+  selectedChapter?: Chapter,
+  activePersona?: AvatarPersona
 ) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
@@ -35,6 +37,17 @@ export const useLiveSession = (
   const agentTalkingRef = useRef<boolean>(false);
   const currentInputTextRef = useRef<string>('');
   const currentOutputTextRef = useRef<string>('');
+
+  const selectedChapterRef = useRef<Chapter | undefined>(selectedChapter);
+  const activePersonaRef = useRef<AvatarPersona | undefined>(activePersona);
+
+  useEffect(() => {
+    selectedChapterRef.current = selectedChapter;
+  }, [selectedChapter]);
+
+  useEffect(() => {
+    activePersonaRef.current = activePersona;
+  }, [activePersona]);
 
   const sessionPromiseRef = useRef<Promise<any> | null>(null);
   const inputAudioContextRef = useRef<AudioContext | null>(null);
@@ -78,13 +91,15 @@ export const useLiveSession = (
 
     if (videoRef.current) {
       try {
-        videoSourceRef.current = ctx.createMediaElementSource(videoRef.current);
-        videoAnalyserRef.current = ctx.createAnalyser();
-        videoAnalyserRef.current.fftSize = 2048;
-        videoSourceRef.current.connect(videoAnalyserRef.current);
-        videoAnalyserRef.current.connect(gain);
+        if (!videoSourceRef.current) {
+          videoSourceRef.current = ctx.createMediaElementSource(videoRef.current);
+          videoAnalyserRef.current = ctx.createAnalyser();
+          videoAnalyserRef.current.fftSize = 2048;
+          videoSourceRef.current.connect(videoAnalyserRef.current);
+          videoAnalyserRef.current.connect(gain);
+        }
       } catch (e) {
-        setError("Failed to create media element source");
+        console.warn("Benign MediaElementAudioSourceNode notification:", e);
       }
     }
 
@@ -393,6 +408,7 @@ export const useLiveSession = (
     isSetupCompleteRef.current = false;
     setIsWaitingForVideo(false);
     setHasVideo(false);
+    setError(null);
 
     userHasSpokenForNextTurnRef.current = false;
     trackingAvatarAudioRef.current = false;
@@ -411,8 +427,10 @@ export const useLiveSession = (
         try {
           session.close();
         } catch (e) {
-          setError("Failed to close session");
+          console.warn("Session close error during teardown:", e);
         }
+      }).catch(e => {
+        console.warn("Session promise error during teardown:", e);
       });
       sessionPromiseRef.current = null;
     }
@@ -446,8 +464,12 @@ export const useLiveSession = (
     cachedInitSegmentRef.current = null;
     if (mseRef.current && mseRef.current.readyState === 'open') {
       try {
-        mseRef.current.endOfStream();
-      } catch (e) { setError("Failed to end stream") }
+        if (!sourceBufferRef.current?.updating) {
+          mseRef.current.endOfStream();
+        }
+      } catch (e) {
+        console.warn("Benign MediaSource endOfStream during teardown:", e);
+      }
     }
     if (videoRef.current) {
       videoRef.current.pause();
@@ -543,6 +565,12 @@ export const useLiveSession = (
         scriptProcessorRef.current = scriptProcessor;
       };
 
+      const chapter = selectedChapterRef.current;
+      const persona = activePersonaRef.current;
+      const chapterRAG = (chapter && persona)
+        ? buildChapterRAGSystemInstruction(chapter, persona)
+        : liveServiceConfiguration.systemInstruction;
+
       const sessionPromise = ai.live.connect({
         model: liveServiceConfiguration.model || LIVE_API_MODEL_NAME,
         callbacks: {
@@ -556,6 +584,32 @@ export const useLiveSession = (
               setIsSetupComplete(true);
               isSetupCompleteRef.current = true;
               setIsConnecting(false); // Setup is complete, no longer connecting
+
+              // Proactively start teaching the lesson once start lesson session started
+              setTimeout(() => {
+                const currentChap = selectedChapterRef.current;
+                const currentPers = activePersonaRef.current;
+                if (currentChap && currentPers && sessionPromiseRef.current) {
+                  const firstConcept = currentChap.keyConcepts?.[0]?.title || currentChap.title;
+                  const kickoffText = `[LESSON STARTED - PROACTIVE TEACHING KICKOFF]: Hello Tutor ${currentPers.name}! The lesson on "${currentChap.title}" has just officially started. Please warmly welcome me, introduce the chapter in 2 punchy spoken sentences, and proactively begin teaching our first core concept: "${firstConcept}". Start speaking and teaching now!`;
+                  sessionPromiseRef.current.then(session => {
+                    try {
+                      session.sendRealtimeInput({ text: kickoffText });
+                      setChatHistory(prev => [
+                        ...prev,
+                        {
+                          id: `kickoff-${Date.now()}`,
+                          role: 'user',
+                          text: kickoffText,
+                          isFinal: true
+                        }
+                      ]);
+                    } catch (e) {
+                      console.error("Failed to send proactive kickoff prompt", e);
+                    }
+                  });
+                }
+              }, 700);
             }
 
             if (message.serverContent?.outputTranscription) {
@@ -674,7 +728,9 @@ export const useLiveSession = (
           avatarConfig: (liveServiceConfiguration as any).avatarConfig,
           speechConfig: (liveServiceConfiguration as any).generationConfig?.speechConfig,
           responseModalities: (liveServiceConfiguration as any).generationConfig?.responseModalities,
-          systemInstruction: (liveServiceConfiguration as any).systemInstruction,
+          systemInstruction: {
+            parts: [{ text: chapterRAG }]
+          },
           inputAudioTranscription: (liveServiceConfiguration as any).input_audio_transcription || (liveServiceConfiguration as any).inputAudioTranscription || {},
           outputAudioTranscription: (liveServiceConfiguration as any).output_audio_transcription || (liveServiceConfiguration as any).outputAudioTranscription || {},
           tools: (liveServiceConfiguration as any).tools,

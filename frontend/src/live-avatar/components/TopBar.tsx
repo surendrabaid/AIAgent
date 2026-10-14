@@ -1,5 +1,4 @@
-import React from 'react';
-import { Chapter, AvatarPersona } from '../types';
+import { Chapter, AvatarPersona, ChapterStatus } from '../types';
 import { TUTOR_PERSONAS } from '../data/avatars';
 
 interface Props {
@@ -18,6 +17,7 @@ interface Props {
   activePersona: AvatarPersona;
   onSelectPersona: (persona: AvatarPersona) => void;
   onBackToSelection?: () => void;
+  chapterStatus?: ChapterStatus;
 }
 
 export const TopBar: React.FC<Props> = ({
@@ -34,6 +34,7 @@ export const TopBar: React.FC<Props> = ({
   activePersona,
   onSelectPersona,
   onBackToSelection,
+  chapterStatus = 'in_progress',
 }) => {
   return (
     <header className="absolute top-3 inset-x-3 z-40 flex items-center justify-between gap-2 pointer-events-none select-none">
@@ -100,15 +101,21 @@ export const TopBar: React.FC<Props> = ({
       <div className="flex items-center gap-2 pointer-events-auto min-w-0 justify-center">
         <button
           onClick={onOpenChapterModal}
-          className="flex items-center gap-2 bg-white/90 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 backdrop-blur-md border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600 shadow-xs px-3 py-1.5 rounded-full text-xs font-medium text-slate-800 dark:text-slate-200 transition group min-w-0 max-w-[170px] sm:max-w-[220px] md:max-w-[270px] lg:max-w-[340px]"
+          className="flex items-center gap-2 bg-white/90 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-900 backdrop-blur-md border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-600 shadow-xs px-3 py-1.5 rounded-full text-xs font-medium text-slate-800 dark:text-slate-200 transition group min-w-0 max-w-[200px] sm:max-w-[260px] md:max-w-[320px] lg:max-w-[380px]"
           title={`Active Chapter: ${selectedChapter.title} (Click to change)`}
         >
-          <span className="flex h-2 w-2 relative flex-shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-          </span>
-          <span className="font-semibold text-indigo-600 dark:text-indigo-400 flex-shrink-0 hidden sm:inline">Chapter:</span>
-          <span className="truncate">{selectedChapter.title}</span>
+          {chapterStatus === 'completed' ? (
+            <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 px-1.5 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+              <svg className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+              <span>Done</span>
+            </span>
+          ) : (
+            <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/80 px-1.5 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+              <span>In Progress</span>
+            </span>
+          )}
+          <span className="truncate font-semibold">{selectedChapter.title}</span>
           <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md text-slate-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950 group-hover:text-indigo-600 transition flex-shrink-0">
             Change
           </span>
