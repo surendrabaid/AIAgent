@@ -63,7 +63,7 @@ DOUBT CLARIFICATION PROTOCOL:
     systemInstruction
   };
 
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [audioLevel, setAudioLevel] = useState(0);
   const webcamVideoRef = useRef(null);
 

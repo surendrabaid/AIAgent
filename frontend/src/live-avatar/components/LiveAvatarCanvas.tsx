@@ -94,6 +94,14 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
     return () => clearTimeout(timeoutId);
   }, []);
 
+  // Ensure video element remains unmuted with full volume for tutor speech
+  useEffect(() => {
+    if (videoRef && 'current' in videoRef && videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.volume = 1.0;
+    }
+  }, [hasVideo, videoRef]);
+
   return (
     <div
       className="relative w-full h-full flex items-center justify-center overflow-hidden rounded-3xl select-none"
@@ -110,6 +118,7 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
         }`}
         playsInline
         autoPlay
+        muted={false}
       />
 
       {/* Lifelike Real Avatar Portrait Layer */}

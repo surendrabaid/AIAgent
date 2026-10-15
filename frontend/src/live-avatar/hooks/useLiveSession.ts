@@ -43,9 +43,11 @@ export const useLiveSession = (
 
   const isSetupCompleteRef = useRef<boolean>(false);
   const agentTalkingRef = useRef<boolean>(false);
+  const isTurnReceivingRef = useRef<boolean>(false);
   const currentInputTextRef = useRef<string>('');
   const currentOutputTextRef = useRef<string>('');
   const pendingMessageQueueRef = useRef<string[]>([]);
+  const flushTranscriptionsRef = useRef<() => void>(() => {});
 
   const sessionPromiseRef = useRef<Promise<any> | null>(null);
   const inputAudioContextRef = useRef<AudioContext | null>(null);
@@ -79,49 +81,76 @@ export const useLiveSession = (
     agentTalkingRef.current = agentTalking;
   }, [agentTalking]);
 
-  // Initialize Output AudioContext
+  // Transcriptions flusher
+  const flushTranscriptions = useCallback(() => {
+    const inputText = currentInputTextRef.current.trim();
+    const outputText = currentOutputTextRef.current.trim();
+
+    if (inputText || outputText) {
+      setChatHistory(prev => {
+        const newHistory = [...prev];
+        if (inputText) {
+          newHistory.push({
+            id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            role: 'user',
+            text: inputText,
+            isFinal: true
+          });
+        }
+        if (outputText) {
+          newHistory.push({
+            id: `model-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+            role: 'model',
+            text: outputText,
+            isFinal: true
+          });
+        }
+        return newHistory;
+      });
+
+      if (inputText) {
+        currentInputTextRef.current = '';
+        setLiveInput('');
+      }
+      if (outputText) {
+        currentOutputTextRef.current = '';
+        setLiveOutput('');
+      }
+    }
+  }, []);
+
   useEffect(() => {
-    let ctx = outputAudioContextRef.current;
-    if (!ctx || ctx.state === 'closed') {
-      try {
-        ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-        outputAudioContextRef.current = ctx;
-      } catch (e) {
-        console.warn("Could not create AudioContext:", e);
-      }
-    }
+    flushTranscriptionsRef.current = flushTranscriptions;
+  }, [flushTranscriptions]);
 
-    let gain = outputNodeRef.current;
-    if (ctx && (!gain || !outputNodeRef.current)) {
-      try {
-        gain = ctx.createGain();
-        gain.connect(ctx.destination);
-        outputNodeRef.current = gain;
-      } catch (e) {
-        console.warn("Could not create GainNode:", e);
+  // Unlock audio & unmute video on any user gesture in the document
+  useEffect(() => {
+    const handleUserGesture = () => {
+      if (videoRef.current) {
+        videoRef.current.muted = false;
+        videoRef.current.volume = 1.0;
+        if (videoRef.current.paused && hasVideo) {
+          videoRef.current.play().catch(() => {});
+        }
       }
-    }
+      if (inputAudioContextRef.current && inputAudioContextRef.current.state === 'suspended') {
+        inputAudioContextRef.current.resume().catch(() => {});
+      }
+      if (outputAudioContextRef.current && outputAudioContextRef.current.state === 'suspended') {
+        outputAudioContextRef.current.resume().catch(() => {});
+      }
+    };
 
-    if (ctx && gain && videoRef.current && !videoSourceRef.current) {
-      try {
-        const source = ctx.createMediaElementSource(videoRef.current);
-        videoSourceRef.current = source;
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 2048;
-        videoAnalyserRef.current = analyser;
-        source.connect(analyser);
-        analyser.connect(gain);
-      } catch (e) {
-        // Non-fatal: An HTMLMediaElement can only be connected to createMediaElementSource once,
-        // and browser will fall back to native video audio playback seamlessly.
-        console.warn("MediaElementAudioSource skipped or already connected (native video audio used):", e);
-      }
-    }
+    window.addEventListener('click', handleUserGesture, { passive: true });
+    window.addEventListener('keydown', handleUserGesture, { passive: true });
+    window.addEventListener('touchstart', handleUserGesture, { passive: true });
 
     return () => {
-      // Keep context intact on quick re-renders so already-connected media element source doesn't become invalid
+      window.removeEventListener('click', handleUserGesture);
+      window.removeEventListener('keydown', handleUserGesture);
+      window.removeEventListener('touchstart', handleUserGesture);
     };
-  }, []);
+  }, [hasVideo]);
 
   // Apply selected audio output device
   useEffect(() => {
@@ -290,9 +319,16 @@ export const useLiveSession = (
           const ms = mseRef.current;
           if (!sb || !ms) return;
 
+          videoElement.muted = false;
+          videoElement.volume = 1.0;
+
           if (videoElement.paused) {
             videoElement.play().catch((e) => {
-              setError("Error playing video");
+              console.warn("Autoplay with sound restricted, attempting muted fallback until first user click:", e);
+              videoElement.muted = true;
+              videoElement.play().catch((err) => {
+                setError("Error playing video");
+              });
             });
           }
 
@@ -375,8 +411,18 @@ export const useLiveSession = (
         const bufferAhead = bufferedEnd - video.currentTime;
 
         if (agentTalkingRef.current) {
+          // Play smoothly at natural 1.0x rate while teacher is speaking - never skip!
           video.playbackRate = 1.0;
+
+          // If turn delivery from upstream WebSocket is complete,
+          // AND video playhead has played through to near the end of the buffered speech:
+          if (!isTurnReceivingRef.current && (bufferAhead <= 0.25 || video.ended)) {
+            agentTalkingRef.current = false;
+            setAgentTalking(false);
+            flushTranscriptionsRef.current?.();
+          }
         } else {
+          // Idle buffer management: keep playhead close to live edge
           if (bufferAhead > 2.0) {
             video.currentTime = bufferedEnd - 0.05;
             video.playbackRate = 1.0;
@@ -548,6 +594,7 @@ export const useLiveSession = (
 
         scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
           if (!isSetupCompleteRef.current) return; // Gate audio sending until setup is complete
+          if (isMuted) return; // Don't send audio if student mic is muted
 
           const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
 
@@ -556,6 +603,13 @@ export const useLiveSession = (
             sum += inputData[i] * inputData[i];
           }
           const rms = Math.sqrt(sum / inputData.length);
+
+          // Acoustic echo / barge-in gate: If the teacher avatar is actively speaking,
+          // suppress ambient noise and speaker reflections so Gemini doesn't falsely cut itself off!
+          if (agentTalkingRef.current && rms < 0.07) {
+            return;
+          }
+
           if (rms > 0.01) {
             lastUserSpeechTimeRef.current = performance.now();
             userHasSpokenForNextTurnRef.current = true;
@@ -626,9 +680,10 @@ export const useLiveSession = (
             }
 
             if (message.serverContent?.outputTranscription) {
-              // Mark agent as talking on the first output transcription chunk of a turn
+              isTurnReceivingRef.current = true;
               if (currentOutputTextRef.current === '') {
                 setAgentTalking(true);
+                agentTalkingRef.current = true;
               }
               currentOutputTextRef.current += message.serverContent.outputTranscription.text;
               setLiveOutput(currentOutputTextRef.current);
@@ -639,46 +694,23 @@ export const useLiveSession = (
               setLiveInput(currentInputTextRef.current);
             }
 
-            const flushTranscriptions = () => {
-              const inputText = currentInputTextRef.current.trim();
-              const outputText = currentOutputTextRef.current.trim();
-
-              if (inputText || outputText) {
-                setChatHistory(prev => {
-                  const newHistory = [...prev];
-                  if (inputText) {
-                    newHistory.push({
-                      id: `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                      role: 'user',
-                      text: inputText,
-                      isFinal: true
-                    });
-                  }
-                  if (outputText) {
-                    newHistory.push({
-                      id: `model-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                      role: 'model',
-                      text: outputText,
-                      isFinal: true
-                    });
-                  }
-                  return newHistory;
-                });
-
-                if (inputText) {
-                  currentInputTextRef.current = '';
-                  setLiveInput('');
-                }
-                if (outputText) {
-                  currentOutputTextRef.current = '';
-                  setLiveOutput('');
-                }
-              }
-            };
-
-            if (message.serverContent?.interrupted || message.serverContent?.turnComplete) {
-              flushTranscriptions();
+            if (message.serverContent?.interrupted) {
+              console.log("[LiveSession] Turn interrupted by server");
+              isTurnReceivingRef.current = false;
+              agentTalkingRef.current = false;
               setAgentTalking(false);
+              videoQueueRef.current = [];
+              flushTranscriptions();
+            } else if (message.serverContent?.turnComplete) {
+              console.log("[LiveSession] Turn complete from server. Video buffer will play through naturally.");
+              isTurnReceivingRef.current = false;
+              const video = videoRef.current;
+              const hasBufferedAudioVideo = video && video.buffered.length > 0 && (video.buffered.end(video.buffered.length - 1) - video.currentTime) > 0.25;
+              if (!hasBufferedAudioVideo) {
+                agentTalkingRef.current = false;
+                setAgentTalking(false);
+                flushTranscriptions();
+              }
             }
 
             const parts = message.serverContent?.modelTurn?.parts;
@@ -689,6 +721,11 @@ export const useLiveSession = (
                   const base64Data = part.inlineData.data;
 
                   if (mimeType.startsWith('video/mp4')) {
+                    isTurnReceivingRef.current = true;
+                    if (!agentTalkingRef.current) {
+                      setAgentTalking(true);
+                      agentTalkingRef.current = true;
+                    }
                     if (userHasSpokenForNextTurnRef.current) {
                       trackingAvatarAudioRef.current = true;
                       userHasSpokenForNextTurnRef.current = false;

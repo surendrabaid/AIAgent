@@ -643,25 +643,43 @@ server.on('upgrade', async (request, socket, head) => {
 
         upstreamWs.on('error', (error) => {
           console.error('[Node Proxy] Upstream error:', error);
-          ws.close(1011, error.message);
+          try {
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.close(1011, error.message);
+            }
+          } catch (e) {}
         });
 
         upstreamWs.on('close', (code, reason) => {
           console.log(`[Node Proxy] Upstream closed: ${code} ${reason}`);
           if (ws.readyState === WebSocket.OPEN) {
-            ws.close(code, reason);
+            try {
+              const safeCode = (code >= 1000 && code <= 4999 && code !== 1005 && code !== 1006 && code !== 1015) ? code : 1000;
+              ws.close(safeCode, reason);
+            } catch (err) {
+              console.warn('[Node Proxy] Error closing client ws cleanly:', err);
+            }
           }
         });
 
         ws.on('error', (error) => {
           console.error('[Node Proxy] Client error:', error);
-          upstreamWs.close(1011, error.message);
+          try {
+            if (upstreamWs.readyState === WebSocket.OPEN) {
+              upstreamWs.close(1011, error.message);
+            }
+          } catch (e) {}
         });
 
         ws.on('close', (code, reason) => {
           console.log(`[Node Proxy] Client closed: ${code} ${reason}`);
           if (upstreamWs.readyState === WebSocket.OPEN) {
-            upstreamWs.close(1000, reason);
+            try {
+              const safeCode = (code >= 1000 && code <= 4999 && code !== 1005 && code !== 1006 && code !== 1015) ? code : 1000;
+              upstreamWs.close(safeCode, reason);
+            } catch (err) {
+              console.warn('[Node Proxy] Error closing upstream ws cleanly:', err);
+            }
           }
         });
 
