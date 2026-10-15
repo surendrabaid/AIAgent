@@ -57,31 +57,56 @@ class GeminiLiveAvatarService:
         except Exception:
             pass
 
+    def _is_token_valid(self, token: str) -> bool:
+        """Validates if an OAuth2 access token is active and not expired via Google's tokeninfo API"""
+        if not token or not token.strip():
+            return False
+        clean = token.strip()
+        if clean.startswith("ya29.sample") or clean == "your-oauth2-access-token":
+            return False
+        try:
+            import requests
+            res = requests.get(f"https://oauth2.googleapis.com/tokeninfo?access_token={clean}", timeout=3)
+            if res.status_code == 200:
+                data = res.json()
+                expires_in = int(data.get("expires_in", 0))
+                if expires_in > 30:
+                    return True
+        except Exception:
+            pass
+        return False
+
     def get_valid_access_token(self) -> str:
         """
         Retrieves a valid OAuth2 access token:
-        1. Explicitly configured valid token in .env or settings modal
-        2. In-memory token cache if still valid
-        3. Google Application Default Credentials (ADC)
-        4. gcloud CLI fallback: `gcloud auth print-access-token` (cached 45 mins)
+        1. FIRST ATTEMPT: Check manual token from environment / .env (verify via tokeninfo API)
+        2. SECOND ATTEMPT: Dynamic token acquisition
+           - In-memory token cache if still valid
+           - Google Application Default Credentials (ADC)
+           - gcloud CLI fallback: `gcloud auth print-access-token` (cached 45 mins)
         """
         self._refresh_env()
 
-        # Check explicit token from user
+        # 1. FIRST ATTEMPT: Check explicit manual token from user/.env
         if (
             self.access_token 
             and self.access_token.strip() 
             and not self.access_token.startswith("ya29.sample") 
             and self.access_token != "your-oauth2-access-token"
         ):
-            return self.access_token.strip()
+            if self._is_token_valid(self.access_token):
+                print("[LiveAvatar Auth] First attempt: Valid manual GCP_ACCESS_TOKEN found. Using manual token.")
+                return self.access_token.strip()
+            else:
+                print("[LiveAvatar Auth] First attempt: Manual GCP_ACCESS_TOKEN is expired or invalid. Falling back to dynamic token acquisition...")
 
+        # 2. SECOND ATTEMPT: Dynamic token acquisition
         # Check memory cache
         now = time.time()
         if self._cached_token and now < self._cached_token_expiry:
             return self._cached_token
 
-        # Try Google Application Default Credentials
+        # Try Google Application Default Credentials (ADC)
         try:
             import google.auth
             import google.auth.transport.requests
@@ -92,6 +117,7 @@ class GeminiLiveAvatarService:
                 if credentials.token:
                     self._cached_token = credentials.token
                     self._cached_token_expiry = now + (45 * 60)
+                    print("[LiveAvatar Auth] Second attempt: Successfully fetched dynamic token via Application Default Credentials.")
                     return credentials.token
         except Exception:
             pass
@@ -106,6 +132,7 @@ class GeminiLiveAvatarService:
             if token:
                 self._cached_token = token
                 self._cached_token_expiry = now + (45 * 60)
+                print("[LiveAvatar Auth] Second attempt: Successfully retrieved dynamic token via gcloud CLI fallback.")
                 return token
         except Exception:
             pass
