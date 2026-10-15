@@ -10,12 +10,22 @@ import { ChapterSelectorModal } from './components/ChapterSelectorModal';
 import { useTheme } from './hooks/useTheme';
 import { useMediaDevices } from './hooks/useMediaDevices';
 import { useLiveSession } from './hooks/useLiveSession';
-import { CURRICULUM_DATA } from './data/curriculum';
+import { EMPTY_CHAPTER } from './data/curriculum';
 import { TUTOR_PERSONAS } from './data/avatars';
+import { StudentLoginView } from './components/StudentLoginView';
 import { VideoMode, Chapter, TeachingMode, QuizSessionState, AvatarPersona, AvatarMood, ChapterStatus, ChapterScore } from './types';
 
 const App: React.FC = () => {
   const { theme, setTheme } = useTheme();
+
+  // Student Authentication / Profile state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [studentName, setStudentName] = useState(() => {
+    return (typeof window !== 'undefined' ? localStorage.getItem('helpme_child_name') : '') || 'Vihana';
+  });
+  const [studentClass, setStudentClass] = useState(() => {
+    return (typeof window !== 'undefined' ? (localStorage.getItem('helpme_grade') || localStorage.getItem('helpme_class_name')) : '') || 'Grade 3';
+  });
   const {
     audioDevices, selectedDeviceId, setSelectedDeviceId,
     audioOutputDevices, selectedAudioOutputId, setSelectedAudioOutputId,
@@ -30,8 +40,40 @@ const App: React.FC = () => {
   const [isAvatarVisible, setIsAvatarVisible] = useState(true);
   const [showDebug, setShowDebug] = useState(false);
 
-  // Curriculum, Avatar Persona & Mood States
-  const [selectedChapter, setSelectedChapter] = useState<Chapter>(CURRICULUM_DATA[0].chapters[0]);
+  // Chapters list strictly loaded from PDF cache & backend
+  const [allChapters, setAllChapters] = useState<Chapter[]>(() => {
+    try {
+      const cached = localStorage.getItem('live_avatar_pdf_chapters');
+      if (cached) {
+        const parsed: Chapter[] = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not read cached PDF chapters', e);
+    }
+    return [];
+  });
+
+  // Active Subject & Chapter selection: cached selected chapter or first PDF chapter or EMPTY_CHAPTER
+  const [selectedChapter, setSelectedChapter] = useState<Chapter>(() => {
+    try {
+      const cached = localStorage.getItem('live_avatar_pdf_chapters');
+      const savedSelectedId = localStorage.getItem('live_avatar_selected_chapter_id');
+      if (cached) {
+        const parsed: Chapter[] = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          if (savedSelectedId) {
+            const found = parsed.find(c => c.id === savedSelectedId);
+            if (found) return found;
+          }
+          return parsed[0];
+        }
+      }
+    } catch (e) {}
+    return EMPTY_CHAPTER;
+  });
   const [activePersona, setActivePersona] = useState<AvatarPersona>(TUTOR_PERSONAS[0]);
   const [avatarMood, setAvatarMood] = useState<AvatarMood>('idle');
   const [teachingMode, setTeachingMode] = useState<TeachingMode>('socratic');
@@ -48,15 +90,7 @@ const App: React.FC = () => {
   });
 
   // Track lesson completion: enabled when tutor completes lesson in transcription, or status marked completed
-  const [isLessonCompleted, setIsLessonCompleted] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem('live_avatar_chapter_statuses');
-      const statuses = saved ? JSON.parse(saved) : {};
-      return statuses[CURRICULUM_DATA[0].chapters[0].id] === 'completed';
-    } catch {
-      return false;
-    }
-  });
+  const [isLessonCompleted, setIsLessonCompleted] = useState<boolean>(false);
 
   // Active StudyBoard Tab ('concepts' | 'quiz' | 'scoreboard')
   const [activeStudyTab, setActiveStudyTab] = useState<'concepts' | 'quiz' | 'scoreboard'>('concepts');
@@ -64,35 +98,49 @@ const App: React.FC = () => {
   // Chapter-wise Quiz Scores Persistence
   const [chapterScores, setChapterScores] = useState<Record<string, ChapterScore>>(() => {
     try {
-      const saved = localStorage.getItem('ai_avatar_chapter_scores');
+      const saved = localStorage.getItem('live_avatar_chapter_scores') || localStorage.getItem('ai_avatar_chapter_scores');
       return saved ? JSON.parse(saved) : {};
     } catch {
       return {};
     }
   });
 
-  // All Chapters list (Curriculum + Uploaded PDF chapters)
-  const [allChapters, setAllChapters] = useState<Chapter[]>(() => {
-    return CURRICULUM_DATA.flatMap(s => s.chapters);
-  });
-
-  // Fetch backend PDF chapters to populate full scoreboard
+  // Fetch backend PDF chapters to merge with cached chapters
   useEffect(() => {
     const fetchBackendChapters = async () => {
       try {
         const res = await fetch('http://localhost:8000/api/live-avatar/chapters');
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
+            const deletedIds = new Set<string>(
+              JSON.parse(localStorage.getItem('live_avatar_deleted_chapters') || '[]')
+            );
+            const validBackendChapters = data.filter((c: Chapter) => !deletedIds.has(c.id));
+
             setAllChapters(prev => {
-              const prevIds = new Set(prev.map(c => c.id));
-              const additions = data.filter((c: Chapter) => !prevIds.has(c.id));
-              return [...prev, ...additions];
+              const map = new Map<string, Chapter>();
+              prev.forEach(c => map.set(c.id, c));
+              validBackendChapters.forEach((c: Chapter) => {
+                if (!map.has(c.id)) map.set(c.id, c);
+              });
+              const merged = Array.from(map.values());
+              try {
+                localStorage.setItem('live_avatar_pdf_chapters', JSON.stringify(merged));
+              } catch (err) {}
+              return merged;
+            });
+
+            setSelectedChapter(prev => {
+              if (prev.id === EMPTY_CHAPTER.id && validBackendChapters.length > 0) {
+                return validBackendChapters[0];
+              }
+              return prev;
             });
           }
         }
       } catch (err) {
-        console.warn('Could not fetch backend chapters for scoreboard', err);
+        console.warn('Could not fetch backend chapters', err);
       }
     };
     fetchBackendChapters();
@@ -166,7 +214,20 @@ const App: React.FC = () => {
     setSelectedAudioOutputId(e.target.value);
   };
 
+  // Check if at least one valid chapter is selected to teach
+  const hasChapterSelected = Boolean(
+    selectedChapter &&
+    selectedChapter.id &&
+    selectedChapter.id !== EMPTY_CHAPTER.id &&
+    selectedChapter.id !== 'empty-placeholder' &&
+    allChapters.some(c => c.id === selectedChapter.id)
+  );
+
   const handleConnect = () => {
+    if (!hasChapterSelected) {
+      setIsChapterModalOpen(true);
+      return;
+    }
     connect(selectedDeviceId);
   };
 
@@ -177,6 +238,10 @@ const App: React.FC = () => {
   // When chapter is changed by student (RAG Context Injection + Proactive Teaching Kickoff)
   const handleSelectChapter = (chapter: Chapter) => {
     setSelectedChapter(chapter);
+    try {
+      localStorage.setItem('live_avatar_selected_chapter_id', chapter.id);
+    } catch (e) {}
+
     const existingStatus = chapterStatuses[chapter.id];
     if (existingStatus === 'completed') {
       setIsLessonCompleted(true);
@@ -214,6 +279,64 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
 
       sendTextMessage(ragPrompt);
     }
+  };
+
+  // Handle deleting chapter from chapters list, cache, and scoreboard
+  const handleDeleteChapter = (chapterId: string) => {
+    // 1. Remove from allChapters
+    setAllChapters(prev => {
+      const updated = prev.filter(c => c.id !== chapterId);
+      try {
+        localStorage.setItem('live_avatar_pdf_chapters', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // 2. Remove from chapterScores (Scoreboard)
+    setChapterScores(prev => {
+      const updated = { ...prev };
+      delete updated[chapterId];
+      try {
+        localStorage.setItem('live_avatar_chapter_scores', JSON.stringify(updated));
+        localStorage.setItem('ai_avatar_chapter_scores', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // 3. Remove from chapterStatuses
+    setChapterStatuses(prev => {
+      const updated = { ...prev };
+      delete updated[chapterId];
+      try {
+        localStorage.setItem('live_avatar_chapter_statuses', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+
+    // 4. Fallback if current chapter was deleted
+    setSelectedChapter(prev => {
+      if (prev.id === chapterId) {
+        const remaining = allChapters.filter(c => c.id !== chapterId);
+        const next = remaining.length > 0 ? remaining[0] : EMPTY_CHAPTER;
+        try {
+          localStorage.setItem('live_avatar_selected_chapter_id', next.id);
+        } catch (e) {}
+        return next;
+      }
+      return prev;
+    });
+  };
+
+  // Handle adding new uploaded chapter
+  const handleAddChapter = (newChapter: Chapter) => {
+    setAllChapters(prev => {
+      const updated = [newChapter, ...prev.filter(c => c.id !== newChapter.id)];
+      try {
+        localStorage.setItem('live_avatar_pdf_chapters', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+    handleSelectChapter(newChapter);
   };
 
   // Change active tutor persona
@@ -404,6 +527,20 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
   const isLoading = isConnecting;
   const currentChapterStatus = chapterStatuses[selectedChapter.id] || 'in_progress';
 
+  if (!isLoggedIn) {
+    return (
+      <StudentLoginView
+        initialStudentName={studentName}
+        initialClassName={studentClass}
+        onEnterClassroom={(name, grade) => {
+          setStudentName(name);
+          setStudentClass(grade);
+          setIsLoggedIn(true);
+        }}
+      />
+    );
+  }
+
   return (
     <div className={`relative flex h-screen w-screen overflow-hidden ${theme === 'dark' ? 'dark bg-slate-950 text-white' : 'bg-slate-100 text-slate-800'}`}>
       {/* Left: Live Transcription & Dialogue */}
@@ -418,10 +555,16 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
         isConnected={isConnected}
         isAvatarVisible={isAvatarVisible}
         activePersona={activePersona}
+        studentName={studentName}
+        className={studentClass}
+        onLogout={() => {
+          disconnect();
+          setIsLoggedIn(false);
+        }}
       />
 
       {/* Center: Live Avatar Stage */}
-      <div className="relative flex-1 flex flex-col items-center justify-center gap-3 pb-4 pt-14 transition-all duration-300 min-w-0">
+      <div className="relative flex-1 flex flex-col items-center justify-between pb-4 transition-all duration-300 min-w-0">
         <TopBar
           isTranscriptionPanelOpen={isTranscriptionPanelOpen}
           setIsTranscriptionPanelOpen={setIsTranscriptionPanelOpen}
@@ -433,11 +576,6 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
           setTheme={setTheme}
           isAvatarVisible={isAvatarVisible}
           setIsAvatarVisible={setIsAvatarVisible}
-          selectedChapter={selectedChapter}
-          onOpenChapterModal={() => setIsChapterModalOpen(true)}
-          activePersona={activePersona}
-          onSelectPersona={handleSelectPersona}
-          chapterStatus={currentChapterStatus}
         />
 
         <DebugPanel showDebug={showDebug} debugStats={debugStats} />
@@ -458,6 +596,7 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
               onSelectPersona={handleSelectPersona}
               avatarMood={avatarMood}
               onSendPrompt={handleSendPrompt}
+              hasChapterSelected={hasChapterSelected}
             />
 
             <ControlBar
@@ -479,6 +618,9 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
               videoDevices={videoDevices}
               selectedVideoDeviceId={selectedVideoDeviceId}
               setSelectedVideoDeviceId={setSelectedVideoDeviceId}
+              hasChapterSelected={hasChapterSelected}
+              onOpenChapterModal={() => setIsChapterModalOpen(true)}
+              tutorName={activePersona.name}
             />
           </div>
         </div>
@@ -557,6 +699,9 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
         onSelectChapter={handleSelectChapter}
         chapterStatuses={chapterStatuses}
         onUpdateChapterStatus={handleUpdateChapterStatus}
+        onDeleteChapter={handleDeleteChapter}
+        onAddChapter={handleAddChapter}
+        chapters={allChapters}
       />
     </div>
   );

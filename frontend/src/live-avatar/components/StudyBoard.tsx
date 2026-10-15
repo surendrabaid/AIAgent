@@ -4,8 +4,8 @@ import { LiveQuizOverlay } from './LiveQuizOverlay';
 
 interface Props {
   chapter: Chapter;
-  teachingMode: TeachingMode;
-  onSetTeachingMode: (mode: TeachingMode) => void;
+  teachingMode?: TeachingMode;
+  onSetTeachingMode?: (mode: TeachingMode) => void;
   onSendPrompt: (promptText: string) => void;
   isConnected: boolean;
   onOpenChapterModal: () => void;
@@ -76,8 +76,13 @@ export const StudyBoard: React.FC<Props> = ({
   const currentChapterScore = chapterScores[chapter.id];
   const isPdfChapter = chapter.subjectId === 'pdf-curriculum' || !!chapter.sourcePdf;
 
-  // Aggregate stats across all chapters
-  const scoreEntries = Object.values(chapterScores);
+  // Aggregate stats strictly across active chapters in the list (excluding removed chapters)
+  const activeChapterIds = new Set(
+    (allChapters.length > 0 ? allChapters : (chapter.id !== 'empty-placeholder' ? [chapter] : [])).map(c => c.id)
+  );
+  const scoreEntries = Object.entries(chapterScores)
+    .filter(([id]) => activeChapterIds.has(id))
+    .map(([, score]) => score);
   const totalQuizzesTaken = scoreEntries.length;
   const avgAccuracy = totalQuizzesTaken > 0
     ? Math.round(scoreEntries.reduce((sum, s) => sum + s.percentage, 0) / totalQuizzesTaken)
@@ -86,7 +91,38 @@ export const StudyBoard: React.FC<Props> = ({
 
   return (
     <div className="h-full bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out w-80 md:w-96 lg:w-[430px] overflow-hidden shadow-sm">
-      {/* Chapter Title & Selector Bar */}
+      {/* Top Banner: Choose Your Chapter to Study */}
+      <div className="p-3 border-b border-indigo-100 dark:border-indigo-900/50 bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 text-white shrink-0">
+        <button
+          onClick={onOpenChapterModal}
+          className="w-full flex items-center justify-between gap-2 p-2 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/25 transition border border-white/20 cursor-pointer group text-left"
+          title="Click to Choose Your Chapter to Study"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-indigo-100 leading-tight">
+                Curriculum & Textbooks
+              </span>
+              <span className="block text-xs sm:text-sm font-extrabold text-white truncate leading-tight mt-0.5">
+                Choose Your Chapter to Study
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 text-[11px] font-bold bg-white/20 group-hover:bg-white/30 px-2 py-1 rounded-md shrink-0">
+            <span>Browse</span>
+            <svg className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </button>
+      </div>
+
+      {/* Chapter Title & Status Bar */}
       <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-indigo-50/70 via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
         <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
           {/* Chapter Status Badge */}
@@ -120,16 +156,6 @@ export const StudyBoard: React.FC<Props> = ({
             >
               {chapterStatus === 'completed' ? 'Mark In Progress' : 'Mark Completed'}
             </button>
-
-            <button
-              onClick={onOpenChapterModal}
-              className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 flex items-center gap-1 transition"
-            >
-              <span>Change</span>
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
           </div>
         </div>
 
@@ -139,54 +165,6 @@ export const StudyBoard: React.FC<Props> = ({
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
           {chapter.summary}
         </p>
-
-        {/* Teaching Mode Pills */}
-        <div className="mt-3 flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl">
-          <button
-            onClick={() => onSetTeachingMode('socratic')}
-            className={`flex-1 py-1 px-2 rounded-lg text-[11px] font-semibold transition ${
-              teachingMode === 'socratic'
-                ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
-            title="Socratic Guide: Asks thought-provoking questions"
-          >
-            🤔 Socratic
-          </button>
-          <button
-            onClick={() => onSetTeachingMode('eli5')}
-            className={`flex-1 py-1 px-2 rounded-lg text-[11px] font-semibold transition ${
-              teachingMode === 'eli5'
-                ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
-            title="ELI5: Clear real-world analogies"
-          >
-            💡 Intuitive
-          </button>
-          <button
-            onClick={() => onSetTeachingMode('quiz')}
-            className={`flex-1 py-1 px-2 rounded-lg text-[11px] font-semibold transition ${
-              teachingMode === 'quiz'
-                ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
-            title="Quiz Mode: Direct practice and verbal feedback"
-          >
-            🎯 Quiz
-          </button>
-          <button
-            onClick={() => onSetTeachingMode('deepdive')}
-            className={`flex-1 py-1 px-2 rounded-lg text-[11px] font-semibold transition ${
-              teachingMode === 'deepdive'
-                ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
-            title="Deep Dive: Advanced rigor and proofs"
-          >
-            🚀 Deep
-          </button>
-        </div>
       </div>
 
       {/* 3 Tabs: Key Concepts, Live Quiz (locked until lesson done), Scoreboard */}
@@ -613,96 +591,102 @@ export const StudyBoard: React.FC<Props> = ({
               </div>
             )}
 
-            {/* Chapter-Wise Scoreboard Table */}
-            <div className="space-y-2.5 pt-2">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Chapter-Wise Leaderboard
-                </h4>
-                <span className="text-[10px] text-slate-400">
-                  {allChapters.length > 0 ? allChapters.length : 1} chapters
-                </span>
-              </div>
+            {/* Chapter-Wise Scoreboard Table: Only active chapters currently in list that have scores */}
+            {(() => {
+              const activeChapterList = allChapters.length > 0
+                ? allChapters
+                : (chapter && chapter.id !== 'empty-placeholder' ? [chapter] : []);
 
-              <div className="space-y-2">
-                {(allChapters.length > 0 ? allChapters : [chapter]).map((ch) => {
-                  const chScore = chapterScores[ch.id];
-                  const isCurrent = ch.id === chapter.id;
+              const completedScoredChapters = activeChapterList.filter(
+                (ch) => Boolean(chapterScores[ch.id])
+              );
 
-                  return (
-                    <div
-                      key={ch.id}
-                      className={`p-3 rounded-2xl border transition flex items-center justify-between gap-2 ${
-                        isCurrent
-                          ? 'border-indigo-400 dark:border-indigo-700 bg-indigo-50/30 dark:bg-indigo-950/20'
-                          : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:border-slate-300'
-                      }`}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <h5 className="font-bold text-xs text-slate-900 dark:text-white truncate max-w-[200px]">
-                            {ch.title}
-                          </h5>
-                          {isCurrent && (
-                            <span className="text-[9px] font-extrabold uppercase bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.2 rounded-md">
-                              Current
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-slate-400 mt-0.5 truncate">
-                          {chScore ? `Completed on ${chScore.completedAt}` : 'Quiz not attempted yet'}
-                        </p>
-                      </div>
+              return (
+                <div className="space-y-2.5 pt-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                      Completed Chapter Scores
+                    </h4>
+                    <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded-full">
+                      {completedScoredChapters.length} {completedScoredChapters.length === 1 ? 'chapter' : 'chapters'}
+                    </span>
+                  </div>
 
-                      <div className="flex items-center gap-2">
-                        {chScore ? (
-                          <div className="text-right">
-                            <span className="text-xs font-extrabold text-slate-900 dark:text-white">
-                              {chScore.score}/{chScore.total}
-                            </span>
-                            <span className={`block text-[10px] font-bold ${
-                              chScore.percentage >= 80
-                                ? 'text-emerald-600 dark:text-emerald-400'
-                                : chScore.percentage >= 50
-                                ? 'text-amber-600 dark:text-amber-400'
-                                : 'text-rose-600 dark:text-rose-400'
-                            }`}>
-                              {chScore.percentage}%
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] text-slate-400 italic">
-                            Unscored
-                          </span>
-                        )}
+                  {completedScoredChapters.length > 0 ? (
+                    <div className="space-y-2">
+                      {completedScoredChapters.map((ch) => {
+                        const chScore = chapterScores[ch.id];
+                        const isCurrent = ch.id === chapter.id;
 
-                        {!isCurrent && onSelectChapter && (
-                          <button
-                            onClick={() => onSelectChapter(ch)}
-                            className="px-2 py-1 rounded-lg text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                        return (
+                          <div
+                            key={ch.id}
+                            className={`p-3 rounded-2xl border transition flex items-center justify-between gap-2 ${
+                              isCurrent
+                                ? 'border-indigo-400 dark:border-indigo-700 bg-indigo-50/30 dark:bg-indigo-950/20'
+                                : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:border-slate-300'
+                            }`}
                           >
-                            Switch
-                          </button>
-                        )}
-                      </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <h5 className="font-bold text-xs text-slate-900 dark:text-white truncate max-w-[200px]">
+                                  {ch.title}
+                                </h5>
+                                {isCurrent && (
+                                  <span className="text-[9px] font-extrabold uppercase bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.2 rounded-md">
+                                    Current
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+                                Completed on {chScore.completedAt}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <div className="text-right">
+                                <span className="text-xs font-extrabold text-slate-900 dark:text-white">
+                                  {chScore.score}/{chScore.total}
+                                </span>
+                                <span className={`block text-[10px] font-bold ${
+                                  chScore.percentage >= 80
+                                    ? 'text-emerald-600 dark:text-emerald-400'
+                                    : chScore.percentage >= 50
+                                    ? 'text-amber-600 dark:text-amber-400'
+                                    : 'text-rose-600 dark:text-rose-400'
+                                }`}>
+                                  {chScore.percentage}%
+                                </span>
+                              </div>
+
+                              {!isCurrent && onSelectChapter && (
+                                <button
+                                  onClick={() => onSelectChapter(ch)}
+                                  className="px-2 py-1 rounded-lg text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
+                                >
+                                  Switch
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
+                  ) : (
+                    <div className="p-4 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-center space-y-1">
+                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                        No completed chapters yet
+                      </p>
+                      <p className="text-[11px] text-slate-400">
+                        Take and complete a quiz to see your scores recorded here.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
-      </div>
-
-      {/* Footer Quick Action */}
-      <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 flex items-center gap-2">
-        <button
-          onClick={() => onSendPrompt(`Hi Tutor Jay! Let's study our chapter "${chapter.title}". Can you give me a great introduction and explain our first core concept?`)}
-          disabled={!isConnected}
-          className="flex-1 py-2 px-3 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white shadow-xs transition flex items-center justify-center gap-1.5"
-        >
-          <span>🎙️ Teach Next Concept</span>
-        </button>
       </div>
     </div>
   );

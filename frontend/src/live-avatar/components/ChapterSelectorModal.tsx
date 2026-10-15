@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { CURRICULUM_DATA } from '../data/curriculum';
 import { Chapter, ChapterStatus } from '../types';
 
 interface Props {
@@ -9,6 +8,9 @@ interface Props {
   onSelectChapter: (chapter: Chapter) => void;
   chapterStatuses?: Record<string, ChapterStatus>;
   onUpdateChapterStatus?: (chapterId: string, status: ChapterStatus) => void;
+  onDeleteChapter?: (chapterId: string) => void;
+  onAddChapter?: (chapter: Chapter) => void;
+  chapters?: Chapter[];
 }
 
 export const ChapterSelectorModal: React.FC<Props> = ({
@@ -17,17 +19,78 @@ export const ChapterSelectorModal: React.FC<Props> = ({
   selectedChapter,
   onSelectChapter,
   chapterStatuses: propChapterStatuses,
-  onUpdateChapterStatus
+  onUpdateChapterStatus,
+  onDeleteChapter,
+  onAddChapter,
+  chapters: propChapters,
 }) => {
-  const [pdfChapters, setPdfChapters] = useState<Chapter[]>([]);
+  const [pdfChapters, setPdfChapters] = useState<Chapter[]>(() => {
+    if (propChapters && propChapters.length > 0) return propChapters;
+    try {
+      const saved = localStorage.getItem('live_avatar_pdf_chapters');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {}
+    return [];
+  });
+
   const [isLoadingPdfChapters, setIsLoadingPdfChapters] = useState(false);
   const [isUploadingPdf, setIsUploadingPdf] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [activeSubjectId, setActiveSubjectId] = useState<string>('pdf-curriculum');
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'in_progress' | 'completed'>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Local chapter statuses backup
+  // Sync propChapters into pdfChapters
+  useEffect(() => {
+    if (propChapters && propChapters.length >= 0) {
+      setPdfChapters(propChapters);
+    }
+  }, [propChapters]);
+
+  // Fetch PDF chapters from backend when modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const fetchPdfChapters = async () => {
+      setIsLoadingPdfChapters(true);
+      try {
+        const res = await fetch('http://localhost:8000/api/live-avatar/chapters');
+        if (res.ok) {
+          const data: Chapter[] = await res.json();
+          if (Array.isArray(data)) {
+            const deletedIds = new Set<string>(
+              JSON.parse(localStorage.getItem('live_avatar_deleted_chapters') || '[]')
+            );
+            const valid = data.filter(c => !deletedIds.has(c.id));
+
+            setPdfChapters(prev => {
+              const map = new Map<string, Chapter>();
+              prev.forEach(c => map.set(c.id, c));
+              valid.forEach(c => {
+                if (!map.has(c.id)) map.set(c.id, c);
+              });
+              const merged = Array.from(map.values());
+              try {
+                localStorage.setItem('live_avatar_pdf_chapters', JSON.stringify(merged));
+              } catch (e) {}
+              return merged;
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Backend live-avatar chapters fallback:', err);
+      } finally {
+        setIsLoadingPdfChapters(false);
+      }
+    };
+
+    fetchPdfChapters();
+  }, [isOpen]);
+
+  // Local statuses backup
   const [localStatuses, setLocalStatuses] = useState<Record<string, ChapterStatus>>(() => {
     try {
       const saved = localStorage.getItem('live_avatar_chapter_statuses');
@@ -64,34 +127,6 @@ export const ChapterSelectorModal: React.FC<Props> = ({
     }
   };
 
-  // Fetch all PDF chapters from backend on modal open
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const fetchPdfChapters = async () => {
-      setIsLoadingPdfChapters(true);
-      try {
-        const res = await fetch('http://localhost:8000/api/live-avatar/chapters');
-        if (res.ok) {
-          const data: Chapter[] = await res.json();
-          setPdfChapters(data);
-          // If active chapter is from PDF, keep activeSubjectId as pdf-curriculum
-          if (data.some(c => c.id === selectedChapter.id)) {
-            setActiveSubjectId('pdf-curriculum');
-          }
-        }
-      } catch (err) {
-        console.warn('Backend live-avatar chapters fallback:', err);
-      } finally {
-        setIsLoadingPdfChapters(false);
-      }
-    };
-
-    fetchPdfChapters();
-  }, [isOpen, selectedChapter.id]);
-
-  if (!isOpen) return null;
-
   // Handle PDF file upload
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -118,7 +153,6 @@ export const ChapterSelectorModal: React.FC<Props> = ({
       const uploadResult = await res.json();
       const plan = uploadResult.lesson_plan;
 
-      // Map generated lesson plan strictly to Chapter with RAG data & quiz
       const keyConcepts = (plan.topics || []).map((t: any) => ({
         title: t.title,
         summary: t.concept_summary || (t.explanation_script ? t.explanation_script.slice(0, 220) : t.title),
@@ -154,9 +188,14 @@ export const ChapterSelectorModal: React.FC<Props> = ({
         sourcePdf: file.name
       };
 
-      setPdfChapters(prev => [newChapter, ...prev.filter(c => c.id !== newChapter.id)]);
-      setActiveSubjectId('pdf-curriculum');
+      const updated = [newChapter, ...pdfChapters.filter(c => c.id !== newChapter.id)];
+      setPdfChapters(updated);
+      try {
+        localStorage.setItem('live_avatar_pdf_chapters', JSON.stringify(updated));
+      } catch (err) {}
+
       setStatus(newChapter.id, 'in_progress');
+      if (onAddChapter) onAddChapter(newChapter);
       onSelectChapter(newChapter);
       onClose();
     } catch (err: any) {
@@ -168,26 +207,71 @@ export const ChapterSelectorModal: React.FC<Props> = ({
     }
   };
 
-  // Build subject list including PDF Chapters as #1
-  const subjectsWithPdf = [
-    {
-      id: 'pdf-curriculum',
-      name: '📄 PDF Textbook Chapters',
-      description: 'Chapters extracted directly from uploaded PDF and TXT textbooks.',
-      chapters: pdfChapters
-    },
-    ...CURRICULUM_DATA
-  ];
+  // Handle deleting a chapter from list & scoreboard
+  const handleDeleteChapter = (chapterId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
 
-  const currentSubject = subjectsWithPdf.find(s => s.id === activeSubjectId) || subjectsWithPdf[0];
+    // 1. Remove from local state & cache
+    const updated = pdfChapters.filter(c => c.id !== chapterId);
+    setPdfChapters(updated);
 
-  const allAvailableChapters = subjectsWithPdf.flatMap(s => s.chapters);
-  const filteredChapters = allAvailableChapters.filter(ch => {
+    try {
+      localStorage.setItem('live_avatar_pdf_chapters', JSON.stringify(updated));
+
+      // Track deleted id so backend does not re-add it
+      const deleted: string[] = JSON.parse(localStorage.getItem('live_avatar_deleted_chapters') || '[]');
+      if (!deleted.includes(chapterId)) {
+        deleted.push(chapterId);
+        localStorage.setItem('live_avatar_deleted_chapters', JSON.stringify(deleted));
+      }
+
+      // Remove from chapterScores
+      const scores = JSON.parse(localStorage.getItem('live_avatar_chapter_scores') || '{}');
+      delete scores[chapterId];
+      localStorage.setItem('live_avatar_chapter_scores', JSON.stringify(scores));
+
+      const legacyScores = JSON.parse(localStorage.getItem('ai_avatar_chapter_scores') || '{}');
+      delete legacyScores[chapterId];
+      localStorage.setItem('ai_avatar_chapter_scores', JSON.stringify(legacyScores));
+
+      // Remove from chapterStatuses
+      const statuses = JSON.parse(localStorage.getItem('live_avatar_chapter_statuses') || '{}');
+      delete statuses[chapterId];
+      localStorage.setItem('live_avatar_chapter_statuses', JSON.stringify(statuses));
+    } catch (err) {
+      console.warn('LocalStorage error while deleting chapter', err);
+    }
+
+    // 2. Best-effort backend deletion
+    try {
+      fetch(`http://localhost:8000/api/live-avatar/chapters/${chapterId}`, { method: 'DELETE' });
+    } catch (err) {}
+
+    // 3. Notify parent
+    if (onDeleteChapter) {
+      onDeleteChapter(chapterId);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  // Filter chapters by search & status
+  const filteredChapters = pdfChapters.filter(ch => {
     const query = searchQuery.toLowerCase();
-    return ch.title.toLowerCase().includes(query) ||
-           ch.summary.toLowerCase().includes(query) ||
-           ch.gradeLevel.toLowerCase().includes(query);
+    const matchesSearch =
+      ch.title.toLowerCase().includes(query) ||
+      ch.summary.toLowerCase().includes(query) ||
+      ch.gradeLevel.toLowerCase().includes(query);
+
+    if (!matchesSearch) return false;
+
+    if (statusFilter === 'all') return true;
+    const st = getStatus(ch.id);
+    return st === statusFilter;
   });
+
+  const inProgressCount = pdfChapters.filter(c => getStatus(c.id) === 'in_progress').length;
+  const completedCount = pdfChapters.filter(c => getStatus(c.id) === 'completed').length;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
@@ -199,16 +283,16 @@ export const ChapterSelectorModal: React.FC<Props> = ({
         <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-indigo-50/60 via-white to-slate-50 dark:from-slate-900 dark:to-slate-900">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300 mb-2">
-              <span>📚 Study Curriculum & PDF Textbooks</span>
+              <span>📄 Uploaded PDF Chapters</span>
             </div>
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Choose Your Chapter to Study</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-              Select or upload a PDF chapter. Concepts and quiz questions are prepared directly from your chapter text.
+              Chapters come directly from your uploaded textbooks. Concepts, dialogues, and quizzes are prepared from your text.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
             aria-label="Close"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,7 +302,7 @@ export const ChapterSelectorModal: React.FC<Props> = ({
         </div>
 
         {/* Upload & Search Bar Row */}
-        <div className="px-6 pt-4 pb-2 space-y-3 border-b border-slate-100 dark:border-slate-800/60">
+        <div className="px-6 pt-4 pb-3 space-y-3 border-b border-slate-100 dark:border-slate-800/60">
           <div className="flex flex-col sm:flex-row items-center gap-3">
             {/* Search Input */}
             <div className="relative flex-1 w-full">
@@ -229,7 +313,7 @@ export const ChapterSelectorModal: React.FC<Props> = ({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search chapters, concepts, or uploaded PDFs..."
+                placeholder="Search uploaded chapters or concepts..."
                 className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
               />
             </div>
@@ -246,7 +330,7 @@ export const ChapterSelectorModal: React.FC<Props> = ({
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploadingPdf}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-indigo-500/20 transition flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-indigo-500/20 transition flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 {isUploadingPdf ? (
                   <>
@@ -268,6 +352,42 @@ export const ChapterSelectorModal: React.FC<Props> = ({
             </div>
           </div>
 
+          {/* Filter Pills */}
+          <div className="flex items-center gap-2 pt-1 flex-wrap">
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`text-xs px-3 py-1 rounded-lg border font-semibold transition cursor-pointer ${
+                statusFilter === 'all'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+              }`}
+            >
+              All Chapters ({pdfChapters.length})
+            </button>
+            <button
+              onClick={() => setStatusFilter('in_progress')}
+              className={`text-xs px-3 py-1 rounded-lg border font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                statusFilter === 'in_progress'
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <span>In Progress ({inProgressCount})</span>
+            </button>
+            <button
+              onClick={() => setStatusFilter('completed')}
+              className={`text-xs px-3 py-1 rounded-lg border font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                statusFilter === 'completed'
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span>Completed ({completedCount})</span>
+            </button>
+          </div>
+
           {uploadError && (
             <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,104 +399,51 @@ export const ChapterSelectorModal: React.FC<Props> = ({
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 overflow-y-auto flex flex-col md:flex-row">
-          {/* Subject Tabs */}
-          {!searchQuery && (
-            <div className="w-full md:w-72 p-4 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-800 space-y-1.5 shrink-0 bg-slate-50/50 dark:bg-slate-950/30">
-              <div className="text-xs font-semibold uppercase tracking-wider text-slate-400 px-3 py-1">Curriculum Sources</div>
-              {subjectsWithPdf.map(subj => {
-                const isActive = subj.id === activeSubjectId;
-                const isPdf = subj.id === 'pdf-curriculum';
-                return (
-                  <button
-                    key={subj.id}
-                    onClick={() => setActiveSubjectId(subj.id)}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-left text-sm font-medium transition ${
-                      isActive
-                        ? isPdf
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-                          : 'bg-indigo-600 text-white shadow-sm'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <span className="truncate pr-2">{subj.name}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
-                      isActive 
-                        ? 'bg-white/20 text-white' 
-                        : isPdf
-                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 font-bold'
-                        : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                    }`}>
-                      {subj.chapters.length}
-                    </span>
-                  </button>
-                );
-              })}
+        <div className="flex-1 p-6 overflow-y-auto space-y-4">
+          {isLoadingPdfChapters && pdfChapters.length === 0 && (
+            <div className="text-center py-12 text-slate-400 text-xs flex items-center justify-center gap-2">
+              <svg className="animate-spin h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Loading your saved PDF chapters...</span>
             </div>
           )}
 
-          {/* Chapters Grid */}
-          <div className="flex-1 p-6 overflow-y-auto space-y-4">
-            {searchQuery ? (
-              <div>
-                <p className="text-xs font-semibold uppercase text-slate-400 mb-3">Search Results ({filteredChapters.length})</p>
-                {filteredChapters.length === 0 ? (
-                  <div className="text-center py-12 text-slate-400">
-                    <p className="text-base font-medium">No chapters matched "{searchQuery}"</p>
-                    <p className="text-xs mt-1">Try another keyword or select a PDF textbook from the left.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-3">
-                    {filteredChapters.map(chap => renderChapterCard(chap))}
-                  </div>
-                )}
+          {pdfChapters.length === 0 && !isLoadingPdfChapters && (
+            <div className="text-center py-16 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-8 bg-slate-50/50 dark:bg-slate-800/20 max-w-lg mx-auto">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-sm">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
               </div>
-            ) : (
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                    <span>{currentSubject.name}</span>
-                    <span className="text-xs text-slate-400 font-normal">({currentSubject.chapters.length} chapters)</span>
-                  </h3>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">{currentSubject.description}</span>
-                </div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
+                No PDF Chapters Added Yet
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-5 leading-relaxed">
+                Upload a textbook chapter (.pdf or .txt) to automatically extract core concepts, practice quiz questions, and study 1-on-1 with Tutor Jay.
+              </p>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="px-5 py-2.5 rounded-xl font-bold text-xs bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-indigo-500/20 transition cursor-pointer"
+              >
+                + Upload Your First PDF Chapter
+              </button>
+            </div>
+          )}
 
-                {activeSubjectId === 'pdf-curriculum' && currentSubject.chapters.length === 0 && !isLoadingPdfChapters && (
-                  <div className="text-center py-10 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-6 bg-slate-50/50 dark:bg-slate-800/20">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </div>
-                    <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">No PDF Chapters Uploaded Yet</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-                      Upload your school textbook PDF or notes. Key concepts and quiz questions will be generated strictly from your document text.
-                    </p>
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="mt-4 px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition inline-flex items-center gap-1.5"
-                    >
-                      <span>Upload Textbook PDF</span>
-                    </button>
-                  </div>
-                )}
+          {pdfChapters.length > 0 && filteredChapters.length === 0 && (
+            <div className="text-center py-12 text-slate-400">
+              <p className="text-sm font-semibold">No chapters matched your filter "{searchQuery || statusFilter}"</p>
+              <p className="text-xs mt-1">Try clearing your search or switching the filter above.</p>
+            </div>
+          )}
 
-                {isLoadingPdfChapters && activeSubjectId === 'pdf-curriculum' && (
-                  <div className="text-center py-8 text-slate-400 text-xs flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Loading saved PDF chapters...</span>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 gap-3">
-                  {currentSubject.chapters.map(chap => renderChapterCard(chap))}
-                </div>
-              </div>
-            )}
-          </div>
+          {filteredChapters.length > 0 && (
+            <div className="grid grid-cols-1 gap-3.5">
+              {filteredChapters.map(chap => renderChapterCard(chap))}
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -394,7 +461,7 @@ export const ChapterSelectorModal: React.FC<Props> = ({
 
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl text-sm font-semibold bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition"
+            className="px-5 py-2 rounded-xl text-sm font-semibold bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition cursor-pointer"
           >
             Close
           </button>
@@ -406,7 +473,6 @@ export const ChapterSelectorModal: React.FC<Props> = ({
   function renderChapterCard(chapter: Chapter) {
     const isSelected = chapter.id === selectedChapter.id;
     const status = getStatus(chapter.id);
-    const isPdfSource = chapter.subjectId === 'pdf-curriculum' || !!chapter.sourcePdf;
 
     return (
       <div
@@ -430,11 +496,9 @@ export const ChapterSelectorModal: React.FC<Props> = ({
                 {chapter.gradeLevel}
               </span>
 
-              {isPdfSource && (
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-                  📄 PDF Chapter
-                </span>
-              )}
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                📄 PDF Chapter
+              </span>
 
               {/* Learning Status Pill */}
               {status === 'completed' ? (
@@ -474,23 +538,23 @@ export const ChapterSelectorModal: React.FC<Props> = ({
             <div className="flex items-center gap-3 md:gap-4 mt-3 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
               <span className="flex items-center gap-1">
                 <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                {chapter.objectives.length} Objectives
+                {chapter.objectives?.length || 0} Objectives
               </span>
               <span className="flex items-center gap-1" title="Key concepts extracted strictly from chapter text">
                 <svg className="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                {chapter.keyConcepts.length} Key Concepts
+                {chapter.keyConcepts?.length || 0} Key Concepts
               </span>
               <span className="flex items-center gap-1" title="Quiz questions prepared directly from chapter content">
                 <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                {chapter.quiz.length} Practice Questions
+                {chapter.quiz?.length || 0} Practice Questions
               </span>
             </div>
           </div>
 
-          {/* Action Button & Status Toggle */}
+          {/* Action Button, Status Toggle & Remove Chapter */}
           <div className="shrink-0 flex flex-col items-end gap-2">
             <button
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition shadow-xs ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition shadow-xs cursor-pointer ${
                 isSelected
                   ? 'bg-indigo-600 text-white'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 group-hover:bg-indigo-600 group-hover:text-white'
@@ -502,10 +566,27 @@ export const ChapterSelectorModal: React.FC<Props> = ({
             {/* Quick Status Toggle Button */}
             <button
               onClick={(e) => setStatus(chapter.id, status === 'completed' ? 'in_progress' : 'completed', e)}
-              className="text-[11px] font-semibold text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition underline"
+              className="text-[11px] font-semibold text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition underline cursor-pointer"
               title="Toggle chapter completed/in-progress status"
             >
               {status === 'completed' ? 'Mark In Progress' : 'Mark Completed'}
+            </button>
+
+            {/* Remove / Delete Chapter Action */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm(`Are you sure you want to remove "${chapter.title}"? Its scores will also be removed from your scoreboard.`)) {
+                  handleDeleteChapter(chapter.id, e);
+                }
+              }}
+              className="text-[11px] font-bold text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 transition flex items-center gap-1 hover:underline p-1 cursor-pointer"
+              title="Remove chapter and delete its scores from scoreboard"
+            >
+              <svg className="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>Remove</span>
             </button>
           </div>
         </div>

@@ -17,6 +17,7 @@ interface Props {
   onSelectPersona: (persona: AvatarPersona) => void;
   avatarMood: AvatarMood;
   onSendPrompt: (promptText: string) => void;
+  hasChapterSelected?: boolean;
 }
 
 export const AvatarDisplay: React.FC<Props> = ({
@@ -32,6 +33,7 @@ export const AvatarDisplay: React.FC<Props> = ({
   onSelectPersona,
   avatarMood,
   onSendPrompt,
+  hasChapterSelected = true,
 }) => {
   const [aspectRatio, setAspectRatio] = useState<number>(1);
   const [showPersonaMenu, setShowPersonaMenu] = useState<boolean>(false);
@@ -143,11 +145,6 @@ export const AvatarDisplay: React.FC<Props> = ({
 
           {/* Top Right: Speaking / Emotional State Indicator */}
           <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-            {avatarMood === 'celebrating' && (
-              <div className="flex items-center gap-1.5 bg-amber-500/95 text-slate-950 backdrop-blur-md px-3 py-1 rounded-full text-xs font-black shadow-lg animate-bounce">
-                <span>🎉 Great Job!</span>
-              </div>
-            )}
             {avatarMood === 'empathetic' && (
               <div className="flex items-center gap-1.5 bg-rose-500/90 text-white backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold shadow-lg">
                 <span>💡 Helpful Insight</span>
@@ -201,6 +198,8 @@ export const AvatarDisplay: React.FC<Props> = ({
             `Connecting to ${activePersona.name}...`
           ) : isConnected ? (
             agentTalking ? `${activePersona.name} is speaking` : 'Listening to you...'
+          ) : !hasChapterSelected ? (
+            `Add a chapter to start learning with ${activePersona.name}`
           ) : (
             `Ready to learn with ${activePersona.name}`
           )}

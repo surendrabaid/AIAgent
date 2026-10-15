@@ -187,6 +187,16 @@ def get_live_avatar_chapters():
         })
     return chapters
 
+@app.delete("/api/live-avatar/chapters/{chapter_id}")
+def delete_live_avatar_chapter(chapter_id: str):
+    """
+    Deletes a PDF chapter from the in-memory curriculum database.
+    """
+    if chapter_id in LESSON_PLANS_DB:
+        del LESSON_PLANS_DB[chapter_id]
+        return {"success": True, "message": f"Deleted chapter {chapter_id}"}
+    return {"success": True, "message": f"Chapter {chapter_id} not found in memory"}
+
 @app.post("/api/upload-curriculum", response_model=CurriculumUploadResponse)
 async def upload_curriculum(
     file: Optional[UploadFile] = File(None),

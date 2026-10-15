@@ -12,6 +12,9 @@ interface Props {
   isConnected?: boolean;
   isAvatarVisible?: boolean;
   activePersona?: AvatarPersona;
+  studentName?: string;
+  className?: string;
+  onLogout?: () => void;
 }
 
 export const TranscriptionPanel: React.FC<Props> = ({ 
@@ -24,13 +27,20 @@ export const TranscriptionPanel: React.FC<Props> = ({
   onSendMessage,
   isConnected = false,
   isAvatarVisible = true,
-  activePersona
+  activePersona,
+  studentName,
+  className: customClassName,
+  onLogout,
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [inputText, setInputText] = useState('');
 
   const messageList = history || chatHistory || [];
   const tutorName = activePersona?.name || 'Tutor Jay';
+
+  // Resolve Student Name & Class Name from props or localStorage fallback
+  const resolvedStudentName = studentName || (typeof window !== 'undefined' ? localStorage.getItem('helpme_child_name') : null) || 'Vihana';
+  const resolvedClassName = customClassName || (typeof window !== 'undefined' ? (localStorage.getItem('helpme_grade') || localStorage.getItem('helpme_class_name')) : null) || 'Grade 3 • Science';
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -55,105 +65,146 @@ export const TranscriptionPanel: React.FC<Props> = ({
       className={`h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden shadow-sm ${widthClass}`}
     >
       <div className={`h-full flex flex-col min-w-[300px] ${isAvatarVisible ? 'w-80 md:w-96' : 'w-full'}`}>
-        {/* Header */}
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/70 dark:bg-slate-900/70 backdrop-blur-md">
-          <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-            </span>
-            <div>
-              <h2 className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                Lesson Dialogue
-              </h2>
-              <p className="text-[11px] text-slate-500">Live Voice Transcription</p>
+        {/* Top 20%: Student Details & Log Out Button */}
+        <div className="h-[20%] min-h-[96px] max-h-[130px] p-3 bg-slate-50/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 flex flex-col justify-center gap-2 shrink-0 select-none">
+          {/* Top Row: Log Out Button */}
+          <div className="flex items-center justify-end w-full">
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="px-2.5 py-1 rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50/90 hover:bg-red-100 dark:bg-red-950/50 dark:hover:bg-red-900/60 text-red-600 dark:text-red-300 text-xs font-bold transition flex items-center gap-1 shadow-xs group pointer-events-auto cursor-pointer"
+                title="Log out and return to selection"
+              >
+                <svg className="w-3.5 h-3.5 transition group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>Log Out</span>
+              </button>
+            )}
+          </div>
+
+          {/* Student Profile Card: Name & Class Name */}
+          <div className="flex items-center gap-2.5 bg-white dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white font-extrabold text-base shadow-sm shrink-0">
+              {resolvedStudentName.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
+                {resolvedStudentName}
+              </h3>
+              <div className="flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 font-semibold mt-0.5">
+                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                </svg>
+                <span className="truncate">{resolvedClassName}</span>
+              </div>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
-            title="Hide Transcript"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
         </div>
 
-        {/* Chat History */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3.5" ref={scrollRef}>
-          {messageList.length === 0 && !liveInput && !liveOutput && (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 text-xs text-center px-4 gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500 flex items-center justify-center">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+        {/* Bottom 80%: Live Transcribe Window */}
+        <div className="h-[80%] flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-900 overflow-hidden">
+          {/* Header */}
+          <div className="p-3 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/70 dark:bg-slate-900/70 backdrop-blur-md shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
                 </svg>
-              </div>
-              <div>
-                <p className="font-semibold text-slate-700 dark:text-slate-300">Ready to speak with {tutorName}</p>
-                <p className="text-slate-400 mt-1">Start the lesson or ask any question. Spoken words will transcribe in real time.</p>
-              </div>
-            </div>
-          )}
-
-          {messageList.map((msg) => (
-            <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-              <span className="text-[10px] font-semibold text-slate-400 mb-1 px-1">
-                {msg.role === 'user' ? 'You' : tutorName}
               </span>
-              <div className={`max-w-[88%] rounded-2xl px-4 py-2.5 text-xs shadow-xs leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-indigo-600 text-white rounded-br-xs'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-xs border border-slate-200 dark:border-slate-700'
-              }`}>
-                {msg.text}
+              <div>
+                <h2 className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Lesson Dialogue
+                </h2>
+                <p className="text-[10px] text-slate-500">Live Voice Transcription</p>
               </div>
             </div>
-          ))}
-
-          {liveInput && (
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] font-semibold text-indigo-500 mb-1 px-1">You (Speaking...)</span>
-              <div className="max-w-[88%] rounded-2xl px-4 py-2.5 text-xs shadow-xs leading-relaxed bg-indigo-600/80 text-white rounded-br-xs animate-pulse">
-                {liveInput}
-              </div>
-            </div>
-          )}
-
-          {liveOutput && (
-            <div className="flex flex-col items-start">
-              <span className="text-[10px] font-semibold text-indigo-500 mb-1 px-1">{tutorName} (Explaining...)</span>
-              <div className="max-w-[88%] rounded-2xl px-4 py-2.5 text-xs shadow-xs leading-relaxed bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-xs border border-indigo-300 dark:border-indigo-700 animate-pulse">
-                {liveOutput}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Input Area */}
-        <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60">
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder={isConnected ? `Type a question for ${tutorName}...` : "Connect to start conversation..."}
-              disabled={!isConnected}
-              className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed transition"
-            />
             <button
-              type="submit"
-              disabled={!isConnected || !inputText.trim()}
-              className="p-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white rounded-xl transition shadow-xs flex items-center justify-center shrink-0"
-              title="Send to Tutor"
+              onClick={onClose}
+              className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              title="Hide Transcript Panel"
             >
-              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor">
-                <path fill="none" d="M0 0h24v24H0z"></path>
-                <path d="M2 3v18l20-9zm2 11 9-2-9-2V6.09L17.13 12 4 17.91z"></path>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-          </form>
+          </div>
+
+          {/* Chat History */}
+          <div className="flex-1 overflow-y-auto p-3.5 space-y-3" ref={scrollRef}>
+            {messageList.length === 0 && !liveInput && !liveOutput && (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 text-xs text-center px-4 gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500 flex items-center justify-center">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-700 dark:text-slate-300">Ready to speak with {tutorName}</p>
+                  <p className="text-slate-400 mt-0.5 text-[11px]">Start the lesson or ask any question. Spoken words will transcribe in real time.</p>
+                </div>
+              </div>
+            )}
+
+            {messageList.map((msg) => (
+              <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                <span className="text-[10px] font-semibold text-slate-400 mb-0.5 px-1">
+                  {msg.role === 'user' ? (resolvedStudentName || 'You') : tutorName}
+                </span>
+                <div className={`max-w-[88%] rounded-2xl px-3.5 py-2 text-xs shadow-xs leading-relaxed ${
+                  msg.role === 'user'
+                    ? 'bg-indigo-600 text-white rounded-br-xs'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-xs border border-slate-200 dark:border-slate-700'
+                }`}>
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+
+            {liveInput && (
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-semibold text-indigo-500 mb-0.5 px-1">{resolvedStudentName || 'You'} (Speaking...)</span>
+                <div className="max-w-[88%] rounded-2xl px-3.5 py-2 text-xs shadow-xs leading-relaxed bg-indigo-600/80 text-white rounded-br-xs animate-pulse">
+                  {liveInput}
+                </div>
+              </div>
+            )}
+
+            {liveOutput && (
+              <div className="flex flex-col items-start">
+                <span className="text-[10px] font-semibold text-indigo-500 mb-0.5 px-1">{tutorName} (Explaining...)</span>
+                <div className="max-w-[88%] rounded-2xl px-3.5 py-2 text-xs shadow-xs leading-relaxed bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-xs border border-indigo-300 dark:border-indigo-700 animate-pulse">
+                  {liveOutput}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Input Area */}
+          <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 shrink-0">
+            <form onSubmit={handleSubmit} className="flex items-center gap-2">
+              <input
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder={isConnected ? `Type a question for ${tutorName}...` : "Connect to start conversation..."}
+                disabled={!isConnected}
+                className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed transition"
+              />
+              <button
+                type="submit"
+                disabled={!isConnected || !inputText.trim()}
+                className="p-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 dark:disabled:bg-slate-800 text-white rounded-xl transition shadow-xs flex items-center justify-center shrink-0"
+                title="Send to Tutor"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor">
+                  <path fill="none" d="M0 0h24v24H0z"></path>
+                  <path d="M2 3v18l20-9zm2 11 9-2-9-2V6.09L17.13 12 4 17.91z"></path>
+                </svg>
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
