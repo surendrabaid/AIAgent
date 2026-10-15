@@ -28,6 +28,7 @@ export const useLiveSession = (
   const [isWaitingForVideo, setIsWaitingForVideo] = useState<boolean>(false);
   const [hasVideo, setHasVideo] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAudioBlocked, setIsAudioBlocked] = useState<boolean>(false);
 
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [liveInput, setLiveInput] = useState<string>('');
@@ -123,22 +124,28 @@ export const useLiveSession = (
     flushTranscriptionsRef.current = flushTranscriptions;
   }, [flushTranscriptions]);
 
+  // Unmute audio and resume suspended audio contexts on explicit user gesture
+  const unmuteAudio = useCallback(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.volume = 1.0;
+      if (videoRef.current.paused) {
+        videoRef.current.play().catch((err) => console.warn("Unmute play error:", err));
+      }
+    }
+    if (inputAudioContextRef.current && inputAudioContextRef.current.state === 'suspended') {
+      inputAudioContextRef.current.resume().catch(() => {});
+    }
+    if (outputAudioContextRef.current && outputAudioContextRef.current.state === 'suspended') {
+      outputAudioContextRef.current.resume().catch(() => {});
+    }
+    setIsAudioBlocked(false);
+  }, []);
+
   // Unlock audio & unmute video on any user gesture in the document
   useEffect(() => {
     const handleUserGesture = () => {
-      if (videoRef.current) {
-        videoRef.current.muted = false;
-        videoRef.current.volume = 1.0;
-        if (videoRef.current.paused && hasVideo) {
-          videoRef.current.play().catch(() => {});
-        }
-      }
-      if (inputAudioContextRef.current && inputAudioContextRef.current.state === 'suspended') {
-        inputAudioContextRef.current.resume().catch(() => {});
-      }
-      if (outputAudioContextRef.current && outputAudioContextRef.current.state === 'suspended') {
-        outputAudioContextRef.current.resume().catch(() => {});
-      }
+      unmuteAudio();
     };
 
     window.addEventListener('click', handleUserGesture, { passive: true });
@@ -150,7 +157,7 @@ export const useLiveSession = (
       window.removeEventListener('keydown', handleUserGesture);
       window.removeEventListener('touchstart', handleUserGesture);
     };
-  }, [hasVideo]);
+  }, [unmuteAudio]);
 
   // Apply selected audio output device
   useEffect(() => {
@@ -319,17 +326,18 @@ export const useLiveSession = (
           const ms = mseRef.current;
           if (!sb || !ms) return;
 
-          videoElement.muted = false;
-          videoElement.volume = 1.0;
-
           if (videoElement.paused) {
-            videoElement.play().catch((e) => {
-              console.warn("Autoplay with sound restricted, attempting muted fallback until first user click:", e);
-              videoElement.muted = true;
-              videoElement.play().catch((err) => {
-                setError("Error playing video");
+            const playPromise = videoElement.play();
+            if (playPromise !== undefined) {
+              playPromise.catch((e) => {
+                console.warn("Autoplay with sound restricted, playing muted until user gesture:", e);
+                if (!videoElement.muted) {
+                  videoElement.muted = true;
+                  setIsAudioBlocked(true);
+                  videoElement.play().catch(() => {});
+                }
               });
-            });
+            }
           }
 
           if (ms.readyState === 'open' && videoElement.buffered.length > 0) {
@@ -422,12 +430,11 @@ export const useLiveSession = (
             flushTranscriptionsRef.current?.();
           }
         } else {
-          // Idle buffer management: keep playhead close to live edge
+          // Idle buffer management: smoothly catch up without hard seek jumps
           if (bufferAhead > 2.0) {
-            video.currentTime = bufferedEnd - 0.05;
-            video.playbackRate = 1.0;
-          } else if (bufferAhead > 0.4) {
-            video.playbackRate = Math.min(1.2, 1.0 + bufferAhead * 2);
+            video.playbackRate = 1.15;
+          } else if (bufferAhead > 0.5) {
+            video.playbackRate = 1.05;
           } else {
             video.playbackRate = 1.0;
           }
@@ -469,6 +476,7 @@ export const useLiveSession = (
     isSetupCompleteRef.current = false;
     setIsWaitingForVideo(false);
     setHasVideo(false);
+    setIsAudioBlocked(false);
 
     userHasSpokenForNextTurnRef.current = false;
     trackingAvatarAudioRef.current = false;
@@ -649,19 +657,7 @@ export const useLiveSession = (
                 sessionPromiseRef.current?.then((session: any) => {
                   pending.forEach((msg) => {
                     try {
-                      if (typeof session.sendClientContent === 'function') {
-                        session.sendClientContent({
-                          turns: [
-                            {
-                              role: 'user',
-                              parts: [{ text: msg }]
-                            }
-                          ],
-                          turnComplete: true
-                        });
-                      } else {
-                        session.sendRealtimeInput({ text: msg });
-                      }
+                      session.sendRealtimeInput({ text: msg });
                       setChatHistory(prev => [
                         ...prev,
                         {
@@ -831,19 +827,7 @@ export const useLiveSession = (
 
     sessionPromiseRef.current.then((session) => {
       try {
-        if (typeof (session as any).sendClientContent === 'function') {
-          (session as any).sendClientContent({
-            turns: [
-              {
-                role: 'user',
-                parts: [{ text: cleanText }]
-              }
-            ],
-            turnComplete: true
-          });
-        } else {
-          session.sendRealtimeInput({ text: cleanText });
-        }
+        session.sendRealtimeInput({ text: cleanText });
 
         // Add to chat history immediately for better UX
         setChatHistory(prev => [
@@ -874,6 +858,8 @@ export const useLiveSession = (
     debugStats,
     videoRef,
     agentTalking,
+    isAudioBlocked,
+    unmuteAudio,
     connect,
     disconnect,
     switchMicrophone,

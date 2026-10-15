@@ -77,6 +77,8 @@ DOUBT CLARIFICATION PROTOCOL:
     liveOutput,
     agentTalking,
     videoRef,
+    isAudioBlocked,
+    unmuteAudio,
     connect,
     disconnect,
     sendTextMessage
@@ -147,12 +149,14 @@ DOUBT CLARIFICATION PROTOCOL:
       {/* Live Video Stage Container */}
       <div 
         className="glass-panel"
+        onClick={unmuteAudio}
         style={{
           position: 'relative',
           width: '100%',
           height: '380px',
           borderRadius: '24px',
           overflow: 'hidden',
+          cursor: isAudioBlocked ? 'pointer' : 'default',
           border: effectiveTalking 
             ? '2px solid rgba(16, 185, 129, 0.8)' 
             : isConnected
@@ -232,6 +236,44 @@ DOUBT CLARIFICATION PROTOCOL:
             hasVideo={hasVideo}
           />
         </div>
+
+        {/* Prominent Tap to Hear Audio Overlay Button */}
+        {isAudioBlocked && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 35,
+            background: 'rgba(0, 0, 0, 0.45)',
+            backdropFilter: 'blur(3px)'
+          }}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                unmuteAudio();
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #4F46E5, #06B6D4)',
+                color: '#FFFFFF',
+                border: '2px solid rgba(255, 255, 255, 0.6)',
+                borderRadius: '30px',
+                padding: '12px 24px',
+                fontSize: '0.92rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 8px 30px rgba(79, 70, 229, 0.7), 0 0 20px rgba(6, 182, 212, 0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}
+            >
+              <Volume2 size={20} />
+              <span>Tap to Hear {tutorName} Speak 🔊</span>
+            </button>
+          </div>
+        )}
 
         {/* Bottom Video Name Overlay */}
         <div style={{
@@ -326,6 +368,29 @@ DOUBT CLARIFICATION PROTOCOL:
 
         {/* Interactive Controls: Mic mute & Reconnect */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Speaker Unmute Button */}
+          <button
+            onClick={() => unmuteAudio()}
+            style={{
+              background: isAudioBlocked ? '#FEF3C7' : '#F1F5F9',
+              border: isAudioBlocked ? '1px solid #F59E0B' : '1px solid #CBD5E1',
+              borderRadius: '10px',
+              padding: '6px 10px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              color: isAudioBlocked ? '#B45309' : 'var(--text-main)',
+              transition: 'all 0.2s ease'
+            }}
+            title={isAudioBlocked ? 'Browser muted audio. Click to enable sound' : 'Audio output is active'}
+          >
+            {isAudioBlocked ? <VolumeX size={14} color="#B45309" /> : <Volume2 size={14} color="#059669" />}
+            <span>{isAudioBlocked ? 'Tap for Sound' : 'Sound On'}</span>
+          </button>
+
           <button
             onClick={() => setIsMuted(prev => !prev)}
             style={{

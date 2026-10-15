@@ -615,7 +615,8 @@ server.on('upgrade', async (request, socket, head) => {
         });
 
         ws.on('message', (data, isBinary) => {
-          const logMsg = isBinary ? '<Binary Data>' : data.toString();
+          const preview = isBinary ? '<Binary Data>' : (data.toString().length > 150 ? data.toString().substring(0, 150) + '...' : data.toString());
+          console.log(`[Client -> Upstream] [${new Date().toISOString()}]: ${preview}`);
 
           const messageVerdict = validateProxiedRequestBody(data.toString(), WEB_SOCKET_BODY_POLICY);
           if (!messageVerdict.allowed) {
