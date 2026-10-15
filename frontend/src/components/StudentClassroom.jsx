@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import LiveTutorStage from './LiveTutorStage';
 import AvatarCanvas from './AvatarCanvas';
 import SlideBoard from './SlideBoard';
 import { Volume2, Mic, Tv, ArrowRight, ArrowLeft, Star, Award, CheckCircle, CheckCircle2, HelpCircle, MessageSquare, Sparkles, Send, Brain, Sliders, RefreshCw, AlertCircle, ThumbsUp, HelpCircle as HelpIcon, Smile } from 'lucide-react';
@@ -8,6 +9,11 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
   const [lessonPlan, setLessonPlan] = useState(sessionData?.lesson_plan || null);
   const [avatarConfig, setAvatarConfig] = useState(sessionData?.avatar_config || { gender: 'female', name: 'Miss Priya' });
   const [childName, setChildName] = useState(sessionData?.child_name || 'Vihana');
+
+  // Gemini Live Avatar Stage Ref & Mood
+  const liveTutorRef = useRef(null);
+  const isExplainingLessonRef = useRef(false);
+  const [avatarMood, setAvatarMood] = useState('idle');
   
   // Audio & Viseme state
   const [currentViseme, setCurrentViseme] = useState(null);
@@ -160,8 +166,35 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       clearInterval(visemeIntervalRef.current);
       visemeIntervalRef.current = null;
     }
+    if (liveTutorRef.current?.disconnect) {
+      liveTutorRef.current.disconnect();
+    }
     setIsSpeaking(false);
     setCurrentViseme(null);
+  };
+
+  // Callback when live avatar starts or stops talking
+  const handleAgentTalkingChange = (talking) => {
+    setIsSpeaking(talking);
+    if (!talking) {
+      setAvatarMood('idle');
+      // Only mark topic teaching as finished if this utterance was the actual lesson explanation!
+      if (isExplainingLessonRef.current) {
+        isExplainingLessonRef.current = false;
+        setIsTopicTeachingOver(true);
+      }
+    }
+  };
+
+  // Callback when student speaks a doubt directly into the live avatar microphone
+  const handleSpokenDoubtAnswered = (userDoubt, teacherAnswer) => {
+    if (!userDoubt || !teacherAnswer) return;
+    setDoubtsList((prev) => [...prev, { query: userDoubt, explanation: teacherAnswer }]);
+    setActiveDoubt({
+      query: userDoubt,
+      explanation: teacherAnswer,
+      action_type: 'answer_doubt'
+    });
   };
 
   // Ensure speech synthesis and viseme timers are cleanly stopped on unmount
@@ -204,15 +237,29 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
   const currentSpokenTextRef = useRef('');
   const lastSpokenSpeechRef = useRef('');
 
-  // Speech Synthesis with Selected Voice
+  // Speech Synthesis with Selected Voice or Live Avatar
   const speakTeacherResponse = (text, visemes, isTopicLesson = false) => {
     setIsSpeaking(true);
     // When starting a new lesson explanation, ensure topic teaching is not marked over until this finishes
     if (isTopicLesson) {
       setIsTopicTeachingOver(false);
       setIsQuizReady(false);
+      isExplainingLessonRef.current = true;
     }
     currentSpokenTextRef.current = text || '';
+
+    // If Gemini 3.8 Live Avatar is connected, dispatch directive to Live Stream
+    if (liveTutorRef.current?.isConnected) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      setAvatarMood('talking');
+      const promptText = isTopicLesson
+        ? `[LESSON EXPLANATION]: Please explain this topic concept warmly to ${childName}: "${text}". Keep it conversational, lively, and encouraging.`
+        : `[TEACHER SAYS]: Speak this warmly to ${childName}: "${text}"`;
+      liveTutorRef.current.sendPrompt(promptText);
+      return;
+    }
 
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
@@ -616,9 +663,20 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       
       if (evalData.is_correct) {
         setStars((prev) => prev + 1);
+        setAvatarMood('celebrating');
+      } else {
+        setAvatarMood('empathetic');
       }
 
-      speakTeacherResponse(evalData.teacher_verbal_response, []);
+      if (liveTutorRef.current?.isConnected) {
+        const isCorrect = evalData.is_correct;
+        const evalPrompt = isCorrect
+          ? `[QUIZ RESULT]: ${childName} answered "${chosenText}". That is CORRECT! Cheer and congratulate them warmly: "${evalData.teacher_verbal_response}"`
+          : `[QUIZ RESULT]: ${childName} answered "${chosenText}". That is incorrect. Be gentle, encouraging, and explain: "${evalData.teacher_verbal_response}"`;
+        liveTutorRef.current.sendPrompt(evalPrompt);
+      } else {
+        speakTeacherResponse(evalData.teacher_verbal_response, []);
+      }
 
       // If correct and topic has more questions, smoothly transition to next question
       if (evalData.is_correct && !evalData.topic_completed && evalData.next_question) {
@@ -737,14 +795,16 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
         alignItems: 'stretch',
         marginBottom: '24px'
       }}>
-        {/* Left Column: Real Photo Indian Teacher Avatar */}
+        {/* Left Column: Gemini 3.8 Live Video Avatar */}
         <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <AvatarCanvas 
+          <LiveTutorStage 
+            ref={liveTutorRef}
             avatarConfig={avatarConfig}
-            currentViseme={currentViseme}
-            isSpeaking={isSpeaking}
-            isListening={isListening}
-            isThinking={isThinking}
+            childName={childName}
+            mood={avatarMood}
+            onAgentTalkingChange={handleAgentTalkingChange}
+            onDoubtAnswered={handleSpokenDoubtAnswered}
+            isSpeakingFallback={isSpeaking}
           />
         </div>
 

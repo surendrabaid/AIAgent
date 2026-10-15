@@ -70,26 +70,45 @@ export const useLiveSession = (
 
   // Initialize Output AudioContext
   useEffect(() => {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-    outputAudioContextRef.current = ctx;
-    const gain = ctx.createGain();
-    gain.connect(ctx.destination);
-    outputNodeRef.current = gain;
-
-    if (videoRef.current) {
+    let ctx = outputAudioContextRef.current;
+    if (!ctx || ctx.state === 'closed') {
       try {
-        videoSourceRef.current = ctx.createMediaElementSource(videoRef.current);
-        videoAnalyserRef.current = ctx.createAnalyser();
-        videoAnalyserRef.current.fftSize = 2048;
-        videoSourceRef.current.connect(videoAnalyserRef.current);
-        videoAnalyserRef.current.connect(gain);
+        ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        outputAudioContextRef.current = ctx;
       } catch (e) {
-        setError("Failed to create media element source");
+        console.warn("Could not create AudioContext:", e);
+      }
+    }
+
+    let gain = outputNodeRef.current;
+    if (ctx && (!gain || !outputNodeRef.current)) {
+      try {
+        gain = ctx.createGain();
+        gain.connect(ctx.destination);
+        outputNodeRef.current = gain;
+      } catch (e) {
+        console.warn("Could not create GainNode:", e);
+      }
+    }
+
+    if (ctx && gain && videoRef.current && !videoSourceRef.current) {
+      try {
+        const source = ctx.createMediaElementSource(videoRef.current);
+        videoSourceRef.current = source;
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 2048;
+        videoAnalyserRef.current = analyser;
+        source.connect(analyser);
+        analyser.connect(gain);
+      } catch (e) {
+        // Non-fatal: An HTMLMediaElement can only be connected to createMediaElementSource once,
+        // and browser will fall back to native video audio playback seamlessly.
+        console.warn("MediaElementAudioSource skipped or already connected (native video audio used):", e);
       }
     }
 
     return () => {
-      ctx.close();
+      // Keep context intact on quick re-renders so already-connected media element source doesn't become invalid
     };
   }, []);
 
@@ -447,7 +466,9 @@ export const useLiveSession = (
     if (mseRef.current && mseRef.current.readyState === 'open') {
       try {
         mseRef.current.endOfStream();
-      } catch (e) { setError("Failed to end stream") }
+      } catch (e) {
+        console.warn("Failed to end stream cleanly:", e);
+      }
     }
     if (videoRef.current) {
       videoRef.current.pause();
@@ -682,7 +703,9 @@ export const useLiveSession = (
       });
 
       sessionPromiseRef.current = sessionPromise;
-    } catch (err) {
+    } catch (err: any) {
+      console.error("Connection attempt failed:", err);
+      setError(err?.message || "Failed to connect to live avatar");
       disconnect();
     }
   }, [isConnected, isConnecting, disconnect, initMediaSource, monitoringLoop, isMuted]);

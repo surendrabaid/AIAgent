@@ -317,6 +317,14 @@ let cachedGcloudToken = null;
 let cachedGcloudTokenExpiry = 0;
 
 async function getAccessToken(res) {
+  // Support explicit access token configured in environment variables
+  if (process.env.GCP_ACCESS_TOKEN && process.env.GCP_ACCESS_TOKEN.trim()) {
+    return process.env.GCP_ACCESS_TOKEN.trim();
+  }
+  if (process.env.ACCESS_TOKEN && process.env.ACCESS_TOKEN.trim()) {
+    return process.env.ACCESS_TOKEN.trim();
+  }
+
   try {
     const authClient = await auth.getClient();
     const token = await authClient.getAccessToken();

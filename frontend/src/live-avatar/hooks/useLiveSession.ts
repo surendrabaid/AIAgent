@@ -6,11 +6,21 @@ import { ChatMessage } from '../types';
 
 const LIVE_API_MODEL_NAME = 'gemini-live-2.5-flash-native-audio';
 
+export interface LiveConfigOverrides {
+  avatarConfig?: { avatarName?: string };
+  speechConfig?: {
+    languageCode?: string;
+    voiceConfig?: { prebuiltVoiceConfig?: { voiceName: string } };
+  };
+  systemInstruction?: string;
+}
+
 export const useLiveSession = (
   selectedAudioOutputId: string,
   isMuted: boolean,
   isVideoEnabled: boolean,
-  webcamVideoRef: React.RefObject<HTMLVideoElement | null>
+  webcamVideoRef: React.RefObject<HTMLVideoElement | null>,
+  configOverrides?: LiveConfigOverrides
 ) => {
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
@@ -35,6 +45,7 @@ export const useLiveSession = (
   const agentTalkingRef = useRef<boolean>(false);
   const currentInputTextRef = useRef<string>('');
   const currentOutputTextRef = useRef<string>('');
+  const pendingMessageQueueRef = useRef<string[]>([]);
 
   const sessionPromiseRef = useRef<Promise<any> | null>(null);
   const inputAudioContextRef = useRef<AudioContext | null>(null);
@@ -70,26 +81,45 @@ export const useLiveSession = (
 
   // Initialize Output AudioContext
   useEffect(() => {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-    outputAudioContextRef.current = ctx;
-    const gain = ctx.createGain();
-    gain.connect(ctx.destination);
-    outputNodeRef.current = gain;
-
-    if (videoRef.current) {
+    let ctx = outputAudioContextRef.current;
+    if (!ctx || ctx.state === 'closed') {
       try {
-        videoSourceRef.current = ctx.createMediaElementSource(videoRef.current);
-        videoAnalyserRef.current = ctx.createAnalyser();
-        videoAnalyserRef.current.fftSize = 2048;
-        videoSourceRef.current.connect(videoAnalyserRef.current);
-        videoAnalyserRef.current.connect(gain);
+        ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        outputAudioContextRef.current = ctx;
       } catch (e) {
-        setError("Failed to create media element source");
+        console.warn("Could not create AudioContext:", e);
+      }
+    }
+
+    let gain = outputNodeRef.current;
+    if (ctx && (!gain || !outputNodeRef.current)) {
+      try {
+        gain = ctx.createGain();
+        gain.connect(ctx.destination);
+        outputNodeRef.current = gain;
+      } catch (e) {
+        console.warn("Could not create GainNode:", e);
+      }
+    }
+
+    if (ctx && gain && videoRef.current && !videoSourceRef.current) {
+      try {
+        const source = ctx.createMediaElementSource(videoRef.current);
+        videoSourceRef.current = source;
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 2048;
+        videoAnalyserRef.current = analyser;
+        source.connect(analyser);
+        analyser.connect(gain);
+      } catch (e) {
+        // Non-fatal: An HTMLMediaElement can only be connected to createMediaElementSource once,
+        // and browser will fall back to native video audio playback seamlessly.
+        console.warn("MediaElementAudioSource skipped or already connected (native video audio used):", e);
       }
     }
 
     return () => {
-      ctx.close();
+      // Keep context intact on quick re-renders so already-connected media element source doesn't become invalid
     };
   }, []);
 
@@ -442,12 +472,15 @@ export const useLiveSession = (
       animationFrameRef.current = null;
     }
 
+    pendingMessageQueueRef.current = [];
     videoQueueRef.current = [];
     cachedInitSegmentRef.current = null;
     if (mseRef.current && mseRef.current.readyState === 'open') {
       try {
         mseRef.current.endOfStream();
-      } catch (e) { setError("Failed to end stream") }
+      } catch (e) {
+        console.warn("Failed to end stream cleanly:", e);
+      }
     }
     if (videoRef.current) {
       videoRef.current.pause();
@@ -556,6 +589,28 @@ export const useLiveSession = (
               setIsSetupComplete(true);
               isSetupCompleteRef.current = true;
               setIsConnecting(false); // Setup is complete, no longer connecting
+              if (pendingMessageQueueRef.current.length > 0) {
+                const pending = [...pendingMessageQueueRef.current];
+                pendingMessageQueueRef.current = [];
+                sessionPromiseRef.current?.then((session: any) => {
+                  pending.forEach((msg) => {
+                    try {
+                      session.sendRealtimeInput({ text: msg });
+                      setChatHistory(prev => [
+                        ...prev,
+                        {
+                          id: `user-text-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+                          role: 'user',
+                          text: msg,
+                          isFinal: true
+                        }
+                      ]);
+                    } catch (e) {
+                      console.warn("Failed to flush pending message:", e);
+                    }
+                  });
+                });
+              }
             }
 
             if (message.serverContent?.outputTranscription) {
@@ -671,10 +726,10 @@ export const useLiveSession = (
           },
         },
         config: {
-          avatarConfig: (liveServiceConfiguration as any).avatarConfig,
-          speechConfig: (liveServiceConfiguration as any).generationConfig?.speechConfig,
+          avatarConfig: configOverrides?.avatarConfig || (liveServiceConfiguration as any).avatarConfig,
+          speechConfig: configOverrides?.speechConfig || (liveServiceConfiguration as any).generationConfig?.speechConfig,
           responseModalities: (liveServiceConfiguration as any).generationConfig?.responseModalities,
-          systemInstruction: (liveServiceConfiguration as any).systemInstruction,
+          systemInstruction: configOverrides?.systemInstruction || (liveServiceConfiguration as any).systemInstruction,
           inputAudioTranscription: (liveServiceConfiguration as any).input_audio_transcription || (liveServiceConfiguration as any).inputAudioTranscription || {},
           outputAudioTranscription: (liveServiceConfiguration as any).output_audio_transcription || (liveServiceConfiguration as any).outputAudioTranscription || {},
           tools: (liveServiceConfiguration as any).tools,
@@ -682,10 +737,12 @@ export const useLiveSession = (
       });
 
       sessionPromiseRef.current = sessionPromise;
-    } catch (err) {
+    } catch (err: any) {
+      console.error("Connection attempt failed:", err);
+      setError(err?.message || "Failed to connect to live avatar");
       disconnect();
     }
-  }, [isConnected, isConnecting, disconnect, initMediaSource, monitoringLoop, isMuted]);
+  }, [isConnected, isConnecting, disconnect, initMediaSource, monitoringLoop, isMuted, configOverrides]);
 
   const switchMicrophone = useCallback(async (deviceId: string) => {
     if (isConnected && streamRef.current) {
@@ -695,6 +752,7 @@ export const useLiveSession = (
         });
 
         newStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+        streamRef.current = newStream;
 
         if (mediaSourceRef.current) {
           mediaSourceRef.current.disconnect();
@@ -714,11 +772,17 @@ export const useLiveSession = (
   }, [isConnected, isMuted]);
 
   const sendTextMessage = useCallback((text: string) => {
-    if (!text.trim() || !sessionPromiseRef.current || !isSetupCompleteRef.current) return;
+    const cleanText = text.trim();
+    if (!cleanText) return;
+
+    if (!sessionPromiseRef.current || !isSetupCompleteRef.current) {
+      pendingMessageQueueRef.current.push(cleanText);
+      return;
+    }
 
     sessionPromiseRef.current.then((session) => {
       try {
-        session.sendRealtimeInput({ text });
+        session.sendRealtimeInput({ text: cleanText });
 
         // Add to chat history immediately for better UX
         setChatHistory(prev => [
@@ -726,7 +790,7 @@ export const useLiveSession = (
           {
             id: `user-text-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
             role: 'user',
-            text: text.trim(),
+            text: cleanText,
             isFinal: true
           }
         ]);

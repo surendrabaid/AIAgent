@@ -206,13 +206,13 @@ export default function App() {
                 </div>
 
                 <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '6px' }}>
-                  Static Avatar
+                  Live Avatar Classroom
                 </h3>
                 <p style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-purple)', marginBottom: '10px' }}>
-                  2D Viseme Teacher (Miss Priya / Mr. Rajesh)
+                  Socratic Curriculum • Gemini 3.8 Live Stream
                 </p>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: '24px' }}>
-                  Interactive 1-on-1 tutoring with real-time lip-sync, Socratic slide board, quizzes, and doubt clarification.
+                  Interactive 1-on-1 tutoring with real-time video streaming, Socratic slide board, TV D-Pad quizzes, and doubt clarification.
                 </p>
               </div>
 
@@ -234,7 +234,7 @@ export default function App() {
                   boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)'
                 }}
               >
-                <span>Launch Static Avatar</span>
+                <span>Launch Live Avatar Classroom</span>
               </button>
             </div>
 
@@ -352,7 +352,7 @@ export default function App() {
             HelpMe AI Tutor
           </span>
           <span style={{ fontSize: '0.72rem', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent-purple)', fontWeight: 800, padding: '2px 8px', borderRadius: '12px' }}>
-            Static Avatar Mode
+            Live Avatar Mode (Gemini 3.8)
           </span>
         </div>
 
