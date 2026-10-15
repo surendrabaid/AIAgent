@@ -24,7 +24,7 @@ const LiveTutorStage = forwardRef(({
     specialty: 'Science & Mathematics',
     voiceName: (gender === 'male' ? 'fenrir' : 'kore'),
     avatarName: gender === 'male' ? 'Jay' : 'Carmen',
-    imageUrl: gender === 'male' ? '/indian_male_teacher.png' : '/indian_female_teacher.png',
+    imageUrl: gender === 'male' ? `${AVATAR_BASE}/jay.png` : `${AVATAR_BASE}/carmen_2.png`,
     themeColor: gender === 'male' ? 'from-blue-600 to-indigo-600' : 'from-pink-600 to-indigo-600',
     description: 'Patient, warm, and explains complex concepts with intuitive real-world analogies.',
     accentQuote: "Let's explore and discover together!"
@@ -93,11 +93,8 @@ DOUBT CLARIFICATION PROTOCOL:
   // Forward imperative handle to parent
   useImperativeHandle(ref, () => ({
     sendPrompt: (text) => {
-      if (isConnected) {
-        sendTextMessage(text);
-        return true;
-      }
-      return false;
+      sendTextMessage(text);
+      return true;
     },
     isConnected,
     hasVideo,

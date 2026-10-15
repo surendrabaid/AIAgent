@@ -595,7 +595,19 @@ export const useLiveSession = (
                 sessionPromiseRef.current?.then((session: any) => {
                   pending.forEach((msg) => {
                     try {
-                      session.sendRealtimeInput({ text: msg });
+                      if (typeof session.sendClientContent === 'function') {
+                        session.sendClientContent({
+                          turns: [
+                            {
+                              role: 'user',
+                              parts: [{ text: msg }]
+                            }
+                          ],
+                          turnComplete: true
+                        });
+                      } else {
+                        session.sendRealtimeInput({ text: msg });
+                      }
                       setChatHistory(prev => [
                         ...prev,
                         {
@@ -782,7 +794,19 @@ export const useLiveSession = (
 
     sessionPromiseRef.current.then((session) => {
       try {
-        session.sendRealtimeInput({ text: cleanText });
+        if (typeof (session as any).sendClientContent === 'function') {
+          (session as any).sendClientContent({
+            turns: [
+              {
+                role: 'user',
+                parts: [{ text: cleanText }]
+              }
+            ],
+            turnComplete: true
+          });
+        } else {
+          session.sendRealtimeInput({ text: cleanText });
+        }
 
         // Add to chat history immediately for better UX
         setChatHistory(prev => [

@@ -248,11 +248,13 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
     }
     currentSpokenTextRef.current = text || '';
 
-    // If Gemini 3.8 Live Avatar is connected, dispatch directive to Live Stream
-    if (liveTutorRef.current?.isConnected) {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
+    // Cancel any synthetic browser audio immediately so ONLY Gemini Live audio plays
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    // Always dispatch directive to Gemini Live Avatar (LiveTutorStage queues if connecting)
+    if (liveTutorRef.current) {
       setAvatarMood('talking');
       const promptText = isTopicLesson
         ? `[LESSON EXPLANATION]: Please explain this topic concept warmly to ${childName}: "${text}". Keep it conversational, lively, and encouraging.`
@@ -260,6 +262,18 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       liveTutorRef.current.sendPrompt(promptText);
       return;
     }
+
+    // Fallback: If ref was attaching, retry in 200ms
+    setTimeout(() => {
+      if (liveTutorRef.current) {
+        setAvatarMood('talking');
+        const promptText = isTopicLesson
+          ? `[LESSON EXPLANATION]: Please explain this topic concept warmly to ${childName}: "${text}". Keep it conversational, lively, and encouraging.`
+          : `[TEACHER SAYS]: Speak this warmly to ${childName}: "${text}"`;
+        liveTutorRef.current.sendPrompt(promptText);
+      }
+    }, 200);
+    return;
 
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
