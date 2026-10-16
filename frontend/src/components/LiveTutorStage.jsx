@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef, useCallback, useMemo } from 'react';
 import { useLiveSession } from '../live-avatar/hooks/useLiveSession';
 import { LiveAvatarCanvas } from '../live-avatar/components/LiveAvatarCanvas';
 import { Volume2, VolumeX, Mic, MicOff, RefreshCw, Signal, Radio, Sparkles, CheckCircle2, AlertCircle, User, Award } from 'lucide-react';
@@ -48,7 +48,7 @@ CHECKPOINT QUIZ PROTOCOL:
 DOUBT CLARIFICATION PROTOCOL:
 - When ${childName} asks a doubt or question, explain it warmly and clearly.`;
 
-  const configOverrides = {
+  const configOverrides = useMemo(() => ({
     avatarConfig: {
       avatarName: activePersona.avatarName
     },
@@ -61,7 +61,7 @@ DOUBT CLARIFICATION PROTOCOL:
       }
     },
     systemInstruction
-  };
+  }), [activePersona.avatarName, activePersona.voiceName, systemInstruction]);
 
   const [isMuted, setIsMuted] = useState(true);
   const [audioLevel, setAudioLevel] = useState(0);

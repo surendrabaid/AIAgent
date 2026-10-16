@@ -277,11 +277,19 @@ export const useLiveSession = (
 
     if (!videoErrorListenerAddedRef.current) {
       videoElement.addEventListener("error", (e) => {
-        if (!mseRef.current) return;
-        mseRef.current = null;
-        sourceBufferRef.current = null;
-        videoQueueRef.current = [];
-        setError("Video playback error.");
+        const err = videoElement.error;
+        console.warn("[LiveAvatar Video Error event]", err?.code, err?.message);
+        // Ignore aborted error (code 1) or when src is empty during reset/disconnect
+        if (!err || err.code === 1 || !videoElement.currentSrc) {
+          return;
+        }
+        if (err.code === 3 || err.code === 4) {
+          console.error("Fatal decode/source error:", err);
+          mseRef.current = null;
+          sourceBufferRef.current = null;
+          videoQueueRef.current = [];
+          setError("Video playback error: " + (err.message || `Code ${err.code}`));
+        }
       });
       videoErrorListenerAddedRef.current = true;
     }
@@ -289,7 +297,7 @@ export const useLiveSession = (
     mediaSource.addEventListener("sourceopen", () => {
       try {
         let sourceBuffer = sourceBufferRef.current;
-        if (!sourceBuffer) {
+        if (!sourceBuffer && mediaSource.readyState === 'open') {
           const type = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
           if (MediaSource.isTypeSupported(type)) {
             sourceBuffer = mediaSource.addSourceBuffer(type);
@@ -298,11 +306,6 @@ export const useLiveSession = (
           }
           sourceBuffer.mode = "sequence";
           sourceBufferRef.current = sourceBuffer;
-
-          const cachedInitSegment = cachedInitSegmentRef.current;
-          if (cachedInitSegment && videoQueueRef.current[0] !== cachedInitSegment) {
-            videoQueueRef.current.unshift(cachedInitSegment);
-          }
         }
 
         const currentSourceBuffer = sourceBufferRef.current;
@@ -316,7 +319,7 @@ export const useLiveSession = (
             try {
               currentSourceBuffer.appendBuffer(chunk);
             } catch (e) {
-              setError("Error setting video stream");
+              console.warn("Buffer initial chunk append warning:", e);
             }
           }
         }
@@ -330,7 +333,6 @@ export const useLiveSession = (
             const playPromise = videoElement.play();
             if (playPromise !== undefined) {
               playPromise.catch((e) => {
-                console.warn("Autoplay with sound restricted, playing muted until user gesture:", e);
                 if (!videoElement.muted) {
                   videoElement.muted = true;
                   setIsAudioBlocked(true);
@@ -340,44 +342,19 @@ export const useLiveSession = (
             }
           }
 
-          if (ms.readyState === 'open' && videoElement.buffered.length > 0) {
-            try {
-              const end = videoElement.buffered.end(videoElement.buffered.length - 1);
-              ms.setLiveSeekableRange(0, end);
-            } catch (e) {
-              // Ignore
-            }
-          }
-
-          // --- Explicitly remove unneeded data from the buffer ---
-          // We keep 5 seconds of history to prevent playback stalls, but aggressively remove older data.
-          if (!sb.updating && videoElement.currentTime > 6) {
-            try {
-              if (videoElement.buffered.length > 0) {
-                const start = videoElement.buffered.start(0);
-                const endToRemove = videoElement.currentTime - 5;
-                if (endToRemove > start) {
-                  sb.remove(start, endToRemove);
-                  return;
-                }
-              }
-            } catch (e) {
-              // Ignore
-            }
-          }
-
           if (videoQueueRef.current.length > 0 && !sb.updating) {
             const chunk = videoQueueRef.current.shift();
             if (chunk) {
               try {
                 sb.appendBuffer(chunk);
               } catch (e) {
-                setError("Error setting video stream");
+                console.warn("Buffer queue chunk append warning:", e);
               }
             }
           }
         });
       } catch (e: any) {
+        console.error("sourceopen initialization error:", e);
         setError('Failed to initialize video stream.');
       }
     });
@@ -542,10 +519,10 @@ export const useLiveSession = (
         URL.revokeObjectURL(videoRef.current.src);
       }
       videoRef.current.removeAttribute('src');
-      videoRef.current.load();
     }
     sourceBufferRef.current = null;
     mseRef.current = null;
+    setError(null);
   }, []);
 
   const connect = useCallback(async (deviceId: string) => {
