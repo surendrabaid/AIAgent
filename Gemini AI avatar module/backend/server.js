@@ -11,6 +11,8 @@ import fetch from 'node-fetch';
 import rateLimit from 'express-rate-limit';
 import { WebSocketServer, WebSocket } from 'ws';
 import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 
 const app = express();
 app.use(express.json({limit: process?.env?.API_PAYLOAD_MAX_SIZE || "7mb"}));
@@ -313,26 +315,38 @@ function sanitizeForwardedHeaders(requestHeaders) {
   return forwardable;
 }
 
-import fs from 'fs';
-import path from 'path';
-
-// Dynamically check root backend/.env for GCP_ACCESS_TOKEN if not set in local environment
+// Dynamically check candidate .env paths on disk so fresh tokens are picked up without requiring server restart
 function getManualTokenFromEnv() {
-  const directToken = (process?.env?.GCP_ACCESS_TOKEN || process?.env?.GOOGLE_CLOUD_ACCESS_TOKEN || '').trim();
-  if (directToken) return directToken;
-  try {
-    const parentEnvPath = path.resolve(process.cwd(), '../../backend/.env');
-    if (fs.existsSync(parentEnvPath)) {
-      const content = fs.readFileSync(parentEnvPath, 'utf8');
-      for (const line of content.split('\n')) {
-        const trimmed = line.trim();
-        if (trimmed.startsWith('GCP_ACCESS_TOKEN=')) {
-          const val = trimmed.replace('GCP_ACCESS_TOKEN=', '').trim().replace(/^["']|["']$/g, '');
-          if (val) return val;
+  const candidatePaths = [
+    path.resolve(process.cwd(), '.env'),
+    path.resolve(process.cwd(), 'backend/.env'),
+    path.resolve(process.cwd(), '../backend/.env'),
+    path.resolve(process.cwd(), '../../backend/.env'),
+    path.resolve(process.cwd(), 'Gemini AI avatar module/backend/.env'),
+  ];
+
+  for (const envPath of candidatePaths) {
+    try {
+      if (fs.existsSync(envPath)) {
+        const content = fs.readFileSync(envPath, 'utf8');
+        for (const line of content.split('\n')) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('GCP_ACCESS_TOKEN=') || trimmed.startsWith('GCP_ACCESS_TOKEN =')) {
+            const val = trimmed.split('=', 2)[1].trim().replace(/^["']|["']$/g, '');
+            if (val && !val.includes('your-') && !val.includes('sample')) {
+              process.env.GCP_ACCESS_TOKEN = val;
+              return val;
+            }
+          }
         }
       }
-    }
-  } catch (err) {}
+    } catch (err) {}
+  }
+
+  const directToken = (process?.env?.GCP_ACCESS_TOKEN || process?.env?.GOOGLE_CLOUD_ACCESS_TOKEN || '').trim();
+  if (directToken && !directToken.includes('your-') && !directToken.includes('sample')) {
+    return directToken;
+  }
   return '';
 }
 
