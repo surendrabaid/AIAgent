@@ -124,6 +124,44 @@ export const useLiveSession = (
     flushTranscriptionsRef.current = flushTranscriptions;
   }, [flushTranscriptions]);
 
+  // Initialize Output AudioContext and MediaElementAudioSourceNode for unblocked audio
+  useEffect(() => {
+    let ctx = outputAudioContextRef.current;
+    if (!ctx || ctx.state === 'closed') {
+      try {
+        ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        outputAudioContextRef.current = ctx;
+      } catch (e) {
+        console.warn("Could not create AudioContext:", e);
+      }
+    }
+
+    let gain = outputNodeRef.current;
+    if (ctx && (!gain || !outputNodeRef.current)) {
+      try {
+        gain = ctx.createGain();
+        gain.connect(ctx.destination);
+        outputNodeRef.current = gain;
+      } catch (e) {
+        console.warn("Could not create GainNode:", e);
+      }
+    }
+
+    if (ctx && gain && videoRef.current && !videoSourceRef.current) {
+      try {
+        const source = ctx.createMediaElementSource(videoRef.current);
+        videoSourceRef.current = source;
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 2048;
+        videoAnalyserRef.current = analyser;
+        source.connect(analyser);
+        analyser.connect(gain);
+      } catch (e) {
+        console.warn("Benign MediaElementAudioSourceNode notification:", e);
+      }
+    }
+  }, []);
+
   // Unmute audio and resume suspended audio contexts on explicit user gesture
   const unmuteAudio = useCallback(() => {
     if (videoRef.current) {
@@ -313,6 +351,23 @@ export const useLiveSession = (
           return;
         }
 
+        // Attach Web Audio MediaElementSource if available
+        const ctx = outputAudioContextRef.current;
+        const gain = outputNodeRef.current;
+        if (ctx && gain && videoElement && !videoSourceRef.current) {
+          try {
+            const source = ctx.createMediaElementSource(videoElement);
+            videoSourceRef.current = source;
+            const analyser = ctx.createAnalyser();
+            analyser.fftSize = 2048;
+            videoAnalyserRef.current = analyser;
+            source.connect(analyser);
+            analyser.connect(gain);
+          } catch (e) {
+            console.warn("Benign MediaElementAudioSourceNode notification:", e);
+          }
+        }
+
         if (videoQueueRef.current.length > 0 && !currentSourceBuffer.updating) {
           const chunk = videoQueueRef.current.shift();
           if (chunk) {
@@ -329,7 +384,18 @@ export const useLiveSession = (
           const ms = mseRef.current;
           if (!sb || !ms) return;
 
+          if (ms.readyState === 'open' && videoElement.buffered.length > 0) {
+            try {
+              const end = videoElement.buffered.end(videoElement.buffered.length - 1);
+              ms.setLiveSeekableRange(0, end);
+            } catch (e) {
+              // Ignore
+            }
+          }
+
           if (videoElement.paused) {
+            videoElement.muted = false;
+            videoElement.volume = 1.0;
             const playPromise = videoElement.play();
             if (playPromise !== undefined) {
               playPromise.catch((e) => {
@@ -634,7 +700,19 @@ export const useLiveSession = (
                 sessionPromiseRef.current?.then((session: any) => {
                   pending.forEach((msg) => {
                     try {
-                      session.sendRealtimeInput({ text: msg });
+                      if (typeof session.sendClientContent === 'function') {
+                        session.sendClientContent({
+                          turns: [
+                            {
+                              role: 'user',
+                              parts: [{ text: msg }]
+                            }
+                          ],
+                          turnComplete: true
+                        });
+                      } else {
+                        session.sendRealtimeInput({ text: msg });
+                      }
                       setChatHistory(prev => [
                         ...prev,
                         {
@@ -739,11 +817,22 @@ export const useLiveSession = (
               }
             }
           },
-          onerror: (e: ErrorEvent) => {
-            setError('A connection error occurred.');
+          onerror: (e: any) => {
+            console.error('[LiveSession] Connection error event:', e);
+            const msg = (e?.message || e?.error?.message || '').toLowerCase();
+            if (msg.includes('1008') || msg.includes('auth') || msg.includes('token') || msg.includes('credential')) {
+              setError('GCP Access Token is expired or invalid. Please update GCP_ACCESS_TOKEN in .env and restart.');
+            } else {
+              setError('Live Avatar connection error. Please verify the Gemini Live proxy is running on port 5001.');
+            }
             disconnect();
           },
           onclose: (e: CloseEvent) => {
+            console.log('[LiveSession] WebSocket closed:', e.code, e.reason);
+            const reason = (e.reason || '').toLowerCase();
+            if (e.code === 1008 || reason.includes('token') || reason.includes('authenticat') || reason.includes('credential')) {
+              setError('GCP Access Token is expired or invalid. Please update GCP_ACCESS_TOKEN in .env and restart the server.');
+            }
             disconnect();
           },
         },
@@ -751,7 +840,9 @@ export const useLiveSession = (
           avatarConfig: configOverrides?.avatarConfig || (liveServiceConfiguration as any).avatarConfig,
           speechConfig: configOverrides?.speechConfig || (liveServiceConfiguration as any).generationConfig?.speechConfig,
           responseModalities: (liveServiceConfiguration as any).generationConfig?.responseModalities,
-          systemInstruction: configOverrides?.systemInstruction || (liveServiceConfiguration as any).systemInstruction,
+          systemInstruction: {
+            parts: [{ text: (typeof configOverrides?.systemInstruction === 'string' ? configOverrides.systemInstruction : (liveServiceConfiguration as any).systemInstruction) || '' }]
+          },
           inputAudioTranscription: (liveServiceConfiguration as any).input_audio_transcription || (liveServiceConfiguration as any).inputAudioTranscription || {},
           outputAudioTranscription: (liveServiceConfiguration as any).output_audio_transcription || (liveServiceConfiguration as any).outputAudioTranscription || {},
           tools: (liveServiceConfiguration as any).tools,
@@ -804,7 +895,19 @@ export const useLiveSession = (
 
     sessionPromiseRef.current.then((session) => {
       try {
-        session.sendRealtimeInput({ text: cleanText });
+        if (typeof (session as any).sendClientContent === 'function') {
+          (session as any).sendClientContent({
+            turns: [
+              {
+                role: 'user',
+                parts: [{ text: cleanText }]
+              }
+            ],
+            turnComplete: true
+          });
+        } else {
+          session.sendRealtimeInput({ text: cleanText });
+        }
 
         // Add to chat history immediately for better UX
         setChatHistory(prev => [

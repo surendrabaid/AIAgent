@@ -313,26 +313,79 @@ function sanitizeForwardedHeaders(requestHeaders) {
   return forwardable;
 }
 
+import fs from 'fs';
+import path from 'path';
+
+// Dynamically check root backend/.env for GCP_ACCESS_TOKEN if not set in local environment
+function getManualTokenFromEnv() {
+  const directToken = (process?.env?.GCP_ACCESS_TOKEN || process?.env?.GOOGLE_CLOUD_ACCESS_TOKEN || '').trim();
+  if (directToken) return directToken;
+  try {
+    const parentEnvPath = path.resolve(process.cwd(), '../../backend/.env');
+    if (fs.existsSync(parentEnvPath)) {
+      const content = fs.readFileSync(parentEnvPath, 'utf8');
+      for (const line of content.split('\n')) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('GCP_ACCESS_TOKEN=')) {
+          const val = trimmed.replace('GCP_ACCESS_TOKEN=', '').trim().replace(/^["']|["']$/g, '');
+          if (val) return val;
+        }
+      }
+    }
+  } catch (err) {}
+  return '';
+}
+
+/**
+ * Validates whether an OAuth2 access token is valid and not expired using Google's tokeninfo API.
+ */
+async function isTokenValid(token) {
+  if (!token || typeof token !== 'string') return false;
+  const trimmed = token.trim();
+  if (!trimmed || trimmed.startsWith('ya29.sample') || trimmed === 'your-oauth2-access-token') return false;
+  try {
+    const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(trimmed)}`);
+    if (response.ok) {
+      const data = await response.json();
+      const expiresIn = parseInt(data.expires_in, 10);
+      if (!isNaN(expiresIn) && expiresIn > 30) {
+        console.log(`[Node Proxy] Token verified via Google tokeninfo. Active for another ${expiresIn}s.`);
+        return true;
+      }
+    }
+  } catch (err) {
+    console.warn('[Node Proxy] Error validating token with tokeninfo:', err.message);
+  }
+  return false;
+}
+
 let cachedGcloudToken = null;
 let cachedGcloudTokenExpiry = 0;
 
 async function getAccessToken(res) {
-  // Support explicit access token configured in environment variables
-  if (process.env.GCP_ACCESS_TOKEN && process.env.GCP_ACCESS_TOKEN.trim()) {
-    return process.env.GCP_ACCESS_TOKEN.trim();
-  }
-  if (process.env.ACCESS_TOKEN && process.env.ACCESS_TOKEN.trim()) {
-    return process.env.ACCESS_TOKEN.trim();
+  // 1. FIRST ATTEMPT: Check manual token from environment / .env
+  const manualToken = getManualTokenFromEnv();
+  if (manualToken) {
+    const valid = await isTokenValid(manualToken);
+    if (valid) {
+      console.log('[Node Proxy] Valid manual GCP_ACCESS_TOKEN found. Using manual token.');
+      return manualToken;
+    } else {
+      console.warn('[Node Proxy] ⚠️ Warning: Manual GCP_ACCESS_TOKEN is expired or invalid according to Google OAuth2 tokeninfo.');
+    }
   }
 
+  // 2. SECOND ATTEMPT: Dynamic token acquisition
+  // (a) Google Application Default Credentials (ADC)
   try {
     const authClient = await auth.getClient();
     const token = await authClient.getAccessToken();
     if (token?.token) {
+      console.log('[Node Proxy] Successfully retrieved dynamic token via Application Default Credentials.');
       return token.token;
     }
   } catch (error) {
-    // If Application Default Credentials are not found, fallback to gcloud CLI
+    // (b) Try gcloud CLI fallback
     try {
       const now = Date.now();
       if (cachedGcloudToken && now < cachedGcloudTokenExpiry) {
@@ -340,25 +393,28 @@ async function getAccessToken(res) {
       }
       const token = execSync('gcloud auth print-access-token', { encoding: 'utf-8' }).trim();
       if (token) {
-        console.log('[Node Proxy] Successfully retrieved access token via gcloud CLI fallback');
+        console.log('[Node Proxy] Successfully retrieved dynamic token via gcloud CLI fallback.');
         cachedGcloudToken = token;
         cachedGcloudTokenExpiry = now + 45 * 60 * 1000;
         return token;
       }
     } catch (gcloudError) {
-      console.error('[Node Proxy] gcloud CLI fallback error:', gcloudError.message);
+      // benign if gcloud is not installed
     }
 
-    console.error('[Node Proxy] Authentication error:', error);
-    if (!res) return null;
-    if (error.code === 'ERR_GCLOUD_NOT_LOGGED_IN' || (error.message && error.message.includes('Could not load the default credentials'))) {
-      res.status(401).json({
-        error: 'Authentication Required',
-        message: 'Google Cloud Application Default Credentials not found or invalid. Please run "gcloud auth application-default login" or log in with "gcloud auth login" and try again.',
-      });
-    } else {
-      res.status(500).json({ error: `Authentication failed: ${error.message}` });
+    console.error('[Node Proxy] Authentication error: Manual token is expired/missing, and ADC/gcloud are unavailable.');
+    if (!res) {
+      // If we have manual token even if tokeninfo failed (e.g. offline/network glitch), try it as last ditch effort
+      if (manualToken) {
+        console.warn('[Node Proxy] Using manual token as fallback attempt.');
+        return manualToken;
+      }
+      return null;
     }
+    res.status(401).json({
+      error: 'Authentication Required',
+      message: 'GCP_ACCESS_TOKEN is expired or invalid. Please update GCP_ACCESS_TOKEN in .env and restart.',
+    });
     return null;
   }
 }
@@ -652,11 +708,17 @@ server.on('upgrade', async (request, socket, head) => {
         });
 
         upstreamWs.on('close', (code, reason) => {
-          console.log(`[Node Proxy] Upstream closed: ${code} ${reason}`);
+          const reasonStr = reason ? reason.toString() : '';
+          console.log(`[Node Proxy] Upstream closed: ${code} ${reasonStr}`);
           if (ws.readyState === WebSocket.OPEN) {
             try {
+              let closeReason = reasonStr;
+              if (code === 1008 || reasonStr.toLowerCase().includes('authentication') || reasonStr.toLowerCase().includes('credential')) {
+                closeReason = 'GCP Access Token expired or invalid. Please update GCP_ACCESS_TOKEN in .env and restart.';
+                console.error('[Node Proxy] ⚠️ AUTHENTICATION ERROR (1008): Upstream closed due to invalid/expired GCP access token. Please provide a fresh GCP_ACCESS_TOKEN in backend/.env or Gemini AI avatar module/backend/.env.');
+              }
               const safeCode = (code >= 1000 && code <= 4999 && code !== 1005 && code !== 1006 && code !== 1015) ? code : 1000;
-              ws.close(safeCode, reason);
+              ws.close(safeCode, closeReason);
             } catch (err) {
               console.warn('[Node Proxy] Error closing client ws cleanly:', err);
             }

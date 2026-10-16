@@ -44,18 +44,44 @@ class GeminiLiveAvatarService:
 
     def _refresh_env(self):
         """Dynamically re-reads .env so credential changes take effect immediately"""
-        env_path = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
+        env_paths = [
+            os.path.join(os.path.dirname(__file__), "..", "..", ".env"),
+            os.path.join(os.path.dirname(__file__), "..", "..", "..", "Gemini AI avatar module", "backend", ".env")
+        ]
         try:
             from dotenv import dotenv_values
-            if os.path.exists(env_path):
-                vals = dotenv_values(env_path)
-                if vals.get("GCP_PROJECT_ID"):
-                    self.project_id = vals["GCP_PROJECT_ID"].strip()
-                if vals.get("GCP_LOCATION"):
-                    self.location = vals["GCP_LOCATION"].strip()
-                self.access_token = vals.get("GCP_ACCESS_TOKEN", "").strip()
+            for env_path in env_paths:
+                if os.path.exists(env_path):
+                    vals = dotenv_values(env_path)
+                    if vals.get("GCP_PROJECT_ID") or vals.get("GOOGLE_CLOUD_PROJECT"):
+                        self.project_id = (vals.get("GCP_PROJECT_ID") or vals.get("GOOGLE_CLOUD_PROJECT", "")).strip()
+                    if vals.get("GCP_LOCATION") or vals.get("GOOGLE_CLOUD_LOCATION"):
+                        self.location = (vals.get("GCP_LOCATION") or vals.get("GOOGLE_CLOUD_LOCATION", "")).strip()
+                    token = (vals.get("GCP_ACCESS_TOKEN") or vals.get("ACCESS_TOKEN", "")).strip()
+                    if token and not token.startswith("ya29.sample"):
+                        self.access_token = token
+                        break
         except Exception:
             pass
+
+    def _is_token_valid(self, token: str) -> bool:
+        """Validates if an OAuth2 access token is active and not expired via Google's tokeninfo API"""
+        if not token or not token.strip():
+            return False
+        clean = token.strip()
+        if clean.startswith("ya29.sample") or clean == "your-oauth2-access-token":
+            return False
+        try:
+            import requests
+            res = requests.get(f"https://oauth2.googleapis.com/tokeninfo?access_token={clean}", timeout=3)
+            if res.status_code == 200:
+                data = res.json()
+                expires_in = int(data.get("expires_in", 0))
+                if expires_in > 30:
+                    return True
+        except Exception:
+            pass
+        return False
 
     def get_valid_access_token(self) -> str:
         """
@@ -74,7 +100,11 @@ class GeminiLiveAvatarService:
             and not self.access_token.startswith("ya29.sample") 
             and self.access_token != "your-oauth2-access-token"
         ):
-            return self.access_token.strip()
+            if self._is_token_valid(self.access_token):
+                print("[LiveAvatar Auth] Valid manual GCP_ACCESS_TOKEN found via tokeninfo.")
+                return self.access_token.strip()
+            else:
+                print("[LiveAvatar Auth] ⚠️ Manual GCP_ACCESS_TOKEN is expired or invalid. Attempting fallback...")
 
         # Check memory cache
         now = time.time()
