@@ -63,7 +63,7 @@ DOUBT CLARIFICATION PROTOCOL:
     systemInstruction
   }), [activePersona.avatarName, activePersona.voiceName, systemInstruction]);
 
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const webcamVideoRef = useRef(null);
 
   const {
@@ -80,7 +80,8 @@ DOUBT CLARIFICATION PROTOCOL:
     unmuteAudio,
     connect,
     disconnect,
-    sendTextMessage
+    sendTextMessage,
+    micVolume
   } = useLiveSession('', isMuted, false, webcamVideoRef, configOverrides);
 
   // Auto-connect to live session on mount
@@ -261,6 +262,52 @@ DOUBT CLARIFICATION PROTOCOL:
           </div>
         )}
 
+        {/* Floating Student Voice Activity & Transcription Bubble */}
+        {(liveInput || (!isMuted && micVolume > 15)) && (
+          <div style={{
+            position: 'absolute',
+            top: '56px',
+            left: '14px',
+            right: '14px',
+            background: 'rgba(15, 23, 42, 0.94)',
+            backdropFilter: 'blur(12px)',
+            border: '1px solid rgba(16, 185, 129, 0.6)',
+            borderRadius: '14px',
+            padding: '8px 14px',
+            zIndex: 25,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+            transition: 'all 0.2s ease'
+          }}>
+            <div style={{
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+              background: '#10B981',
+              boxShadow: '0 0 10px #10B981',
+              flexShrink: 0
+            }} />
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <span style={{ fontSize: '0.72rem', color: '#10B981', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                {liveInput ? 'You Spoke' : 'Listening... speak to interrupt or ask a doubt'}
+              </span>
+              <p style={{
+                margin: 0,
+                fontSize: '0.84rem',
+                color: '#F8FAFC',
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}>
+                {liveInput || "Microphone active. Ask a question anytime!"}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Bottom Video Name Overlay */}
         <div style={{
           position: 'absolute',
@@ -390,23 +437,41 @@ DOUBT CLARIFICATION PROTOCOL:
           <button
             onClick={() => setIsMuted(prev => !prev)}
             style={{
-              background: isMuted ? '#FEE2E2' : '#F1F5F9',
-              border: isMuted ? '1px solid #FCA5A5' : '1px solid #CBD5E1',
+              background: isMuted ? '#FEE2E2' : (micVolume > 10 ? 'rgba(16, 185, 129, 0.18)' : '#F1F5F9'),
+              border: isMuted ? '1px solid #FCA5A5' : (micVolume > 10 ? '1px solid #10B981' : '1px solid #CBD5E1'),
               borderRadius: '10px',
-              padding: '6px 10px',
+              padding: '6px 12px',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
               fontSize: '0.78rem',
               fontWeight: 700,
-              color: isMuted ? '#DC2626' : 'var(--text-main)',
-              transition: 'all 0.2s ease'
+              color: isMuted ? '#DC2626' : (micVolume > 10 ? '#059669' : 'var(--text-main)'),
+              transition: 'all 0.15s ease',
+              boxShadow: (!isMuted && micVolume > 10) ? '0 0 10px rgba(16, 185, 129, 0.35)' : 'none'
             }}
             title={isMuted ? 'Unmute Student Microphone' : 'Mute Student Microphone'}
           >
-            {isMuted ? <MicOff size={14} color="#DC2626" /> : <Mic size={14} color="#059669" />}
-            <span>{isMuted ? 'Muted' : 'Mic On'}</span>
+            {isMuted ? (
+              <MicOff size={14} color="#DC2626" />
+            ) : (
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <Mic size={14} color={micVolume > 10 ? '#059669' : '#10B981'} />
+                {micVolume > 10 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '-2px',
+                    right: '-2px',
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background: '#10B981'
+                  }} />
+                )}
+              </div>
+            )}
+            <span>{isMuted ? 'Muted' : (micVolume > 10 ? 'Speaking...' : 'Mic On')}</span>
           </button>
 
           {!isConnected && !isConnecting && (

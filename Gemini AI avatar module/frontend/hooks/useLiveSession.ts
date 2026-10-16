@@ -43,6 +43,9 @@ export const useLiveSession = (
   });
 
   const isSetupCompleteRef = useRef<boolean>(false);
+  const isMutedRef = useRef<boolean>(isMuted);
+  const [micVolume, setMicVolume] = useState<number>(0);
+  const lastMicVolumeUpdateRef = useRef<number>(0);
   const agentTalkingRef = useRef<boolean>(false);
   const isTurnReceivingRef = useRef<boolean>(false);
   const currentInputTextRef = useRef<string>('');
@@ -124,6 +127,122 @@ export const useLiveSession = (
   useEffect(() => {
     flushTranscriptionsRef.current = flushTranscriptions;
   }, [flushTranscriptions]);
+
+  const startAudioInput = useCallback(() => {
+    if (scriptProcessorRef.current || !inputAudioContextRef.current || !streamRef.current) return;
+
+    try {
+      const source = inputAudioContextRef.current.createMediaStreamSource(streamRef.current);
+      const scriptProcessor = inputAudioContextRef.current.createScriptProcessor(4096, 1, 1);
+
+      scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
+        if (!isSetupCompleteRef.current) return; // Gate audio sending until setup is complete
+        
+        if (isMutedRef.current) {
+          const now = Date.now();
+          if (now - lastMicVolumeUpdateRef.current > 120) {
+            setMicVolume(0);
+            lastMicVolumeUpdateRef.current = now;
+          }
+          return; // Do not send audio if student mic is muted
+        }
+
+        const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
+
+        let sum = 0;
+        for (let i = 0; i < inputData.length; i++) {
+          sum += inputData[i] * inputData[i];
+        }
+        const rms = Math.sqrt(sum / inputData.length);
+
+        // Update real-time microphone volume for UI (scaled 0 - 100)
+        const now = Date.now();
+        if (now - lastMicVolumeUpdateRef.current > 100) {
+          const scaledVol = Math.min(100, Math.round(rms * 450));
+          setMicVolume(scaledVol);
+          lastMicVolumeUpdateRef.current = now;
+        }
+
+        // Noise gate: Ignore absolute background noise / whisper below 0.005
+        if (rms < 0.005) {
+          return;
+        }
+
+        // Echo gate when avatar is speaking:
+        // EchoCancellation in getUserMedia removes most speaker feedback.
+        // We only gate tiny residual ambient noise (< 0.018) while the agent is talking,
+        // allowing real user speech (> 0.018) to barge in!
+        if (agentTalkingRef.current && rms < 0.018) {
+          return;
+        }
+
+        lastUserSpeechTimeRef.current = performance.now();
+        userHasSpokenForNextTurnRef.current = true;
+
+        const pcmBlob = createBlob(inputData);
+        if (sessionPromiseRef.current) {
+          sessionPromiseRef.current.then((session) => {
+            try {
+              session.sendRealtimeInput({ media: pcmBlob });
+            } catch (err) {
+              console.error("[LiveSession] Failed to send realtime audio input:", err);
+            }
+          });
+        }
+      };
+
+      source.connect(scriptProcessor);
+      scriptProcessor.connect(inputAudioContextRef.current.destination);
+
+      mediaSourceRef.current = source;
+      scriptProcessorRef.current = scriptProcessor;
+      console.log("[LiveSession] Audio input processor successfully started.");
+    } catch (err) {
+      console.error("[LiveSession] Error attaching audio input processor:", err);
+    }
+  }, []);
+
+  const initMicrophoneStream = useCallback(async (deviceId?: string) => {
+    try {
+      if (!navigator?.mediaDevices?.getUserMedia) return null;
+
+      const validDeviceId = typeof deviceId === 'string' && deviceId.trim() ? deviceId.trim() : undefined;
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 16000,
+          channelCount: 1,
+          ...(validDeviceId ? { deviceId: { exact: validDeviceId } } : {})
+        }
+      });
+
+      stream.getAudioTracks().forEach(track => {
+        track.enabled = !isMutedRef.current;
+      });
+      streamRef.current = stream;
+
+      if (!inputAudioContextRef.current || inputAudioContextRef.current.state === 'closed') {
+        const inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+        inputAudioContextRef.current = inputAudioContext;
+      }
+
+      if (inputAudioContextRef.current.state === 'suspended') {
+        await inputAudioContextRef.current.resume().catch(() => {});
+      }
+
+      if (!scriptProcessorRef.current) {
+        startAudioInput();
+      }
+
+      return stream;
+    } catch (micErr: any) {
+      console.warn("[LiveSession] Microphone access unavailable or blocked:", micErr);
+      streamRef.current = null;
+      return null;
+    }
+  }, [startAudioInput]);
 
   // Initialize Output AudioContext and MediaElementAudioSourceNode for unblocked audio
   useEffect(() => {
@@ -223,14 +342,31 @@ export const useLiveSession = (
     applyAudioOutput();
   }, [selectedAudioOutputId, isConnected]);
 
-  // Apply mute state
+  // Apply mute state and dynamically initialize/resume microphone when unmuted
   useEffect(() => {
+    isMutedRef.current = isMuted;
     if (streamRef.current) {
       streamRef.current.getAudioTracks().forEach(track => {
         track.enabled = !isMuted;
       });
     }
-  }, [isMuted]);
+
+    if (!isMuted) {
+      if (inputAudioContextRef.current && inputAudioContextRef.current.state === 'suspended') {
+        inputAudioContextRef.current.resume().catch(() => {});
+      }
+      if (outputAudioContextRef.current && outputAudioContextRef.current.state === 'suspended') {
+        outputAudioContextRef.current.resume().catch(() => {});
+      }
+      if (isConnected && !streamRef.current) {
+        initMicrophoneStream();
+      } else if (isConnected && streamRef.current && !scriptProcessorRef.current) {
+        startAudioInput();
+      }
+    } else {
+      setMicVolume(0);
+    }
+  }, [isMuted, isConnected, initMicrophoneStream, startAudioInput]);
 
   // Video Streaming Effect
   useEffect(() => {
@@ -678,21 +814,11 @@ export const useLiveSession = (
       // Sanitize deviceId in case a DOM event or non-string was passed
       const validDeviceId = typeof deviceId === 'string' && deviceId.trim() ? deviceId.trim() : undefined;
 
+      // Initialize microphone stream
       try {
-        if (navigator?.mediaDevices?.getUserMedia) {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: validDeviceId ? { deviceId: { exact: validDeviceId } } : true
-          });
-
-          stream.getAudioTracks().forEach(track => track.enabled = !isMuted);
-          streamRef.current = stream;
-
-          const inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-          inputAudioContextRef.current = inputAudioContext;
-        }
+        await initMicrophoneStream(validDeviceId);
       } catch (micErr: any) {
         console.warn("[LiveSession] Microphone access unavailable or blocked. Continuing in listen-only mode:", micErr);
-        streamRef.current = null;
       }
 
       if (outputAudioContextRef.current?.state === 'suspended') {
@@ -711,57 +837,15 @@ export const useLiveSession = (
       }
       monitoringLoop();
 
-      const startAudioInput = () => {
-        if (scriptProcessorRef.current || !inputAudioContextRef.current || !streamRef.current) return;
-
-        const source = inputAudioContextRef.current.createMediaStreamSource(streamRef.current);
-        const scriptProcessor = inputAudioContextRef.current.createScriptProcessor(4096, 1, 1);
-
-        scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
-          if (!isSetupCompleteRef.current) return; // Gate audio sending until setup is complete
-          if (isMuted) return; // Don't send audio if student mic is muted
-
-          const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
-
-          let sum = 0;
-          for (let i = 0; i < inputData.length; i++) {
-            sum += inputData[i] * inputData[i];
-          }
-          const rms = Math.sqrt(sum / inputData.length);
-
-          // Acoustic echo / barge-in gate: If the teacher avatar is actively speaking,
-          // suppress ambient noise and speaker reflections so Gemini doesn't falsely cut itself off!
-          if (agentTalkingRef.current && rms < 0.07) {
-            return;
-          }
-
-          if (rms > 0.01) {
-            lastUserSpeechTimeRef.current = performance.now();
-            userHasSpokenForNextTurnRef.current = true;
-          }
-
-          const pcmBlob = createBlob(inputData);
-          if (sessionPromiseRef.current) {
-            sessionPromiseRef.current.then((session) => {
-              session.sendRealtimeInput({ media: pcmBlob });
-            });
-          }
-        };
-
-        source.connect(scriptProcessor);
-        scriptProcessor.connect(inputAudioContextRef.current.destination);
-
-        mediaSourceRef.current = source;
-        scriptProcessorRef.current = scriptProcessor;
-      };
-
       const sessionPromise = ai.live.connect({
         model: liveServiceConfiguration.model || LIVE_API_MODEL_NAME,
         callbacks: {
           onopen: () => {
             setIsConnected(true);
             // Do not set isConnecting to false here, wait for setupComplete
-            startAudioInput();
+            if (streamRef.current && !scriptProcessorRef.current) {
+              startAudioInput();
+            }
           },
           onmessage: async (message: LiveServerMessage) => {
             if (message.setupComplete) {
@@ -820,11 +904,25 @@ export const useLiveSession = (
             }
 
             if (message.serverContent?.interrupted) {
-              console.log("[LiveSession] Turn interrupted by server");
+              console.log("[LiveSession] Turn interrupted by server - stopping avatar speech immediately");
               isTurnReceivingRef.current = false;
               agentTalkingRef.current = false;
               setAgentTalking(false);
               videoQueueRef.current = [];
+
+              const video = videoRef.current;
+              if (video) {
+                try {
+                  if (video.buffered.length > 0) {
+                    const bufEnd = video.buffered.end(video.buffered.length - 1);
+                    video.currentTime = Math.max(video.currentTime, bufEnd);
+                  }
+                  video.pause();
+                } catch (e) {
+                  console.warn("Interruption fast-forward error:", e);
+                }
+              }
+
               flushTranscriptions();
             } else if (message.serverContent?.turnComplete) {
               console.log("[LiveSession] Turn complete from server. Video buffer will play through naturally.");
@@ -917,7 +1015,7 @@ export const useLiveSession = (
       setError(err?.message || "Failed to connect to live avatar");
       disconnect();
     }
-  }, [isConnected, isConnecting, disconnect, initMediaSource, monitoringLoop, isMuted, configOverrides]);
+  }, [isConnected, isConnecting, disconnect, initMediaSource, monitoringLoop, initMicrophoneStream, startAudioInput, configOverrides]);
 
   const switchMicrophone = useCallback(async (deviceId: string) => {
     if (isConnected && streamRef.current) {
@@ -926,7 +1024,7 @@ export const useLiveSession = (
           audio: deviceId ? { deviceId: { exact: deviceId } } : true
         });
 
-        newStream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+        newStream.getAudioTracks().forEach(track => track.enabled = !isMutedRef.current);
         streamRef.current = newStream;
 
         if (mediaSourceRef.current) {
@@ -944,7 +1042,7 @@ export const useLiveSession = (
         setError("Failed to switch microphone.");
       }
     }
-  }, [isConnected, isMuted]);
+  }, [isConnected]);
 
   const sendTextMessage = useCallback((text: string) => {
     const cleanText = text.trim();
@@ -1005,6 +1103,7 @@ export const useLiveSession = (
     connect,
     disconnect,
     switchMicrophone,
-    sendTextMessage
+    sendTextMessage,
+    micVolume
   };
 };
