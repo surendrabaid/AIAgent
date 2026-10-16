@@ -13,6 +13,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { tokenProvider } from './gcpTokenProvider.js';
 
 const app = express();
 app.use(express.json({limit: process?.env?.API_PAYLOAD_MAX_SIZE || "7mb"}));
@@ -252,11 +253,19 @@ function asProxiedBodyText(body) {
   return JSON.stringify(body);
 }
 
-// Uses Google Application Default Credentials (ADC).
-// Users need to run "gcloud auth application-default login" in order to use the proxy.
-const auth = new GoogleAuth({
+// Uses Google Application Default Credentials (ADC) or GCP_SERVICE_ACCOUNT_JSON.
+let authOptions = {
   scopes: ['https://www.googleapis.com/auth/cloud-platform'],
-});
+};
+if (process.env.GCP_SERVICE_ACCOUNT_JSON && process.env.GCP_SERVICE_ACCOUNT_JSON.trim()) {
+  try {
+    authOptions.credentials = JSON.parse(process.env.GCP_SERVICE_ACCOUNT_JSON);
+    console.log('[Node Proxy] Initialized GoogleAuth with GCP_SERVICE_ACCOUNT_JSON.');
+  } catch (err) {
+    console.error('[Node Proxy] Failed to parse GCP_SERVICE_ACCOUNT_JSON:', err.message);
+  }
+}
+const auth = new GoogleAuth(authOptions);
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -373,64 +382,21 @@ async function isTokenValid(token) {
   return false;
 }
 
-let cachedGcloudToken = null;
-let cachedGcloudTokenExpiry = 0;
-
 async function getAccessToken(res) {
-  // 1. FIRST ATTEMPT: Check manual token from environment / .env
-  const manualToken = getManualTokenFromEnv();
-  if (manualToken) {
-    const valid = await isTokenValid(manualToken);
-    if (valid) {
-      console.log('[Node Proxy] Valid manual GCP_ACCESS_TOKEN found. Using manual token.');
-      return manualToken;
-    } else {
-      console.warn('[Node Proxy] ⚠️ Warning: Manual GCP_ACCESS_TOKEN is expired or invalid according to Google OAuth2 tokeninfo.');
-    }
+  const token = await tokenProvider.getToken();
+  if (token) {
+    return token;
   }
 
-  // 2. SECOND ATTEMPT: Dynamic token acquisition
-  // (a) Google Application Default Credentials (ADC)
-  try {
-    const authClient = await auth.getClient();
-    const token = await authClient.getAccessToken();
-    if (token?.token) {
-      console.log('[Node Proxy] Successfully retrieved dynamic token via Application Default Credentials.');
-      return token.token;
-    }
-  } catch (error) {
-    // (b) Try gcloud CLI fallback
-    try {
-      const now = Date.now();
-      if (cachedGcloudToken && now < cachedGcloudTokenExpiry) {
-        return cachedGcloudToken;
-      }
-      const token = execSync('gcloud auth print-access-token', { encoding: 'utf-8' }).trim();
-      if (token) {
-        console.log('[Node Proxy] Successfully retrieved dynamic token via gcloud CLI fallback.');
-        cachedGcloudToken = token;
-        cachedGcloudTokenExpiry = now + 45 * 60 * 1000;
-        return token;
-      }
-    } catch (gcloudError) {
-      // benign if gcloud is not installed
-    }
-
-    console.error('[Node Proxy] Authentication error: Manual token is expired/missing, and ADC/gcloud are unavailable.');
-    if (!res) {
-      // If we have manual token even if tokeninfo failed (e.g. offline/network glitch), try it as last ditch effort
-      if (manualToken) {
-        console.warn('[Node Proxy] Using manual token as fallback attempt.');
-        return manualToken;
-      }
-      return null;
-    }
-    res.status(401).json({
-      error: 'Authentication Required',
-      message: 'GCP_ACCESS_TOKEN is expired or invalid. Please update GCP_ACCESS_TOKEN in .env and restart.',
-    });
+  console.error('[Node Proxy] Authentication error: ADC, Service Account, and gcloud CLI are unavailable.');
+  if (!res) {
     return null;
   }
+  res.status(401).json({
+    error: 'Authentication Required',
+    message: 'GCP authentication failed. Please configure GCP_SERVICE_ACCOUNT_JSON or Application Default Credentials.',
+  });
+  return null;
 }
 
 function getRequestHeaders(accessToken) {

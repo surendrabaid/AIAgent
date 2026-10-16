@@ -14,6 +14,8 @@ try:
 except Exception:
     SSL_CONTEXT = ssl.create_default_context()
 
+from app.services.gcp_token_provider import token_provider
+
 load_dotenv(override=True)
 
 class GeminiLiveAvatarService:
@@ -85,15 +87,23 @@ class GeminiLiveAvatarService:
 
     def get_valid_access_token(self) -> str:
         """
-        Retrieves a valid OAuth2 access token:
-        1. Explicitly configured valid token in .env or settings modal
-        2. In-memory token cache if still valid
-        3. Google Application Default Credentials (ADC)
-        4. gcloud CLI fallback: `gcloud auth print-access-token` (cached 45 mins)
+        Retrieves a valid OAuth2 access token via Strategy 3 (GCPTokenProvider):
+        1. Auto-refreshing production token provider (Service Account JSON, ADC, Metadata Server)
+        2. Fallback to manual GCP_ACCESS_TOKEN if explicitly provided for debugging
         """
         self._refresh_env()
 
-        # Check explicit token from user
+        # 1. Primary: Production Auto-Refreshing Token Provider (Thread-safe, handles ADC & SA)
+        token = token_provider.get_token()
+        if token:
+            self._cached_token = token
+            # Keep cloud project ID in sync if detected by token provider
+            detected_proj = token_provider.get_project_id()
+            if detected_proj and (not self.project_id or self.project_id.startswith("project-9691fa52")):
+                self.project_id = detected_proj
+            return token
+
+        # 2. Secondary fallback: Check explicit manual token from user/.env if valid
         if (
             self.access_token 
             and self.access_token.strip() 
@@ -104,41 +114,7 @@ class GeminiLiveAvatarService:
                 print("[LiveAvatar Auth] Valid manual GCP_ACCESS_TOKEN found via tokeninfo.")
                 return self.access_token.strip()
             else:
-                print("[LiveAvatar Auth] ⚠️ Manual GCP_ACCESS_TOKEN is expired or invalid. Attempting fallback...")
-
-        # Check memory cache
-        now = time.time()
-        if self._cached_token and now < self._cached_token_expiry:
-            return self._cached_token
-
-        # Try Google Application Default Credentials
-        try:
-            import google.auth
-            import google.auth.transport.requests
-            credentials, _ = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
-            if credentials:
-                request = google.auth.transport.requests.Request()
-                credentials.refresh(request)
-                if credentials.token:
-                    self._cached_token = credentials.token
-                    self._cached_token_expiry = now + (45 * 60)
-                    return credentials.token
-        except Exception:
-            pass
-
-        # Try gcloud CLI fallback
-        try:
-            token = subprocess.check_output(
-                ["gcloud", "auth", "print-access-token"], 
-                text=True, 
-                stderr=subprocess.DEVNULL
-            ).strip()
-            if token:
-                self._cached_token = token
-                self._cached_token_expiry = now + (45 * 60)
-                return token
-        except Exception:
-            pass
+                print("[LiveAvatar Auth] ⚠️ Manual GCP_ACCESS_TOKEN is expired or invalid.")
 
         return ""
 
@@ -570,6 +546,9 @@ class GeminiLiveAvatarService:
             self.location = location.strip()
         if access_token:
             self.access_token = access_token.strip()
+            token_provider.set_manual_token_override(self.access_token)
+        else:
+            token_provider.set_manual_token_override(None)
         self._cached_token = ""
         self._cached_token_expiry = 0.0
         return self.get_public_config()

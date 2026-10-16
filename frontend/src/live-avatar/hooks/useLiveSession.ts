@@ -866,7 +866,7 @@ export const useLiveSession = (
             console.error('[LiveSession] Connection error event:', e);
             const msg = (e?.message || e?.error?.message || '').toLowerCase();
             if (msg.includes('1008') || msg.includes('auth') || msg.includes('token') || msg.includes('credential')) {
-              setError('GCP Access Token is expired or invalid. Please update GCP_ACCESS_TOKEN in .env and restart.');
+              setError('GCP Authentication failed. Please verify Application Default Credentials or GCP_SERVICE_ACCOUNT_JSON in the server environment.');
             } else {
               setError('Live Avatar connection error. Please verify the Gemini Live proxy is running on port 5001.');
             }
@@ -876,7 +876,7 @@ export const useLiveSession = (
             console.log('[LiveSession] WebSocket closed:', e.code, e.reason);
             const reason = (e.reason || '').toLowerCase();
             if (e.code === 1008 || reason.includes('token') || reason.includes('authenticat') || reason.includes('credential')) {
-              setError('GCP Access Token is expired or invalid. Please update GCP_ACCESS_TOKEN in .env and restart the server.');
+              setError('GCP Authentication failed. Please verify Application Default Credentials or GCP_SERVICE_ACCOUNT_JSON in the server environment.');
             }
             disconnect();
           },
