@@ -433,6 +433,47 @@ DOUBT CLARIFICATION PROTOCOL:
           )}
         </div>
       </div>
+
+      {/* Connection & Stream Diagnostic Banner */}
+      {error && !isConnected && (
+        <div style={{
+          width: '100%',
+          marginTop: '8px',
+          padding: '8px 14px',
+          borderRadius: '12px',
+          background: 'rgba(239, 68, 68, 0.08)',
+          border: '1px solid rgba(239, 68, 68, 0.25)',
+          color: '#DC2626',
+          fontSize: '0.78rem',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '8px',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>⚠️</span>
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={() => connect()}
+            style={{
+              background: '#DC2626',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '4px 10px',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            Reconnect
+          </button>
+        </div>
+      )}
     </div>
   );
 });

@@ -75,8 +75,13 @@
       console.log('[Vertex AI Proxy Shim] Intercepted Vertex WebSocket request:', inputUrl);
       const targetUrl = encodeURIComponent(inputUrl);
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      const proxyUrl = `${protocol}//${host}/ws-proxy?target=${targetUrl}`;
+      // Bypass Vite's dev-server WebSocket proxy (port 3000) which suffers from ECONNABORTED drops on binary bursts.
+      // Connect directly to the Node Gemini Live proxy on port 5001.
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const proxyPort = 5001;
+      const proxyHost = isLocal ? `${window.location.hostname}:${proxyPort}` : window.location.host;
+      const proxyUrl = `${protocol}//${proxyHost}/ws-proxy?target=${targetUrl}`;
+      console.log('[Vertex AI Proxy Shim] Direct proxy WebSocket target:', proxyUrl);
       return new originalWebSocket(proxyUrl, protocols);
     }
     return new originalWebSocket(url, protocols);

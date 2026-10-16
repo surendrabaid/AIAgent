@@ -647,10 +647,10 @@ export const useLiveSession = (
     }
     sourceBufferRef.current = null;
     mseRef.current = null;
-    setError(null);
+    // Note: Do not clear error here so any fatal connection/mic error remains visible to the user!
   }, []);
 
-  const connect = useCallback(async (deviceId: string) => {
+  const connect = useCallback(async (deviceId?: string) => {
     if (isConnected || isConnecting) return;
 
     setIsConnecting(true);
@@ -674,18 +674,33 @@ export const useLiveSession = (
 
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY, vertexai: true });
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: deviceId ? { deviceId: { exact: deviceId } } : true
-      });
 
-      stream.getAudioTracks().forEach(track => track.enabled = !isMuted);
-      streamRef.current = stream;
+      // Sanitize deviceId in case a DOM event or non-string was passed
+      const validDeviceId = typeof deviceId === 'string' && deviceId.trim() ? deviceId.trim() : undefined;
 
-      const inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-      inputAudioContextRef.current = inputAudioContext;
+      try {
+        if (navigator?.mediaDevices?.getUserMedia) {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: validDeviceId ? { deviceId: { exact: validDeviceId } } : true
+          });
+
+          stream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+          streamRef.current = stream;
+
+          const inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+          inputAudioContextRef.current = inputAudioContext;
+        }
+      } catch (micErr: any) {
+        console.warn("[LiveSession] Microphone access unavailable or blocked. Continuing in listen-only mode:", micErr);
+        streamRef.current = null;
+      }
 
       if (outputAudioContextRef.current?.state === 'suspended') {
-        await outputAudioContextRef.current.resume();
+        try {
+          await outputAudioContextRef.current.resume();
+        } catch (audioCtxErr) {
+          console.warn("[LiveSession] AudioContext resume waiting for user interaction:", audioCtxErr);
+        }
       }
 
       videoQueueRef.current = [];
@@ -877,6 +892,8 @@ export const useLiveSession = (
             const reason = (e.reason || '').toLowerCase();
             if (e.code === 1008 || reason.includes('token') || reason.includes('authenticat') || reason.includes('credential')) {
               setError('GCP Authentication failed. Please verify Application Default Credentials or GCP_SERVICE_ACCOUNT_JSON in the server environment.');
+            } else if (e.code !== 1000 && e.code !== 1005) {
+              setError(`Connection closed (code ${e.code}). Click Retry to reconnect.`);
             }
             disconnect();
           },

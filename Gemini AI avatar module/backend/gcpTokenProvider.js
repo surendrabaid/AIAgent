@@ -176,7 +176,7 @@ export class GCPTokenProvider {
       if (this.cachedGcloudToken && now < this.cachedGcloudTokenExpiry) {
         return this.cachedGcloudToken;
       }
-      const token = execSync('gcloud auth print-access-token', { encoding: 'utf-8', timeout: 5000 }).trim();
+      const token = execSync('gcloud auth print-access-token', { encoding: 'utf-8', timeout: 5000, stdio: ['ignore', 'pipe', 'ignore'] }).trim();
       if (token) {
         this.cachedGcloudToken = token;
         this.cachedGcloudTokenExpiry = now + 45 * 60 * 1000;
