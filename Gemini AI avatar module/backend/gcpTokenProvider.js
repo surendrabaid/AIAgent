@@ -34,11 +34,25 @@ export class GCPTokenProvider {
       scopes: this.scopes,
     };
 
-    // Priority 1: Service Account JSON string in environment variable
-    const saJson = (process?.env?.GCP_SERVICE_ACCOUNT_JSON || '').trim();
+    // Priority 1: Service Account JSON string or file path in environment or .env
+    let saJson = this.getServiceAccountJsonFromEnv();
     if (saJson) {
       try {
-        authOptions.credentials = JSON.parse(saJson);
+        // Strip outer wrapping quotes if present from .env parsing
+        if ((saJson.startsWith("'") && saJson.endsWith("'")) || (saJson.startsWith('"') && saJson.endsWith('"'))) {
+          saJson = saJson.slice(1, -1).trim();
+        }
+
+        // Check if saJson is actually a path to a JSON file on disk
+        if (fs.existsSync(saJson) && fs.statSync(saJson).isFile()) {
+          saJson = fs.readFileSync(saJson, 'utf8').trim();
+        }
+
+        const creds = JSON.parse(saJson);
+        authOptions.credentials = creds;
+        if (creds.project_id && !process.env.GOOGLE_CLOUD_PROJECT) {
+          process.env.GOOGLE_CLOUD_PROJECT = creds.project_id;
+        }
         console.log('[GCPTokenProvider-Node] Initialized with GCP_SERVICE_ACCOUNT_JSON.');
       } catch (err) {
         console.error('[GCPTokenProvider-Node] Failed to parse GCP_SERVICE_ACCOUNT_JSON:', err.message);
@@ -46,6 +60,43 @@ export class GCPTokenProvider {
     }
 
     this.auth = new GoogleAuth(authOptions);
+  }
+
+  /**
+   * Retrieves GCP_SERVICE_ACCOUNT_JSON from environment or candidate .env files
+   */
+  getServiceAccountJsonFromEnv() {
+    const direct = (process?.env?.GCP_SERVICE_ACCOUNT_JSON || '').trim();
+    if (direct) return direct;
+
+    const candidatePaths = [
+      path.resolve(process.cwd(), '../../backend/.env'),
+      path.resolve(process.cwd(), '../backend/.env'),
+      path.resolve(process.cwd(), '.env.local'),
+      path.resolve(process.cwd(), '.env'),
+    ];
+
+    for (const envPath of candidatePaths) {
+      try {
+        if (fs.existsSync(envPath)) {
+          const content = fs.readFileSync(envPath, 'utf8');
+          // Match GCP_SERVICE_ACCOUNT_JSON which could be single-quoted, double-quoted, or raw JSON
+          const match = content.match(/GCP_SERVICE_ACCOUNT_JSON\s*=\s*(['"]?)([\s\S]*?)\1(?=\n[A-Z0-9_]+=|$)/);
+          if (match && match[2]?.trim()) {
+            return match[2].trim();
+          }
+          for (const line of content.split('\n')) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('GCP_SERVICE_ACCOUNT_JSON=')) {
+              const val = trimmed.replace('GCP_SERVICE_ACCOUNT_JSON=', '').trim();
+              if (val) return val;
+            }
+          }
+        }
+      } catch (err) {}
+    }
+
+    return '';
   }
 
   /**

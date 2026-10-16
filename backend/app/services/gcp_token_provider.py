@@ -58,19 +58,42 @@ class GCPTokenProvider:
 
     def _init_credentials(self) -> None:
         """Initializes Google credentials using the production priority chain."""
-        # Priority 1: Service Account JSON string in environment variable (GCP_SERVICE_ACCOUNT_JSON)
+        # Priority 1: Service Account JSON string or file path in GCP_SERVICE_ACCOUNT_JSON
         sa_json = os.getenv("GCP_SERVICE_ACCOUNT_JSON", "").strip()
         if sa_json:
-            try:
-                info = json.loads(sa_json)
-                self._credentials = service_account.Credentials.from_service_account_info(
-                    info, scopes=self.scopes
-                )
-                self._detected_project_id = info.get("project_id", "")
-                logger.info("[GCPTokenProvider] Successfully initialized via GCP_SERVICE_ACCOUNT_JSON.")
-                return
-            except Exception as e:
-                logger.error(f"[GCPTokenProvider] Failed to parse GCP_SERVICE_ACCOUNT_JSON: {e}")
+            # Strip surrounding single or double quotes if present from .env parsing
+            if (sa_json.startswith("'") and sa_json.endswith("'")) or (sa_json.startswith('"') and sa_json.endswith('"')):
+                sa_json = sa_json[1:-1].strip()
+
+            # Check if sa_json is a file path to an existing JSON credential file
+            if os.path.exists(sa_json) and os.path.isfile(sa_json):
+                try:
+                    with open(sa_json, "r", encoding="utf-8") as f:
+                        sa_json = f.read().strip()
+                except Exception as e:
+                    logger.error(f"[GCPTokenProvider] Failed to read credential file '{sa_json}': {e}")
+
+            if sa_json:
+                try:
+                    info = json.loads(sa_json)
+                    # Automatically handle both standard service_account and authorized_user formats
+                    if info.get("type") == "service_account":
+                        self._credentials = service_account.Credentials.from_service_account_info(
+                            info, scopes=self.scopes
+                        )
+                    else:
+                        creds, proj = google.auth.load_credentials_from_dict(info, scopes=self.scopes)
+                        self._credentials = creds
+                        if proj and not self._detected_project_id:
+                            self._detected_project_id = proj
+
+                    if "project_id" in info and not self._detected_project_id:
+                        self._detected_project_id = info["project_id"]
+
+                    logger.info("[GCPTokenProvider] Successfully initialized credentials via GCP_SERVICE_ACCOUNT_JSON.")
+                    return
+                except Exception as e:
+                    logger.error(f"[GCPTokenProvider] Failed to parse GCP_SERVICE_ACCOUNT_JSON: {e}")
 
         # Priority 2: Service Account file path via GOOGLE_APPLICATION_CREDENTIALS or ADC
         # This handles Cloud Run, GKE, Compute Engine metadata server, and local ADC

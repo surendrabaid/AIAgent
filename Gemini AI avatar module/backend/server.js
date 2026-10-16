@@ -21,10 +21,25 @@ app.use(express.json({limit: process?.env?.API_PAYLOAD_MAX_SIZE || "7mb"}));
 const PORT = process?.env?.API_BACKEND_PORT || 5000;
 const API_BACKEND_HOST = process?.env?.API_BACKEND_HOST || "127.0.0.1";
 
-const GOOGLE_CLOUD_LOCATION = process?.env?.GOOGLE_CLOUD_LOCATION;
-const GOOGLE_CLOUD_PROJECT = process?.env?.GOOGLE_CLOUD_PROJECT;
+const GOOGLE_CLOUD_LOCATION = process?.env?.GOOGLE_CLOUD_LOCATION || process?.env?.GCP_LOCATION || "global";
+let GOOGLE_CLOUD_PROJECT = process?.env?.GOOGLE_CLOUD_PROJECT || process?.env?.GCP_PROJECT_ID;
+
+// Fallback: Try to detect project from GCP_SERVICE_ACCOUNT_JSON
+if (!GOOGLE_CLOUD_PROJECT) {
+  try {
+    const rawSa = tokenProvider.getServiceAccountJsonFromEnv();
+    if (rawSa) {
+      let parsed = JSON.parse(rawSa.replace(/^['"]|['"]$/g, ''));
+      if (parsed.project_id) {
+        GOOGLE_CLOUD_PROJECT = parsed.project_id;
+        process.env.GOOGLE_CLOUD_PROJECT = parsed.project_id;
+      }
+    }
+  } catch (err) {}
+}
+
 if (!GOOGLE_CLOUD_PROJECT || !GOOGLE_CLOUD_LOCATION) {
-  console.error("Error: Environment variables GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION must be set.");
+  console.error("Error: Environment variables GOOGLE_CLOUD_PROJECT (or GCP_PROJECT_ID) and GOOGLE_CLOUD_LOCATION must be set.");
   process.exit(1);
 }
 const PROXY_HEADER = process?.env?.PROXY_HEADER;
@@ -257,9 +272,16 @@ function asProxiedBodyText(body) {
 let authOptions = {
   scopes: ['https://www.googleapis.com/auth/cloud-platform'],
 };
-if (process.env.GCP_SERVICE_ACCOUNT_JSON && process.env.GCP_SERVICE_ACCOUNT_JSON.trim()) {
+let rawSaStr = tokenProvider.getServiceAccountJsonFromEnv();
+if (rawSaStr) {
   try {
-    authOptions.credentials = JSON.parse(process.env.GCP_SERVICE_ACCOUNT_JSON);
+    if ((rawSaStr.startsWith("'") && rawSaStr.endsWith("'")) || (rawSaStr.startsWith('"') && rawSaStr.endsWith('"'))) {
+      rawSaStr = rawSaStr.slice(1, -1).trim();
+    }
+    if (fs.existsSync(rawSaStr) && fs.statSync(rawSaStr).isFile()) {
+      rawSaStr = fs.readFileSync(rawSaStr, 'utf8').trim();
+    }
+    authOptions.credentials = JSON.parse(rawSaStr);
     console.log('[Node Proxy] Initialized GoogleAuth with GCP_SERVICE_ACCOUNT_JSON.');
   } catch (err) {
     console.error('[Node Proxy] Failed to parse GCP_SERVICE_ACCOUNT_JSON:', err.message);
