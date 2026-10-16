@@ -64,7 +64,6 @@ DOUBT CLARIFICATION PROTOCOL:
   }), [activePersona.avatarName, activePersona.voiceName, systemInstruction]);
 
   const [isMuted, setIsMuted] = useState(true);
-  const [audioLevel, setAudioLevel] = useState(0);
   const webcamVideoRef = useRef(null);
 
   const {
@@ -111,19 +110,6 @@ DOUBT CLARIFICATION PROTOCOL:
       onAgentTalkingChange(agentTalking);
     }
   }, [agentTalking, onAgentTalkingChange]);
-
-  // Audio spectrum simulation during speech
-  useEffect(() => {
-    let interval;
-    if (agentTalking || isSpeakingFallback) {
-      interval = setInterval(() => {
-        setAudioLevel(Math.random() * 0.8 + 0.2);
-      }, 120);
-    } else {
-      setAudioLevel(0);
-    }
-    return () => clearInterval(interval);
-  }, [agentTalking, isSpeakingFallback]);
 
   // Detect spoken doubts from student and teacher responses
   const lastCapturedUserTextRef = useRef('');
@@ -322,15 +308,25 @@ DOUBT CLARIFICATION PROTOCOL:
           height: '32px',
           zIndex: 20
         }}>
-          {[0.4, 0.7, 0.3, 0.9, 0.5, 0.8, 0.2].map((heightFactor, idx) => (
+          <style>{`
+            @keyframes eqBarPulseAnim {
+              0% { transform: scaleY(0.25); }
+              50% { transform: scaleY(1.0); }
+              100% { transform: scaleY(0.35); }
+            }
+          `}</style>
+          {[0.2, 0.45, 0.1, 0.6, 0.3, 0.5, 0.15].map((delay, idx) => (
             <div 
               key={idx}
               style={{
                 width: '3px',
-                height: effectiveTalking ? `${Math.max(4, audioLevel * 22 * heightFactor)}px` : '4px',
+                height: '18px',
                 background: effectiveTalking ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.3)',
                 borderRadius: '2px',
-                transition: 'height 0.1s ease'
+                transformOrigin: 'bottom',
+                transform: effectiveTalking ? undefined : 'scaleY(0.25)',
+                animation: effectiveTalking ? `eqBarPulseAnim 0.6s ease-in-out infinite alternate ${delay}s` : 'none',
+                transition: 'background 0.2s ease'
               }}
             />
           ))}

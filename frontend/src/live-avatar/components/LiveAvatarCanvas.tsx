@@ -24,8 +24,14 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
   const [aspectRatio, setAspectRatio] = useState<number>(1);
   const animFrameRef = useRef<number | null>(null);
 
-  // Procedural lip-sync and breathing simulation
+  // Procedural lip-sync and breathing simulation (ONLY when hasVideo is false)
   useEffect(() => {
+    if (hasVideo) {
+      setHeadTilt({ x: 0, y: 0 });
+      setMouthOpen(0);
+      return;
+    }
+
     let startTime = performance.now();
 
     const loop = (time: number) => {
@@ -74,10 +80,11 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [agentTalking, mood]);
+  }, [agentTalking, mood, hasVideo]);
 
-  // Natural spontaneous blinking cycle (every 3.5 - 6 seconds)
+  // Natural spontaneous blinking cycle (only for static fallback)
   useEffect(() => {
+    if (hasVideo) return;
     let timeoutId: number;
 
     const triggerBlink = () => {
@@ -92,15 +99,19 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
 
     timeoutId = window.setTimeout(triggerBlink, 3500);
     return () => clearTimeout(timeoutId);
-  }, []);
+  }, [hasVideo]);
 
   return (
     <div
       className="relative w-full h-full flex items-center justify-center overflow-hidden rounded-3xl select-none"
-      style={{
-        transform: `perspective(1000px) rotateX(${headTilt.y * 0.5}deg) rotateY(${headTilt.x * 0.5}deg) translateY(${headTilt.y * 0.5}px)`,
-        transition: 'transform 0.12s ease-out',
-      }}
+      style={
+        hasVideo
+          ? {}
+          : {
+              transform: `perspective(1000px) rotateX(${headTilt.y * 0.5}deg) rotateY(${headTilt.x * 0.5}deg) translateY(${headTilt.y * 0.5}px)`,
+              transition: 'transform 0.12s ease-out',
+            }
+      }
     >
       {/* Underlying Gemini Live Bidi Video Stream */}
       <video

@@ -77,6 +77,7 @@ export const useLiveSession = (
   const cachedInitSegmentRef = useRef<ArrayBuffer | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const videoErrorListenerAddedRef = useRef<boolean>(false);
+  const lastStatsUpdateRef = useRef<number>(0);
 
   useEffect(() => {
     agentTalkingRef.current = agentTalking;
@@ -300,6 +301,83 @@ export const useLiveSession = (
     };
   }, [isConnected, isVideoEnabled, webcamVideoRef]);
 
+  // Drain video queue safely into SourceBuffer and evict stale buffer behind playhead
+  const drainVideoQueue = useCallback(() => {
+    const sb = sourceBufferRef.current;
+    const ms = mseRef.current;
+    const videoElement = videoRef.current;
+    if (!sb || !ms || ms.readyState !== 'open' || sb.updating || videoQueueRef.current.length === 0) {
+      return;
+    }
+
+    // Evict old buffer behind playhead if playback has progressed (> 8s) to prevent QuotaExceededError
+    if (videoElement && videoElement.currentTime > 8 && sb.buffered.length > 0) {
+      try {
+        const removeEnd = videoElement.currentTime - 4;
+        if (sb.buffered.start(0) < removeEnd) {
+          sb.remove(0, removeEnd);
+          return; // updateend will fire when remove finishes and will automatically call drainVideoQueue
+        }
+      } catch (e) {
+        // Benign remove error
+      }
+    }
+
+    const chunk = videoQueueRef.current.shift();
+    if (chunk) {
+      try {
+        sb.appendBuffer(chunk);
+      } catch (e: any) {
+        if (e.name === "InvalidStateError") {
+          mseRef.current = null;
+          sourceBufferRef.current = null;
+          videoQueueRef.current = [];
+          setError("MediaSource Invalid State");
+        } else if (e.name === "QuotaExceededError") {
+          videoQueueRef.current.unshift(chunk);
+          if (videoElement && videoElement.currentTime > 2 && sb.buffered.length > 0) {
+            try {
+              sb.remove(0, videoElement.currentTime - 1);
+            } catch (err) {}
+          }
+        } else {
+          console.warn("Buffer chunk append warning:", e);
+        }
+      }
+    }
+  }, []);
+
+  // Pre-roll jitter cushion: start playback only when enough buffer (or queue) is present
+  const checkAndStartPlayback = useCallback(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement || !videoElement.paused) return;
+
+    let bufferAhead = 0;
+    if (videoElement.buffered.length > 0) {
+      const bufferedEnd = videoElement.buffered.end(videoElement.buffered.length - 1);
+      bufferAhead = Math.max(0, bufferedEnd - videoElement.currentTime);
+    }
+
+    // Wait for at least 0.35s cushion, or 3+ queued chunks, or until server turn is complete
+    const isTurnFinished = !isTurnReceivingRef.current;
+    const hasCushion = bufferAhead >= 0.35 || videoQueueRef.current.length >= 3;
+
+    if ((hasCushion || isTurnFinished) && bufferAhead > 0.04) {
+      videoElement.muted = false;
+      videoElement.volume = 1.0;
+      const playPromise = videoElement.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((e) => {
+          if (!videoElement.muted) {
+            videoElement.muted = true;
+            setIsAudioBlocked(true);
+            videoElement.play().catch(() => {});
+          }
+        });
+      }
+    }
+  }, []);
+
   const initMediaSource = useCallback(() => {
     const videoElement = videoRef.current;
     if (!videoElement) return;
@@ -368,16 +446,8 @@ export const useLiveSession = (
           }
         }
 
-        if (videoQueueRef.current.length > 0 && !currentSourceBuffer.updating) {
-          const chunk = videoQueueRef.current.shift();
-          if (chunk) {
-            try {
-              currentSourceBuffer.appendBuffer(chunk);
-            } catch (e) {
-              console.warn("Buffer initial chunk append warning:", e);
-            }
-          }
-        }
+        // Drain any chunks already queued
+        drainVideoQueue();
 
         currentSourceBuffer.addEventListener("updateend", () => {
           const sb = sourceBufferRef.current;
@@ -393,38 +463,18 @@ export const useLiveSession = (
             }
           }
 
-          if (videoElement.paused) {
-            videoElement.muted = false;
-            videoElement.volume = 1.0;
-            const playPromise = videoElement.play();
-            if (playPromise !== undefined) {
-              playPromise.catch((e) => {
-                if (!videoElement.muted) {
-                  videoElement.muted = true;
-                  setIsAudioBlocked(true);
-                  videoElement.play().catch(() => {});
-                }
-              });
-            }
-          }
+          // Check if pre-roll cushion is ready to start playback
+          checkAndStartPlayback();
 
-          if (videoQueueRef.current.length > 0 && !sb.updating) {
-            const chunk = videoQueueRef.current.shift();
-            if (chunk) {
-              try {
-                sb.appendBuffer(chunk);
-              } catch (e) {
-                console.warn("Buffer queue chunk append warning:", e);
-              }
-            }
-          }
+          // Drain next queued chunk
+          drainVideoQueue();
         });
       } catch (e: any) {
         console.error("sourceopen initialization error:", e);
         setError('Failed to initialize video stream.');
       }
     });
-  }, []);
+  }, [drainVideoQueue, checkAndStartPlayback]);
 
   const monitoringLoop = useCallback(() => {
     if (videoRef.current) {
@@ -467,16 +517,16 @@ export const useLiveSession = (
 
           // If turn delivery from upstream WebSocket is complete,
           // AND video playhead has played through to near the end of the buffered speech:
-          if (!isTurnReceivingRef.current && (bufferAhead <= 0.25 || video.ended)) {
+          if (!isTurnReceivingRef.current && (bufferAhead <= 0.20 || video.ended)) {
             agentTalkingRef.current = false;
             setAgentTalking(false);
             flushTranscriptionsRef.current?.();
           }
         } else {
-          // Idle buffer management: smoothly catch up without hard seek jumps
+          // Idle buffer management: gently catch up without abrupt pitch changes
           if (bufferAhead > 2.0) {
-            video.playbackRate = 1.15;
-          } else if (bufferAhead > 0.5) {
+            video.playbackRate = 1.10;
+          } else if (bufferAhead > 0.8) {
             video.playbackRate = 1.05;
           } else {
             video.playbackRate = 1.0;
@@ -484,33 +534,42 @@ export const useLiveSession = (
         }
       }
 
-      // Update debug stats
-      let buffered = 0;
-      let duration = video.duration;
+      // Check if paused and pre-roll cushion is ready
+      if (video.paused && video.buffered.length > 0) {
+        checkAndStartPlayback();
+      }
 
-      if (video.buffered.length > 0) {
-        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-        buffered = bufferedEnd - video.currentTime;
-        if (isNaN(duration) || !isFinite(duration)) {
-          duration = bufferedEnd;
+      // Throttle debug stats to at most once every 500ms to eliminate 60 FPS React re-renders
+      const now = performance.now();
+      if (now - lastStatsUpdateRef.current >= 500) {
+        lastStatsUpdateRef.current = now;
+        let buffered = 0;
+        let duration = video.duration;
+
+        if (video.buffered.length > 0) {
+          const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+          buffered = bufferedEnd - video.currentTime;
+          if (isNaN(duration) || !isFinite(duration)) {
+            duration = bufferedEnd;
+          }
+        } else if (isNaN(duration) || !isFinite(duration)) {
+          duration = 0;
         }
-      } else if (isNaN(duration) || !isFinite(duration)) {
-        duration = 0;
-      }
 
-      let droppedFrames = 0;
-      if (typeof (video as any).getVideoPlaybackQuality === 'function') {
-        droppedFrames = (video as any).getVideoPlaybackQuality().droppedVideoFrames;
+        let droppedFrames = 0;
+        if (typeof (video as any).getVideoPlaybackQuality === 'function') {
+          droppedFrames = (video as any).getVideoPlaybackQuality().droppedVideoFrames;
+        }
+        setDebugStats({
+          buffered: Math.max(0, buffered),
+          droppedFrames,
+          duration: duration,
+          latency: latencyRef.current,
+        });
       }
-      setDebugStats({
-        buffered: Math.max(0, buffered),
-        droppedFrames,
-        duration: duration,
-        latency: latencyRef.current,
-      });
     }
     animationFrameRef.current = requestAnimationFrame(monitoringLoop);
-  }, []);
+  }, [checkAndStartPlayback]);
 
   const disconnect = useCallback(() => {
     setIsConnected(false);
@@ -795,23 +854,9 @@ export const useLiveSession = (
                       cachedInitSegmentRef.current = arrayBuffer;
                     }
 
-                    const sourceBuffer = sourceBufferRef.current;
-                    if (sourceBuffer && !sourceBuffer.updating && videoQueueRef.current.length === 0) {
-                      try {
-                        sourceBuffer.appendBuffer(arrayBuffer);
-                      } catch (e: any) {
-                        if (e.name === "InvalidStateError") {
-                          mseRef.current = null;
-                          sourceBufferRef.current = null;
-                          videoQueueRef.current = [];
-                          setError("MediaSource Invalid State");
-                        } else {
-                          videoQueueRef.current.push(arrayBuffer);
-                        }
-                      }
-                    } else {
-                      videoQueueRef.current.push(arrayBuffer);
-                    }
+                    videoQueueRef.current.push(arrayBuffer);
+                    drainVideoQueue();
+                    checkAndStartPlayback();
                   }
                 }
               }

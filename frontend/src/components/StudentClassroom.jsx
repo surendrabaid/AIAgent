@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import LiveTutorStage from './LiveTutorStage';
 import AvatarCanvas from './AvatarCanvas';
 import SlideBoard from './SlideBoard';
@@ -174,7 +174,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
   };
 
   // Callback when live avatar starts or stops talking
-  const handleAgentTalkingChange = (talking) => {
+  const handleAgentTalkingChange = useCallback((talking) => {
     setIsSpeaking(talking);
     if (!talking) {
       setAvatarMood('idle');
@@ -184,10 +184,10 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
         setIsTopicTeachingOver(true);
       }
     }
-  };
+  }, []);
 
   // Callback when student speaks a doubt directly into the live avatar microphone
-  const handleSpokenDoubtAnswered = (userDoubt, teacherAnswer) => {
+  const handleSpokenDoubtAnswered = useCallback((userDoubt, teacherAnswer) => {
     if (!userDoubt || !teacherAnswer) return;
     setDoubtsList((prev) => [...prev, { query: userDoubt, explanation: teacherAnswer }]);
     setActiveDoubt({
@@ -195,7 +195,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       explanation: teacherAnswer,
       action_type: 'answer_doubt'
     });
-  };
+  }, []);
 
   // Ensure speech synthesis and viseme timers are cleanly stopped on unmount
   useEffect(() => {
