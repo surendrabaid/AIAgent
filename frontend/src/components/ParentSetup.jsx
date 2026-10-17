@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, User, GraduationCap, Sparkles, BookOpen, Bot, Check, ArrowRight, FileText, Library, Clock, Zap } from 'lucide-react';
+import { Upload, User, GraduationCap, Sparkles, BookOpen, Bot, Check, ArrowRight, FileText, Library, Clock, Zap, RotateCcw } from 'lucide-react';
 
 export default function ParentSetup({ onStartLesson }) {
   // Load cached settings from localStorage if available
@@ -163,9 +163,44 @@ export default function ParentSetup({ onStartLesson }) {
         <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '8px', color: 'var(--text-main)' }}>
           Configure Your Kid's AI Tutor
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '12px' }}>
           Set up your child's profile, choose teacher preferences, and select or upload learning material.
         </p>
+
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                localStorage.clear();
+              } catch (e) {}
+              setChildName('Tisha');
+              setChildAge(9);
+              setGrade('Grade 4');
+              setGender('female');
+              setAvatarStyle('young_mentor');
+              setAvatarName('Joya');
+            }}
+            style={{
+              background: '#F8FAFC',
+              border: '1px solid #CBD5E1',
+              borderRadius: '20px',
+              padding: '5px 14px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              color: '#64748B',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              transition: 'all 0.2s ease'
+            }}
+            title="Reset cached values to Tisha, Joya, Grade 4, Age 9"
+          >
+            <RotateCcw size={12} /> Reset to Defaults (Tisha & Joya)
+          </button>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
