@@ -50,7 +50,7 @@ export interface GoogleAuthResult {
 
 // Firebase configuration using project environment or Google Cloud project defaults
 const firebaseConfig = {
-  apiKey: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_API_KEY) || "AIzaSyDevLiveAvatarKey9691fa52",
+  apiKey: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_API_KEY) || "AIzaSyAbc0PnDmqZl0Jga3lBMgVQdGNPNQi68eE",
   authDomain: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN) || "project-9691fa52-ebb2-43ba-9de.firebaseapp.com",
   projectId: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_PROJECT_ID) || "project-9691fa52-ebb2-43ba-9de",
   storageBucket: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET) || "project-9691fa52-ebb2-43ba-9de.appspot.com",
@@ -140,27 +140,45 @@ class FirebaseService {
       uid = `google_${email.replace(/[^a-z0-9]/gi, '_')}`;
     }
 
-    // Check if the student already has Name and Grade saved in Firestore or local cache
-    let existingProfile: StudentProfile | null = null;
-    try {
-      existingProfile = await this.getStudentProfile(uid);
-    } catch (e) {
-      console.warn('[FirebaseService] Profile check note:', e);
+    // Resolve clean student name from Google displayName or email
+    let studentName = displayName?.trim();
+    if (!studentName && email) {
+      const prefix = email.split('@')[0].replace(/[0-9_.-]/g, ' ').trim();
+      studentName = prefix ? prefix.charAt(0).toUpperCase() + prefix.slice(1) : 'Prabha';
     }
+    if (!studentName) studentName = 'Prabha';
 
-    const hasName = Boolean(existingProfile?.studentName?.trim() || displayName?.trim());
-    const hasGrade = Boolean(existingProfile?.grade?.trim());
+    // Resolve grade from existing profile or localStorage or default Grade 8
+    const existingGrade =
+      existingProfile?.grade ||
+      (typeof window !== 'undefined' ? (localStorage.getItem('helpme_grade') || localStorage.getItem('helpme_class_name')) : '') ||
+      'Grade 8';
 
-    // If grade is missing or profile incomplete, student will be prompted to add name/grade
-    const needsProfileCompletion = !hasName || !hasGrade;
+    // Once Gmail Auth succeeds, automatically update Student Profile in Firebase database & local cache
+    const updatedProfile: StudentProfile = {
+      uid,
+      studentName,
+      grade: existingGrade,
+      email,
+      photoURL,
+      authProvider: 'google',
+      lastLoginAt: new Date().toISOString(),
+    };
+
+    try {
+      await this.saveStudentProfile(updatedProfile);
+      console.log('[FirebaseService] Successfully updated student profile with Google Name:', studentName);
+    } catch (saveErr) {
+      console.warn('[FirebaseService] Profile save note:', saveErr);
+    }
 
     return {
       uid,
       email,
-      displayName: existingProfile?.studentName || displayName,
+      displayName: studentName,
       photoURL,
-      needsProfileCompletion,
-      existingProfile,
+      needsProfileCompletion: false,
+      existingProfile: updatedProfile,
     };
   }
 
