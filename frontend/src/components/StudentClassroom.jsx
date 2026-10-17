@@ -3,6 +3,7 @@ import LiveTutorStage from './LiveTutorStage';
 import AvatarCanvas from './AvatarCanvas';
 import SlideBoard from './SlideBoard';
 import { Volume2, Mic, Tv, ArrowRight, ArrowLeft, Star, Award, CheckCircle, CheckCircle2, HelpCircle, MessageSquare, Sparkles, Send, Brain, Sliders, RefreshCw, AlertCircle, ThumbsUp, HelpCircle as HelpIcon, Smile, Pause, Play } from 'lucide-react';
+import { API_BASE } from '../apiConfig';
 
 export default function StudentClassroom({ sessionData, onLessonFinished, onBackToSetup }) {
   const [currentResponse, setCurrentResponse] = useState(sessionData?.current_response || null);
@@ -124,11 +125,11 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
   // Fallback initial load if currentResponse is null
   useEffect(() => {
     if (!currentResponse) {
-      fetch('http://localhost:8000/api/sample-lesson')
+      fetch(`${API_BASE}/api/sample-lesson`)
         .then((res) => res.json())
         .then((plan) => {
           setLessonPlan(plan);
-          return fetch(`http://localhost:8000/api/start-lesson?curriculum_id=${plan.curriculum_id}&child_name=${encodeURIComponent(childName)}&avatar_name=Miss%20Priya`, { method: 'POST' });
+          return fetch(`${API_BASE}/api/start-lesson?curriculum_id=${plan.curriculum_id}&child_name=${encodeURIComponent(childName)}&avatar_name=Miss%20Priya`, { method: 'POST' });
         })
         .then((res) => res.json())
         .then((data) => {
@@ -300,7 +301,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
     setSelectedOption(null);
     setEvalResult(null);
     try {
-      const res = await fetch('http://localhost:8000/api/feedback-check', {
+      const res = await fetch(`${API_BASE}/api/feedback-check`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -357,7 +358,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
     setIsThinking(true);
 
     try {
-      const res = await fetch('http://localhost:8000/api/ask-doubt', {
+      const res = await fetch(`${API_BASE}/api/ask-doubt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -585,7 +586,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
     const qId = currentResponse?.question?.question_id || null;
     
     try {
-      const res = await fetch('http://localhost:8000/api/submit-answer', {
+      const res = await fetch(`${API_BASE}/api/submit-answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -690,7 +691,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
     lastSpokenSpeechRef.current = '';
 
     try {
-      const res = await fetch(`http://localhost:8000/api/teacher-next-step/${sessionData?.session_id || 'sess_demo'}`);
+      const res = await fetch(`${API_BASE}/api/teacher-next-step/${sessionData?.session_id || 'sess_demo'}`);
       const nextPayload = await res.json();
       setCurrentResponse(nextPayload);
     } catch (err) {

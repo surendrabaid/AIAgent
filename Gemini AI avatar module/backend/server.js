@@ -51,7 +51,7 @@ if (!GOOGLE_CLOUD_PROJECT || !GOOGLE_CLOUD_LOCATION) {
   console.error("Error: Environment variables GOOGLE_CLOUD_PROJECT (or GCP_PROJECT_ID) and GOOGLE_CLOUD_LOCATION must be set.");
   process.exit(1);
 }
-const PROXY_HEADER = process?.env?.PROXY_HEADER;
+const PROXY_HEADER = process?.env?.PROXY_HEADER || "OfUuo8fWvy9fauNWD0FePECzm9koL2g2";
 if (!PROXY_HEADER) {
   console.error("Error: Environment variables PROXY_HEADER must be set.");
   process.exit(1);

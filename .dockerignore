@@ -1,0 +1,46 @@
+# Git
+.git/
+.gitignore
+
+# Local environment variables
+.env
+.env.local
+.env.cloudrun.yaml
+*.yaml
+backend/.env
+Gemini AI avatar module/backend/.env
+Gemini AI avatar module/backend/.env.local
+
+# Python cache & virtual environments
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
+backend/venv/
+backend/.venv/
+*.egg-info/
+
+# Node modules & build artifacts (built cleanly inside container)
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+Gemini AI avatar module/node_modules/
+Gemini AI avatar module/backend/node_modules/
+Gemini AI avatar module/frontend/node_modules/
+
+# Logs and runtime artifacts
+logs/
+*.log
+.services.pid
+screenshots/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Old temporary text files
+Dockerfile.txt
+dockerignore.txt

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, User, GraduationCap, Sparkles, BookOpen, Bot, Check, ArrowRight, FileText, Library, Clock, RotateCcw } from 'lucide-react';
+import { API_BASE } from '../apiConfig';
 
 export default function ParentSetup({ onStartLesson, onFastSample }) {
   // Load cached settings from localStorage if available
@@ -54,7 +55,7 @@ export default function ParentSetup({ onStartLesson, onFastSample }) {
 
   const fetchLibrary = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/library');
+      const res = await fetch(`${API_BASE}/api/library`);
       if (res.ok) {
         const data = await res.json();
         const sorted = [...data].sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
@@ -111,7 +112,7 @@ export default function ParentSetup({ onStartLesson, onFastSample }) {
         formData.append('child_age', childAge.toString());
         formData.append('grade', grade);
 
-        const res = await fetch('http://localhost:8000/api/upload-curriculum', {
+        const res = await fetch(`${API_BASE}/api/upload-curriculum`, {
           method: 'POST',
           body: formData
         });
@@ -122,7 +123,7 @@ export default function ParentSetup({ onStartLesson, onFastSample }) {
 
       const activeName = avatarName || (gender === 'male' ? 'Mr. Rajesh' : 'Joya');
       const startRes = await fetch(
-        `http://localhost:8000/api/start-lesson?curriculum_id=${activeCurriculumId}&child_name=${encodeURIComponent(childName)}&gender=${gender}&avatar_style=${avatarStyle}&avatar_name=${encodeURIComponent(activeName)}`,
+        `${API_BASE}/api/start-lesson?curriculum_id=${activeCurriculumId}&child_name=${encodeURIComponent(childName)}&gender=${gender}&avatar_style=${avatarStyle}&avatar_name=${encodeURIComponent(activeName)}`,
         { method: 'POST' }
       );
 

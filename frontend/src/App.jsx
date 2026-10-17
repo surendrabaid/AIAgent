@@ -4,6 +4,7 @@ import StudentClassroom from './components/StudentClassroom';
 import ParentReportView from './components/ParentReportView';
 import ReceptionistDemo from './components/ReceptionistDemo';
 import { GraduationCap } from 'lucide-react';
+import { API_BASE } from './apiConfig';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('setup'); // 'setup', 'classroom', 'report', 'receptionist'
@@ -12,7 +13,7 @@ export default function App() {
   const [backendStatus, setBackendStatus] = useState('checking');
 
   useEffect(() => {
-    fetch('http://localhost:8000/')
+    fetch(`${API_BASE}/api/health`)
       .then((res) => res.json())
       .then(() => setBackendStatus('online'))
       .catch(() => setBackendStatus('offline_fallback'));
@@ -25,10 +26,10 @@ export default function App() {
 
   const handleFastSample = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/sample-lesson');
+      const res = await fetch(`${API_BASE}/api/sample-lesson`);
       const lessonPlan = await res.json();
       
-      const startRes = await fetch(`http://localhost:8000/api/start-lesson?curriculum_id=${lessonPlan.curriculum_id}&child_name=Tisha&gender=female&avatar_style=young_mentor&avatar_name=Joya`, {
+      const startRes = await fetch(`${API_BASE}/api/start-lesson?curriculum_id=${lessonPlan.curriculum_id}&child_name=Tisha&gender=female&avatar_style=young_mentor&avatar_name=Joya`, {
         method: 'POST'
       });
       const startData = await startRes.json();
@@ -67,7 +68,7 @@ export default function App() {
 
   const handleLessonFinished = async (sessionId) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/parent-report/${sessionId}`);
+      const res = await fetch(`${API_BASE}/api/parent-report/${sessionId}`);
       const report = await res.json();
       setReportData(report);
     } catch (err) {

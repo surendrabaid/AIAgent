@@ -72,6 +72,31 @@ def read_root():
         "features": ["AI Tutor Agent", "AI Receptionist Agent", "Real-Time Viseme Lip-Sync", "TV D-Pad Support"]
     }
 
+@app.get("/api/health")
+def health_check():
+    return {
+        "status": "online",
+        "app": "MyTutor AI Platform",
+        "version": "1.0.0"
+    }
+
+@app.get("/api/sample-lesson")
+def get_sample_lesson():
+    if "curr_solar_system" in LESSON_PLANS_DB:
+        return LESSON_PLANS_DB["curr_solar_system"]
+    solar_default = (
+        "Our Solar System consists of our Sun and eight planets orbiting around it bound by gravity. "
+        "The four inner rocky planets are Mercury, Venus, Earth, and Mars. "
+        "The four outer giant planets are Jupiter, Saturn, Uranus, and Neptune. "
+        "Earth is the only planet with liquid oceans and breathable air."
+    )
+    lesson_plan = pdf_service.generate_ai_lesson_plan(solar_default, "Our_Solar_System.pdf")
+    lesson_plan.curriculum_id = "curr_solar_system"
+    LESSON_PLANS_DB["curr_solar_system"] = lesson_plan
+    save_cached_curriculums()
+    return lesson_plan
+
+
 @app.get("/api/library")
 def get_curriculum_library():
     """
