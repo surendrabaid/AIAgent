@@ -39,8 +39,20 @@ export const TranscriptionPanel: React.FC<Props> = ({
   const tutorName = activePersona?.name || 'Tutor Jay';
 
   // Resolve Student Name & Class Name from props or localStorage fallback
-  const resolvedStudentName = studentName || (typeof window !== 'undefined' ? localStorage.getItem('helpme_child_name') : null) || 'Vihana';
-  const resolvedClassName = customClassName || (typeof window !== 'undefined' ? (localStorage.getItem('helpme_grade') || localStorage.getItem('helpme_class_name')) : null) || 'Grade 3 • Science';
+  const resolvedStudentName = (() => {
+    if (studentName && studentName !== 'Prabha' && studentName !== 'Vihana') return studentName;
+    if (typeof window !== 'undefined') {
+      const email = localStorage.getItem('helpme_google_email');
+      const savedName = localStorage.getItem('helpme_child_name');
+      if (email && (!savedName || savedName === 'Prabha' || savedName === 'Vihana')) {
+        return email.split('@')[0];
+      }
+      if (savedName && savedName !== 'Prabha' && savedName !== 'Vihana') return savedName;
+      if (email) return email.split('@')[0];
+    }
+    return studentName || 'prabhukaran1993';
+  })();
+  const resolvedClassName = customClassName || (typeof window !== 'undefined' ? (localStorage.getItem('helpme_grade') || localStorage.getItem('helpme_class_name')) : null) || 'Grade 5';
 
   useEffect(() => {
     if (scrollRef.current) {

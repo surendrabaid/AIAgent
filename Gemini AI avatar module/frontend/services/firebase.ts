@@ -134,9 +134,8 @@ class FirebaseService {
       }
     } else {
       const cachedEmail = (typeof window !== 'undefined' ? localStorage.getItem('helpme_google_email') : '') || 'prabhukaran1993@gmail.com';
-      const cachedName = (typeof window !== 'undefined' ? localStorage.getItem('helpme_child_name') : '') || 'Prabha';
       email = cachedEmail;
-      displayName = cachedName;
+      displayName = '';
       uid = `google_${email.replace(/[^a-z0-9]/gi, '_')}`;
     }
 
@@ -148,19 +147,22 @@ class FirebaseService {
       console.warn('[FirebaseService] Profile check note:', e);
     }
 
-    // Resolve clean student name from Google displayName or email
-    let studentName = displayName?.trim();
-    if (!studentName && email) {
-      const prefix = email.split('@')[0].replace(/[0-9_.-]/g, ' ').trim();
-      studentName = prefix ? prefix.charAt(0).toUpperCase() + prefix.slice(1) : 'Prabha';
+    // Requirement: Student name should be the Gmail account name
+    let studentName = '';
+    if (displayName && displayName !== 'Prabha' && displayName !== 'Student') {
+      studentName = displayName.trim();
+    } else if (email) {
+      // Use the Gmail account username (e.g. prabhukaran1993)
+      studentName = email.split('@')[0];
+    } else {
+      studentName = 'prabhukaran1993';
     }
-    if (!studentName) studentName = 'Prabha';
 
-    // Resolve grade from existing profile or localStorage or default Grade 8
+    // Resolve grade from existing profile or localStorage or default Grade 5
     const existingGrade =
       existingProfile?.grade ||
       (typeof window !== 'undefined' ? (localStorage.getItem('helpme_grade') || localStorage.getItem('helpme_class_name')) : '') ||
-      'Grade 8';
+      'Grade 5';
 
     // Once Gmail Auth succeeds, automatically update Student Profile in Firebase database & local cache
     const updatedProfile: StudentProfile = {

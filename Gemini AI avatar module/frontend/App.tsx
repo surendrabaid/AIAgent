@@ -27,10 +27,19 @@ const App: React.FC = () => {
     return (typeof window !== 'undefined' ? localStorage.getItem('helpme_firebase_logged_in') === 'true' : false);
   });
   const [studentName, setStudentName] = useState(() => {
-    return (typeof window !== 'undefined' ? localStorage.getItem('helpme_child_name') : '') || 'Prabha';
+    if (typeof window !== 'undefined') {
+      const email = localStorage.getItem('helpme_google_email');
+      const savedName = localStorage.getItem('helpme_child_name');
+      if (email && (!savedName || savedName === 'Prabha' || savedName === 'Vihana')) {
+        return email.split('@')[0];
+      }
+      if (savedName && savedName !== 'Prabha' && savedName !== 'Vihana') return savedName;
+      if (email) return email.split('@')[0];
+    }
+    return 'prabhukaran1993';
   });
   const [studentClass, setStudentClass] = useState(() => {
-    return (typeof window !== 'undefined' ? (localStorage.getItem('helpme_grade') || localStorage.getItem('helpme_class_name')) : '') || 'Grade 8';
+    return (typeof window !== 'undefined' ? (localStorage.getItem('helpme_grade') || localStorage.getItem('helpme_class_name')) : '') || 'Grade 5';
   });
   const {
     audioDevices, selectedDeviceId, setSelectedDeviceId,
@@ -603,7 +612,12 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
         onEnterClassroom={(name, grade) => {
           setStudentName(name);
           setStudentClass(grade);
-          const uid = localStorage.getItem('helpme_student_uid') || `student_${name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+          try {
+            localStorage.setItem('helpme_child_name', name);
+            localStorage.setItem('helpme_grade', grade);
+            localStorage.setItem('helpme_class_name', grade);
+          } catch (e) {}
+          const uid = localStorage.getItem('helpme_student_uid') || `google_${name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
           setStudentUid(uid);
           setIsLoggedIn(true);
         }}

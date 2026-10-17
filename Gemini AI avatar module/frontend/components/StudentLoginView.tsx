@@ -34,13 +34,14 @@ export const StudentLoginView: React.FC<Props> = ({
     try {
       const result: GoogleAuthResult = await firebaseService.loginWithGoogle();
       
-      const resolvedName = result.displayName || 'Prabha';
-      const resolvedGrade = result.existingProfile?.grade || 'Grade 8';
+      // Student name is the Gmail account name (e.g. prabhukaran1993)
+      const gmailAccountName = result.displayName || result.email?.split('@')[0] || result.email || 'prabhukaran1993';
+      const resolvedGrade = result.existingProfile?.grade || (typeof window !== 'undefined' ? (localStorage.getItem('helpme_grade') || localStorage.getItem('helpme_class_name')) : '') || 'Grade 5';
 
-      console.log('[StudentLogin] Gmail Auth succeeded. Updated student profile name:', resolvedName);
+      console.log('[StudentLogin] Gmail Auth succeeded. Student name is Gmail account name:', gmailAccountName);
       
       // Update student name and grade, and enter classroom
-      onEnterClassroom(resolvedName, resolvedGrade);
+      onEnterClassroom(gmailAccountName, resolvedGrade);
     } catch (err: any) {
       console.warn('[StudentLogin] Google sign-in note:', err);
       // If popup was blocked or failed, give seamless 1-click fallback
@@ -66,26 +67,25 @@ export const StudentLoginView: React.FC<Props> = ({
     setError(null);
 
     try {
-      // Derive student name from Gmail address
-      const prefix = trimmed.split('@')[0].replace(/[0-9_.-]/g, ' ').trim();
-      const derivedName = prefix ? prefix.charAt(0).toUpperCase() + prefix.slice(1) : 'Prabha';
+      // Student name is the Gmail account username (e.g. prabhukaran1993 from prabhukaran1993@gmail.com)
+      const gmailAccountName = trimmed.split('@')[0] || trimmed;
       const uid = `google_${trimmed.replace(/[^a-z0-9]/gi, '_')}`;
-      const grade = (typeof window !== 'undefined' ? localStorage.getItem('helpme_grade') : '') || 'Grade 8';
+      const grade = (typeof window !== 'undefined' ? (localStorage.getItem('helpme_grade') || localStorage.getItem('helpme_class_name')) : '') || 'Grade 5';
 
       await firebaseService.saveStudentProfile({
         uid,
-        studentName: derivedName,
+        studentName: gmailAccountName,
         grade,
         email: trimmed,
         authProvider: 'google',
         lastLoginAt: new Date().toISOString()
       });
 
-      console.log('[StudentLogin] Manual Gmail confirmed. Updated student profile:', derivedName);
-      onEnterClassroom(derivedName, grade);
+      console.log('[StudentLogin] Gmail confirmed. Student name set to Gmail account name:', gmailAccountName);
+      onEnterClassroom(gmailAccountName, grade);
     } catch (e: any) {
-      console.warn('Manual Gmail save note:', e);
-      onEnterClassroom('Prabha', 'Grade 8');
+      const gmailAccountName = trimmed.split('@')[0] || trimmed;
+      onEnterClassroom(gmailAccountName, 'Grade 5');
     } finally {
       setIsLoading(false);
     }
