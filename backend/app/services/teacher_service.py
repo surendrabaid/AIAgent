@@ -296,7 +296,7 @@ class TeacherStateService:
                 
                 teacher_response = (
                     f"Shabash, {session.child_name}! That's completely correct! "
-                    f"Now let's check your understanding with Question {next_q_num} of {total_questions}!"
+                    f"Now let's check your understanding with Question {next_q_num} of {total_questions}: {next_q.question_text}"
                 )
 
                 return EvaluationResult(

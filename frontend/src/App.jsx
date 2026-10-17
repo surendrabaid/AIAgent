@@ -87,15 +87,6 @@ export default function App() {
           <span className="live-tag">Live Avatar Classroom</span>
         </div>
         <nav className="nav-links">
-          {activeTab !== 'setup' && (
-            <button 
-              type="button" 
-              className="nav-link"
-              onClick={() => setActiveTab('setup')}
-            >
-              🏠 Home
-            </button>
-          )}
           <button 
             type="button"
             className={`nav-link ${activeTab === 'setup' ? 'active' : ''}`}
@@ -142,16 +133,6 @@ export default function App() {
             }} />
             <span>{backendStatus === 'online' ? 'System Online' : 'Connecting...'}</span>
           </div>
-          {activeTab !== 'setup' && (
-            <>
-              <div className="user-pill">
-                <div className="user-avatar">👤</div>
-                Parent
-                <span style={{ fontSize: '10px', color: 'var(--muted)' }}>▾</span>
-              </div>
-              <button className="cart-btn" type="button" title="Learning Resources">🛒</button>
-            </>
-          )}
         </div>
       </header>
 

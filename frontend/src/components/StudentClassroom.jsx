@@ -601,6 +601,13 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       const evalData = await res.json();
       setEvalResult(evalData);
       
+      if (evalData.teacher_verbal_response) {
+        setCurrentResponse((prev) => ({
+          ...prev,
+          speech_text: evalData.teacher_verbal_response
+        }));
+      }
+
       if (evalData.is_correct) {
         setStars((prev) => prev + 1);
         setAvatarMood('celebrating');
@@ -626,6 +633,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
           setIsEvaluating(false);
           setCurrentResponse((prev) => ({
             ...prev,
+            speech_text: evalData.teacher_verbal_response || `Now let's check your understanding with Question ${evalData.question_index || 1} of ${evalData.total_topic_questions || 1}: ${evalData.next_question?.question_text || ''}`,
             question: evalData.next_question,
             question_index: evalData.question_index,
             total_topic_questions: evalData.total_topic_questions
@@ -639,6 +647,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
           if (evalData.next_question) {
             setCurrentResponse((prev) => ({
               ...prev,
+              speech_text: evalData.teacher_verbal_response || prev.speech_text,
               question: evalData.next_question
             }));
           }
@@ -724,7 +733,11 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
           onDoubtAnswered={handleSpokenDoubtAnswered}
           isTeachingPaused={isTeachingPaused}
           onTogglePause={handleTogglePauseTeaching}
-          speechText={currentResponse?.speech_text}
+          speechText={
+            (currentResponse?.question && currentResponse?.question_index > 1 && currentResponse?.speech_text?.includes('Question 1 of'))
+              ? currentResponse.speech_text.replace(/Question 1 of \d+/g, `Question ${currentResponse.question_index} of ${currentResponse.total_topic_questions || 3}`)
+              : currentResponse?.speech_text
+          }
         />
 
         {/* RIGHT LESSON PANEL */}
@@ -942,7 +955,11 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
 
             {/* Transcript */}
             <div className="transcript-box">
-              <strong>{avatarConfig?.name || 'Joya'}:</strong> "{currentResponse?.speech_text || 'Welcome to the classroom! Today we are learning together.'}"
+              <strong>{avatarConfig?.name || 'Joya'}:</strong> "{
+                (currentResponse?.question && currentResponse?.question_index > 1 && currentResponse?.speech_text?.includes('Question 1 of'))
+                  ? currentResponse.speech_text.replace(/Question 1 of \d+/g, `Question ${currentResponse.question_index} of ${currentResponse.total_topic_questions || 3}`)
+                  : (currentResponse?.speech_text || 'Welcome to the classroom! Today we are learning together.')
+              }"
             </div>
           </div>
 
