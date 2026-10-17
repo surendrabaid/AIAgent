@@ -84,17 +84,17 @@ export default function App() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '10px 20px',
-        background: 'rgba(255, 255, 255, 0.85)',
+        padding: '6px 18px',
+        background: 'rgba(255, 255, 255, 0.9)',
         backdropFilter: 'blur(10px)',
         borderBottom: '1px solid #E2E8F0'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <GraduationCap size={20} color="var(--accent-purple)" />
-          <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-main)' }}>
+          <GraduationCap size={18} color="var(--accent-purple)" />
+          <span style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--text-main)' }}>
             My Tutor
           </span>
-          <span style={{ fontSize: '0.72rem', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent-purple)', fontWeight: 800, padding: '2px 8px', borderRadius: '12px' }}>
+          <span style={{ fontSize: '0.68rem', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent-purple)', fontWeight: 800, padding: '2px 8px', borderRadius: '12px' }}>
             Live Avatar Classroom
           </span>
         </div>
@@ -103,16 +103,16 @@ export default function App() {
           display: 'flex',
           alignItems: 'center',
           gap: '6px',
-          fontSize: '0.75rem',
+          fontSize: '0.72rem',
           fontWeight: 600,
           color: backendStatus === 'online' ? '#059669' : '#D97706',
           background: backendStatus === 'online' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-          padding: '4px 10px',
+          padding: '3px 9px',
           borderRadius: '12px'
         }}>
           <span style={{
-            width: '7px',
-            height: '7px',
+            width: '6px',
+            height: '6px',
             borderRadius: '50%',
             background: backendStatus === 'online' ? '#10B981' : '#F59E0B'
           }} />
@@ -121,7 +121,7 @@ export default function App() {
       </header>
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: '10px' }}>
+      <main style={{ flex: 1, padding: '4px 8px' }}>
         {activeTab === 'setup' && (
           <ParentSetup 
             onStartLesson={handleStartLesson}
@@ -158,8 +158,8 @@ export default function App() {
       {/* Footer */}
       <footer style={{
         textAlign: 'center',
-        padding: '16px',
-        fontSize: '0.8rem',
+        padding: '6px',
+        fontSize: '0.72rem',
         color: 'var(--text-subtle)',
         borderTop: '1px solid rgba(255,255,255,0.05)'
       }}>

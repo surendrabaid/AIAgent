@@ -141,78 +141,76 @@ export default function ParentSetup({ onStartLesson }) {
     }
   };
 
-  return (
-    <div style={{ maxWidth: '960px', margin: '0 auto', padding: '20px' }}>
-      {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          background: 'rgba(99, 102, 241, 0.1)',
-          border: '1px solid var(--accent-purple)',
-          color: 'var(--accent-purple)',
-          padding: '6px 16px',
-          borderRadius: '30px',
-          fontSize: '0.85rem',
-          fontWeight: 700,
-          marginBottom: '12px'
-        }}>
-          <Bot size={16} /> Parent Setup Portal
-        </div>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '8px', color: 'var(--text-main)' }}>
-          Configure Your Kid's AI Tutor
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '12px' }}>
-          Set up your child's profile, choose teacher preferences, and select or upload learning material.
-        </p>
+  const handleResetDefaults = () => {
+    try {
+      localStorage.clear();
+    } catch (e) {}
+    setChildName('Tisha');
+    setChildAge(9);
+    setGrade('Grade 4');
+    setGender('female');
+    setAvatarStyle('young_mentor');
+    setAvatarName('Joya');
+  };
 
-        <div>
+  return (
+    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '6px 16px' }}>
+      {/* Top Centered Compact Header */}
+      <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'rgba(99, 102, 241, 0.1)',
+            border: '1px solid var(--accent-purple)',
+            color: 'var(--accent-purple)',
+            padding: '3px 12px',
+            borderRadius: '20px',
+            fontSize: '0.78rem',
+            fontWeight: 800
+          }}>
+            <Bot size={14} /> Parent Setup Portal
+          </div>
+
           <button
             type="button"
-            onClick={() => {
-              try {
-                localStorage.clear();
-              } catch (e) {}
-              setChildName('Tisha');
-              setChildAge(9);
-              setGrade('Grade 4');
-              setGender('female');
-              setAvatarStyle('young_mentor');
-              setAvatarName('Joya');
-            }}
+            onClick={handleResetDefaults}
             style={{
               background: '#F8FAFC',
               border: '1px solid #CBD5E1',
               borderRadius: '20px',
-              padding: '5px 14px',
-              fontSize: '0.78rem',
+              padding: '3px 10px',
+              fontSize: '0.72rem',
               fontWeight: 700,
               color: '#64748B',
               cursor: 'pointer',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-              transition: 'all 0.2s ease'
+              gap: '4px',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.04)'
             }}
             title="Reset cached values to Tisha, Joya, Grade 4, Age 9"
           >
-            <RotateCcw size={12} /> Reset to Defaults (Tisha & Joya)
+            <RotateCcw size={11} /> Reset Defaults
           </button>
         </div>
+
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: 0 }}>
+          Configure student profile, teacher persona, and select learning material.
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
           {/* Child Profile Section */}
-          <div className="glass-panel" style={{ padding: '24px' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-main)' }}>
-              <User color="var(--accent-purple)" /> Child Profile
+          <div className="glass-panel" style={{ padding: '12px 16px' }}>
+            <h2 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
+              <User size={16} color="var(--accent-purple)" /> Child Profile
             </h2>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
+            <div style={{ marginBottom: '8px' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '3px' }}>
                 Child's Name
               </label>
               <input 
@@ -222,20 +220,20 @@ export default function ParentSetup({ onStartLesson }) {
                 required
                 style={{
                   width: '100%',
-                  padding: '12px 16px',
+                  padding: '7px 11px',
                   background: '#FFFFFF',
                   border: '1px solid #CBD5E1',
-                  borderRadius: '12px',
+                  borderRadius: '9px',
                   color: 'var(--text-main)',
-                  fontSize: '1rem',
+                  fontSize: '0.88rem',
                   outline: 'none'
                 }}
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '3px' }}>
                   Age
                 </label>
                 <input 
@@ -246,19 +244,19 @@ export default function ParentSetup({ onStartLesson }) {
                   max="18"
                   style={{
                     width: '100%',
-                    padding: '12px 16px',
+                    padding: '7px 11px',
                     background: '#FFFFFF',
                     border: '1px solid #CBD5E1',
-                    borderRadius: '12px',
+                    borderRadius: '9px',
                     color: 'var(--text-main)',
-                    fontSize: '1rem',
+                    fontSize: '0.88rem',
                     outline: 'none'
                   }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '3px' }}>
                   Grade / Class
                 </label>
                 <input 
@@ -267,12 +265,12 @@ export default function ParentSetup({ onStartLesson }) {
                   onChange={(e) => setGrade(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '12px 16px',
+                    padding: '7px 11px',
                     background: '#FFFFFF',
                     border: '1px solid #CBD5E1',
-                    borderRadius: '12px',
+                    borderRadius: '9px',
                     color: 'var(--text-main)',
-                    fontSize: '1rem',
+                    fontSize: '0.88rem',
                     outline: 'none'
                   }}
                 />
@@ -281,13 +279,13 @@ export default function ParentSetup({ onStartLesson }) {
           </div>
 
           {/* Teacher Avatar Section */}
-          <div className="glass-panel" style={{ padding: '24px' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-main)' }}>
-              <GraduationCap color="var(--accent-purple)" /> Teacher Avatar Persona
+          <div className="glass-panel" style={{ padding: '12px 16px' }}>
+            <h2 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
+              <GraduationCap size={16} color="var(--accent-purple)" /> Teacher Avatar Persona
             </h2>
 
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
+            <div style={{ marginBottom: '8px' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '3px' }}>
                 Teacher Avatar Name
               </label>
               <input 
@@ -296,22 +294,22 @@ export default function ParentSetup({ onStartLesson }) {
                 onChange={(e) => setAvatarName(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '12px 16px',
+                  padding: '7px 11px',
                   background: '#FFFFFF',
                   border: '1px solid #CBD5E1',
-                  borderRadius: '12px',
+                  borderRadius: '9px',
                   color: 'var(--text-main)',
-                  fontSize: '1rem',
+                  fontSize: '0.88rem',
                   outline: 'none'
                 }}
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '3px' }}>
                 Avatar Gender
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <button 
                   type="button"
                   onClick={() => {
@@ -321,7 +319,7 @@ export default function ParentSetup({ onStartLesson }) {
                     }
                   }}
                   className={`glass-card ${gender === 'female' ? 'dpad-focused' : ''}`}
-                  style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', color: 'var(--text-main)', fontWeight: 700, border: gender === 'female' ? '2px solid var(--accent-purple)' : '1px solid #CBD5E1' }}
+                  style={{ padding: '7px 10px', borderRadius: '9px', cursor: 'pointer', color: 'var(--text-main)', fontSize: '0.82rem', fontWeight: 700, border: gender === 'female' ? '2px solid var(--accent-purple)' : '1px solid #CBD5E1' }}
                 >
                   👩 Female Teacher
                 </button>
@@ -334,7 +332,7 @@ export default function ParentSetup({ onStartLesson }) {
                     }
                   }}
                   className={`glass-card ${gender === 'male' ? 'dpad-focused' : ''}`}
-                  style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', color: 'var(--text-main)', fontWeight: 700, border: gender === 'male' ? '2px solid var(--accent-purple)' : '1px solid #CBD5E1' }}
+                  style={{ padding: '7px 10px', borderRadius: '9px', cursor: 'pointer', color: 'var(--text-main)', fontSize: '0.82rem', fontWeight: 700, border: gender === 'male' ? '2px solid var(--accent-purple)' : '1px solid #CBD5E1' }}
                 >
                   👨 Male Teacher
                 </button>
@@ -344,16 +342,16 @@ export default function ParentSetup({ onStartLesson }) {
         </div>
 
         {/* Learning Material Selection & Upload Container */}
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-main)' }}>
-            <BookOpen color="var(--accent-purple)" /> Learning Material & Textbook Chapters
+        <div className="glass-panel" style={{ padding: '12px 16px' }}>
+          <h2 style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
+            <BookOpen size={16} color="var(--accent-purple)" /> Learning Material & Textbook Chapters
           </h2>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             {/* Option A: Upload New File */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '8px' }}>
-                Option A: Upload New Textbook / TXT File
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '5px' }}>
+                Option A: Upload New Textbook / TXT
               </label>
               <input 
                 type="file" 
@@ -366,37 +364,36 @@ export default function ParentSetup({ onStartLesson }) {
                 onClick={triggerFileInput}
                 style={{
                   border: pdfFile ? '2px solid var(--accent-green)' : '2px dashed #94A3B8',
-                  borderRadius: '14px',
-                  padding: '20px',
+                  borderRadius: '10px',
+                  padding: '10px',
                   textAlign: 'center',
                   cursor: 'pointer',
                   background: pdfFile ? 'rgba(5, 150, 105, 0.08)' : '#FFFFFF',
                   transition: 'all 0.2s ease',
-                  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
-                  minHeight: '130px',
+                  minHeight: '75px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}
               >
                 {pdfFile ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <FileText size={32} color="var(--accent-green)" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <FileText size={24} color="var(--accent-green)" />
                     <div style={{ textAlign: 'left' }}>
-                      <p style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-main)' }}>{pdfFile.name}</p>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--accent-green)', fontWeight: 700 }}>
-                        ✓ New File Selected for AI Processing
+                      <p style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>{pdfFile.name}</p>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--accent-green)', fontWeight: 700 }}>
+                        ✓ Ready for Processing
                       </span>
                     </div>
                   </div>
                 ) : (
                   <div>
-                    <Upload size={28} color="var(--accent-purple)" style={{ marginBottom: '6px' }} />
-                    <p style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                      Click to Upload PDF or Text File
+                    <Upload size={20} color="var(--accent-purple)" style={{ marginBottom: '3px' }} />
+                    <p style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
+                      Click to Upload PDF or TXT
                     </p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-subtle)', marginTop: '4px' }}>
-                      Supports PDF and TXT textbook chapters
+                    <p style={{ fontSize: '0.68rem', color: 'var(--text-subtle)', marginTop: '2px', margin: 0 }}>
+                      Supports textbook chapters & study notes
                     </p>
                   </div>
                 )}
@@ -405,8 +402,8 @@ export default function ParentSetup({ onStartLesson }) {
 
             {/* Option B: Pick from Saved History */}
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <label style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+                <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)' }}>
                   Option B: Saved Chapters Library
                 </label>
               </div>
@@ -414,13 +411,13 @@ export default function ParentSetup({ onStartLesson }) {
               <div style={{
                 background: '#FFFFFF',
                 border: '1px solid #CBD5E1',
-                borderRadius: '14px',
-                padding: '12px',
-                maxHeight: '140px',
+                borderRadius: '10px',
+                padding: '6px',
+                maxHeight: '75px',
                 overflowY: 'auto'
               }}>
                 {library.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                     {library.map((item, index) => {
                       const isSelected = selectedCurriculumId === item.curriculum_id;
                       return (
@@ -428,10 +425,10 @@ export default function ParentSetup({ onStartLesson }) {
                           key={item.curriculum_id}
                           onClick={() => handleSelectSaved(item.curriculum_id)}
                           style={{
-                            padding: '10px 12px',
-                            borderRadius: '10px',
+                            padding: '6px 9px',
+                            borderRadius: '7px',
                             background: isSelected ? 'rgba(99, 102, 241, 0.12)' : '#F8FAFC',
-                            border: isSelected ? '2px solid var(--accent-purple)' : '1px solid #E2E8F0',
+                            border: isSelected ? '1.5px solid var(--accent-purple)' : '1px solid #E2E8F0',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
@@ -439,41 +436,40 @@ export default function ParentSetup({ onStartLesson }) {
                             transition: 'all 0.15s ease'
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Library size={18} color={isSelected ? 'var(--accent-purple)' : '#64748B'} />
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Library size={15} color={isSelected ? 'var(--accent-purple)' : '#64748B'} />
                             <div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <p style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <p style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
                                   {item.chapter_title}
                                 </p>
                                 {index === 0 && (
                                   <span style={{
-                                    fontSize: '0.65rem',
+                                    fontSize: '0.6rem',
                                     fontWeight: 800,
                                     background: 'var(--accent-purple)',
                                     color: '#FFFFFF',
-                                    padding: '2px 6px',
-                                    borderRadius: '6px',
-                                    letterSpacing: '0.3px'
+                                    padding: '1px 5px',
+                                    borderRadius: '5px'
                                   }}>
                                     RECENT
                                   </span>
                                 )}
                               </div>
-                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                                {item.topics_count} Units • Cached in History
+                              <span style={{ fontSize: '0.67rem', color: 'var(--text-muted)' }}>
+                                {item.topics_count} Units • Saved in Library
                               </span>
                             </div>
                           </div>
-                          {isSelected && <Check size={18} color="var(--accent-purple)" />}
+                          {isSelected && <Check size={15} color="var(--accent-purple)" />}
                         </div>
                       );
                     })}
                   </div>
                 ) : (
-                  <div style={{ textAlign: 'center', padding: '20px 10px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    <Clock size={20} style={{ marginBottom: '4px', opacity: 0.5 }} />
-                    <p>No saved chapters yet. Upload a chapter once and it will be saved here!</p>
+                  <div style={{ textAlign: 'center', padding: '12px 6px', color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                    <Clock size={16} style={{ marginBottom: '2px', opacity: 0.5 }} />
+                    <p style={{ margin: 0 }}>No saved chapters yet. Upload a chapter once to save it here!</p>
                   </div>
                 )}
               </div>
@@ -482,14 +478,14 @@ export default function ParentSetup({ onStartLesson }) {
         </div>
 
         {/* Submit Action */}
-        <div style={{ textAlign: 'center', marginTop: '8px' }}>
+        <div style={{ textAlign: 'center', marginTop: '2px' }}>
           <button 
             type="submit" 
             className="btn-primary" 
             disabled={isUploading}
-            style={{ fontSize: '1.1rem', padding: '16px 40px' }}
+            style={{ fontSize: '0.92rem', padding: '10px 32px', borderRadius: '12px' }}
           >
-            {isUploading ? 'Synthesizing AI Lesson Plan...' : <><Sparkles /> Generate AI Lesson & Start Teaching <ArrowRight /></>}
+            {isUploading ? 'Synthesizing AI Lesson Plan...' : <><Sparkles size={16} /> Generate AI Lesson & Start Teaching <ArrowRight size={16} /></>}
           </button>
         </div>
       </form>
