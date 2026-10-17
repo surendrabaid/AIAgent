@@ -24,9 +24,16 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
   const [aspectRatio, setAspectRatio] = useState<number>(1);
   const animFrameRef = useRef<number | null>(null);
 
-  // Procedural lip-sync and breathing simulation (ONLY when hasVideo is false)
+  // Live video is shown ONLY when active video stream exists AND avatar is speaking.
+  // When agentTalking is false (or interrupted), we seamlessly show the neutral lifelike portrait
+  // where the teacher has mouth closed, eyes blinking, and natural attentive listening head tilt!
+  const showLiveVideo = hasVideo && agentTalking;
+
+  // Procedural lip-sync and breathing simulation:
+  // When live video is active (showLiveVideo), the video stream renders the avatar.
+  // When in portrait/listening mode (!showLiveVideo), simulate natural breathing, blinking, and mood head tilt!
   useEffect(() => {
-    if (hasVideo) {
+    if (showLiveVideo) {
       setHeadTilt({ x: 0, y: 0 });
       setMouthOpen(0);
       return;
@@ -55,14 +62,14 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
         targetX = -2.5;
         targetY = -2;
       } else if (mood === 'listening') {
-        targetX = 1.8;
+        targetX = 2.0; // attentive listening tilt towards the student
+        targetY = 0.8;
       }
 
       setHeadTilt({ x: targetX, y: targetY });
 
-      // Procedural mouth visemes when speaking
-      if (agentTalking) {
-        // Multi-frequency wave simulating speech vowels/consonants
+      // Procedural mouth visemes: ONLY when NOT in video mode and agent is speaking (Option 2 TTS fallback)
+      if (!hasVideo && agentTalking) {
         const speechWave =
           Math.sin(elapsed * 12) * 0.4 +
           Math.sin(elapsed * 19) * 0.3 +
@@ -70,7 +77,7 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
         const normalized = Math.max(0.08, Math.min(1, (speechWave + 1) / 2));
         setMouthOpen(normalized);
       } else {
-        setMouthOpen(0);
+        setMouthOpen(0); // Mouth ALWAYS closed when listening or in Option 1 idle state!
       }
 
       animFrameRef.current = requestAnimationFrame(loop);
@@ -80,11 +87,11 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [agentTalking, mood, hasVideo]);
+  }, [showLiveVideo, agentTalking, mood, hasVideo]);
 
-  // Natural spontaneous blinking cycle (only for static fallback)
+  // Natural spontaneous blinking cycle (active during listening/portrait mode)
   useEffect(() => {
-    if (hasVideo) return;
+    if (showLiveVideo) return;
     let timeoutId: number;
 
     const triggerBlink = () => {
@@ -99,13 +106,13 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
 
     timeoutId = window.setTimeout(triggerBlink, 3500);
     return () => clearTimeout(timeoutId);
-  }, [hasVideo]);
+  }, [showLiveVideo]);
 
   return (
     <div
       className="relative w-full h-full flex items-center justify-center overflow-hidden rounded-3xl select-none"
       style={
-        hasVideo
+        showLiveVideo
           ? {}
           : {
               transform: `perspective(1000px) rotateX(${headTilt.y * 0.5}deg) rotateY(${headTilt.x * 0.5}deg) translateY(${headTilt.y * 0.5}px)`,
@@ -116,15 +123,15 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
       {/* Underlying Gemini Live Bidi Video Stream */}
       <video
         ref={videoRef as React.RefObject<HTMLVideoElement>}
-        className={`absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-700 ${
-          hasVideo ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        className={`absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-300 ${
+          showLiveVideo ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         playsInline
         autoPlay
       />
 
-      {/* Lifelike Real Avatar Portrait Layer */}
-      <div className={`relative w-full h-full flex items-center justify-center transition-opacity duration-700 ${hasVideo ? 'opacity-0' : 'opacity-100'}`}>
+      {/* Lifelike Real Avatar Portrait Layer (Smooth Crossfade with Closed-Mouth Attentive Listening) */}
+      <div className={`relative w-full h-full flex items-center justify-center transition-opacity duration-300 ${showLiveVideo ? 'opacity-0' : 'opacity-100'}`}>
         <img
           src={persona.imageUrl}
           alt={persona.name}
@@ -194,8 +201,8 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Procedural Lip-Sync Mouth Rig (Synchronized with speech audio) */}
-        {agentTalking && (
+        {/* Procedural Lip-Sync Mouth Rig (Option 2 speech fallback only) */}
+        {!hasVideo && agentTalking && (
           <div
             className="absolute inset-0 pointer-events-none flex items-center justify-center"
             style={{ transform: 'translateY(16%)' }}

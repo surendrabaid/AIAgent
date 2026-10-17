@@ -437,6 +437,31 @@ export const useLiveSession = (
     };
   }, [isConnected, isVideoEnabled, webcamVideoRef]);
 
+  // Align video playhead across unbuffered timeline gaps (e.g. between turns or speech pauses)
+  const alignPlayheadToBuffer = useCallback((videoElement: HTMLVideoElement) => {
+    if (videoElement.buffered.length === 0) return;
+    const cur = videoElement.currentTime;
+    let inRange = false;
+    let nextStart = -1;
+
+    for (let i = 0; i < videoElement.buffered.length; i++) {
+      const s = videoElement.buffered.start(i);
+      const e = videoElement.buffered.end(i);
+      if (cur >= s - 0.05 && cur < e) {
+        inRange = true;
+        break;
+      }
+      if (s > cur && (nextStart === -1 || s < nextStart)) {
+        nextStart = s;
+      }
+    }
+
+    // If playhead is in an unbuffered gap, jump across the gap to the next available buffered sample
+    if (!inRange && nextStart !== -1) {
+      videoElement.currentTime = nextStart + 0.01;
+    }
+  }, []);
+
   // Drain video queue safely into SourceBuffer and evict stale buffer behind playhead
   const drainVideoQueue = useCallback(() => {
     const sb = sourceBufferRef.current;
@@ -446,11 +471,11 @@ export const useLiveSession = (
       return;
     }
 
-    // Evict old buffer behind playhead if playback has progressed (> 8s) to prevent QuotaExceededError
-    if (videoElement && videoElement.currentTime > 8 && sb.buffered.length > 0) {
+    // Evict old buffer behind playhead in batched chunks (> 8s stale) to prevent QuotaExceededError without thrashing
+    if (videoElement && videoElement.currentTime > 10 && sb.buffered.length > 0) {
       try {
         const removeEnd = videoElement.currentTime - 4;
-        if (sb.buffered.start(0) < removeEnd) {
+        if (removeEnd - sb.buffered.start(0) > 8) {
           sb.remove(0, removeEnd);
           return; // updateend will fire when remove finishes and will automatically call drainVideoQueue
         }
@@ -483,10 +508,14 @@ export const useLiveSession = (
     }
   }, []);
 
-  // Pre-roll jitter cushion: start playback only when enough buffer (or queue) is present
+  // Pre-roll jitter cushion: start playback smoothly with 200ms cushion or turn finish
   const checkAndStartPlayback = useCallback(() => {
     const videoElement = videoRef.current;
-    if (!videoElement || !videoElement.paused) return;
+    if (!videoElement) return;
+
+    alignPlayheadToBuffer(videoElement);
+
+    if (!videoElement.paused) return;
 
     let bufferAhead = 0;
     if (videoElement.buffered.length > 0) {
@@ -494,9 +523,9 @@ export const useLiveSession = (
       bufferAhead = Math.max(0, bufferedEnd - videoElement.currentTime);
     }
 
-    // Wait for at least 0.35s cushion, or 3+ queued chunks, or until server turn is complete
+    // 200ms cushion or 2 chunks is optimal to eliminate stutter without delaying speech
     const isTurnFinished = !isTurnReceivingRef.current;
-    const hasCushion = bufferAhead >= 0.35 || videoQueueRef.current.length >= 3;
+    const hasCushion = bufferAhead >= 0.20 || videoQueueRef.current.length >= 2;
 
     if ((hasCushion || isTurnFinished) && bufferAhead > 0.04) {
       videoElement.muted = false;
@@ -512,7 +541,7 @@ export const useLiveSession = (
         });
       }
     }
-  }, []);
+  }, [alignPlayheadToBuffer]);
 
   const initMediaSource = useCallback(() => {
     const videoElement = videoRef.current;
@@ -543,6 +572,19 @@ export const useLiveSession = (
           setError("Video playback error: " + (err.message || `Code ${err.code}`));
         }
       });
+
+      // Low-latency gap recovery: automatically jump over timeline gaps to prevent browser stalls
+      videoElement.addEventListener("waiting", () => {
+        alignPlayheadToBuffer(videoElement);
+        if (videoElement.paused) {
+          checkAndStartPlayback();
+        }
+      });
+
+      videoElement.addEventListener("stalled", () => {
+        alignPlayheadToBuffer(videoElement);
+      });
+
       videoErrorListenerAddedRef.current = true;
     }
 
@@ -599,6 +641,9 @@ export const useLiveSession = (
             }
           }
 
+          // Align playhead across any gap between turns or buffered segments
+          alignPlayheadToBuffer(videoElement);
+
           // Check if pre-roll cushion is ready to start playback
           checkAndStartPlayback();
 
@@ -610,7 +655,7 @@ export const useLiveSession = (
         setError('Failed to initialize video stream.');
       }
     });
-  }, [drainVideoQueue, checkAndStartPlayback]);
+  }, [drainVideoQueue, checkAndStartPlayback, alignPlayheadToBuffer]);
 
   const monitoringLoop = useCallback(() => {
     if (videoRef.current) {
@@ -904,7 +949,7 @@ export const useLiveSession = (
             }
 
             if (message.serverContent?.interrupted) {
-              console.log("[LiveSession] Turn interrupted by server - stopping avatar speech immediately");
+              console.log("[LiveSession] Turn interrupted by server - avatar entering listening state");
               isTurnReceivingRef.current = false;
               agentTalkingRef.current = false;
               setAgentTalking(false);
@@ -913,13 +958,18 @@ export const useLiveSession = (
               const video = videoRef.current;
               if (video) {
                 try {
-                  if (video.buffered.length > 0) {
-                    const bufEnd = video.buffered.end(video.buffered.length - 1);
-                    video.currentTime = Math.max(video.currentTime, bufEnd);
-                  }
                   video.pause();
                 } catch (e) {
-                  console.warn("Interruption fast-forward error:", e);
+                  console.warn("Interruption pause warning:", e);
+                }
+              }
+
+              const sb = sourceBufferRef.current;
+              if (sb && !sb.updating) {
+                try {
+                  sb.abort();
+                } catch (e) {
+                  console.warn("Interruption SourceBuffer abort warning:", e);
                 }
               }
 
