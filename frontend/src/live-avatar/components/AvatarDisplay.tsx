@@ -36,7 +36,6 @@ export const AvatarDisplay: React.FC<Props> = ({
   hasChapterSelected = true,
 }) => {
   const [aspectRatio, setAspectRatio] = useState<number>(1);
-  const [showPersonaMenu, setShowPersonaMenu] = useState<boolean>(false);
 
   return (
     <div
@@ -73,73 +72,18 @@ export const AvatarDisplay: React.FC<Props> = ({
             hasVideo={hasVideo}
           />
 
-          {/* Top Left: Tutor Persona Identity & Switcher */}
+          {/* Top Left: Tutor Jay Identity Badge (Fixed Default) */}
           <div className="absolute top-4 left-4 z-30">
-            <div className="relative">
-              <button
-                onClick={() => setShowPersonaMenu(!showPersonaMenu)}
-                className="flex items-center gap-2.5 bg-slate-900/80 hover:bg-slate-900 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15 text-white shadow-lg transition active:scale-95 group"
-                title="Click to change AI Tutor character"
-              >
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                <div className="text-left">
-                  <span className="text-xs font-bold tracking-wide block leading-tight">
-                    {activePersona.name}
-                  </span>
-                  <span className="text-[10px] text-slate-300 font-normal block leading-none">
-                    {activePersona.title}
-                  </span>
-                </div>
-                <svg className="w-3.5 h-3.5 text-slate-400 group-hover:text-white transition ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {/* Persona Switcher Dropdown */}
-              {showPersonaMenu && (
-                <div className="absolute top-full left-0 mt-2 w-72 bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl p-2 shadow-2xl z-50 animate-fadeIn">
-                  <div className="px-3 py-1.5 border-b border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    Select Your AI Avatar Tutor
-                  </div>
-                  <div className="space-y-1 mt-1 max-h-64 overflow-y-auto">
-                    {TUTOR_PERSONAS.map((p) => {
-                      const isSelected = p.id === activePersona.id;
-                      return (
-                        <button
-                          key={p.id}
-                          onClick={() => {
-                            onSelectPersona(p);
-                            setShowPersonaMenu(false);
-                            if (isConnected) {
-                              onSendPrompt(
-                                `Hello! I am now studying with ${p.name} (${p.title}). Please introduce yourself warmly with your unique persona!`
-                              );
-                            }
-                          }}
-                          className={`w-full flex items-center gap-3 p-2 rounded-xl text-left transition ${
-                            isSelected
-                              ? 'bg-indigo-600/30 border border-indigo-500/50 text-white'
-                              : 'hover:bg-slate-800/80 text-slate-300'
-                          }`}
-                        >
-                          <img
-                            src={p.imageUrl}
-                            alt={p.name}
-                            className="w-10 h-10 rounded-full object-cover border border-white/20 shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs font-bold text-white truncate flex items-center justify-between">
-                              <span>{p.name}</span>
-                              {isSelected && <span className="text-[10px] text-indigo-400 font-semibold">Active</span>}
-                            </div>
-                            <div className="text-[10px] text-slate-400 truncate">{p.specialty}</div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+            <div className="flex items-center gap-2.5 bg-slate-900/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15 text-white shadow-lg pointer-events-none select-none">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="text-left">
+                <span className="text-xs font-bold tracking-wide block leading-tight">
+                  {activePersona.name}
+                </span>
+                <span className="text-[10px] text-slate-300 font-normal block leading-none">
+                  {activePersona.title}
+                </span>
+              </div>
             </div>
           </div>
 

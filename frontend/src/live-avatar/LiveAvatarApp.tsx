@@ -789,14 +789,6 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
         />
       )}
 
-      {/* Student WebCam PIP (Share Notebook / Screen with Tutor) */}
-      <UserWebCamDisplay
-        videoMode={videoMode}
-        deviceId={selectedVideoDeviceId}
-        videoRef={webcamVideoRef}
-        onVideoStop={handleVideoStop}
-      />
-
       {/* Chapter Selection Modal */}
       <ChapterSelectorModal
         isOpen={isChapterModalOpen}

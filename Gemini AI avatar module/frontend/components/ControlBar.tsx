@@ -153,63 +153,6 @@ export const ControlBar: React.FC<Props> = ({
             </svg>
           </div>
         </div>
-
-        {/* Student WebCam (Show Homework / Notes to Tutor) */}
-        <div className="flex items-center bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-xs">
-          <button
-            onClick={() => setVideoMode(videoMode === 'webcam' ? 'none' : 'webcam')}
-            className={`p-2 rounded-l-full transition-colors flex items-center gap-1.5 ${videoMode !== 'webcam' ? 'bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100' : 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400'}`}
-            title={videoMode === 'webcam' ? "Turn off student camera" : "Show your notebook/face to tutor"}
-          >
-            {videoMode === 'webcam' ? (
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M23 7l-7 5 7 5V7z"></path>
-                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-              </svg>
-            ) : (
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"></path>
-                <line x1="1" y1="1" x2="23" y2="23"></line>
-              </svg>
-            )}
-            <span className="text-xs hidden sm:inline">{videoMode === 'webcam' ? 'Camera On' : 'Camera'}</span>
-          </button>
-          <div className="w-px h-3 bg-slate-200 dark:bg-slate-700"></div>
-          <div className="relative p-2 rounded-r-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer flex items-center justify-center">
-            <select
-              value={selectedVideoDeviceId}
-              onChange={(e) => setSelectedVideoDeviceId(e.target.value)}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              title="Select Camera"
-            >
-              {videoDevices.length === 0 && <option value="">Default Camera</option>}
-              {videoDevices.map(device => (
-                <option key={device.deviceId} value={device.deviceId} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-                  {device.label || `Camera ${device.deviceId.slice(0, 5)}...`}
-                </option>
-              ))}
-            </select>
-            <svg className="w-3.5 h-3.5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Screen Share (Show Problem on Screen) */}
-        <div className="flex items-center bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-xs">
-          <button
-            onClick={() => setVideoMode(videoMode === 'screen' ? 'none' : 'screen')}
-            className={`p-2 rounded-full transition-colors flex items-center gap-1.5 ${videoMode !== 'screen' ? 'bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100' : 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400'}`}
-            title={videoMode === 'screen' ? "Stop Screen Share" : "Share textbook / problem tab with Tutor"}
-          >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-              <path d="M8 21h8"></path>
-              <path d="M12 17v4"></path>
-            </svg>
-            <span className="text-xs hidden sm:inline">{videoMode === 'screen' ? 'Sharing' : 'Share'}</span>
-          </button>
-        </div>
       </div>
     </div>
   );

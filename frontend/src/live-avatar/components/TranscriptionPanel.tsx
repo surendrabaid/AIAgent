@@ -95,22 +95,18 @@ export const TranscriptionPanel: React.FC<Props> = ({
             )}
           </div>
 
-          {/* Student Profile Card: Name & Class Name */}
+          {/* Student Profile Card: Name */}
           <div className="flex items-center gap-2.5 bg-white dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center text-white font-extrabold text-base shadow-sm shrink-0">
               {resolvedStudentName.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block leading-tight">
+                Student Profile
+              </span>
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white truncate mt-0.5">
                 {resolvedStudentName}
               </h3>
-              <div className="flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-400 font-semibold mt-0.5">
-                <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                </svg>
-                <span className="truncate">{resolvedClassName}</span>
-              </div>
             </div>
           </div>
         </div>
