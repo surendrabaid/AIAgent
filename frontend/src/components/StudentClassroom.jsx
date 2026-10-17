@@ -237,9 +237,8 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
   const currentSpokenTextRef = useRef('');
   const lastSpokenSpeechRef = useRef('');
 
-  // Speech Synthesis with Selected Voice or Live Avatar
+  // Speech synthesis is handled directly and exclusively by the Gemini Live Avatar stream
   const speakTeacherResponse = (text, visemes, isTopicLesson = false) => {
-    setIsSpeaking(true);
     // When starting a new lesson explanation, ensure topic teaching is not marked over until this finishes
     if (isTopicLesson) {
       setIsTopicTeachingOver(false);
@@ -247,11 +246,6 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       isExplainingLessonRef.current = true;
     }
     currentSpokenTextRef.current = text || '';
-
-    // Cancel any synthetic browser audio immediately so ONLY Gemini Live audio plays
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
 
     // Always dispatch directive to Gemini Live Avatar (LiveTutorStage queues if connecting)
     if (liveTutorRef.current) {
@@ -273,92 +267,6 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
         liveTutorRef.current.sendPrompt(promptText);
       }
     }, 200);
-    return;
-
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-
-      const doSpeak = () => {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 0.88;
-        utterance.pitch = avatarConfig?.gender === 'male' ? 0.95 : 1.1;
-
-        // Track exact spoken character index when teacher speaks so we can resume from exact sentence
-        utterance.onboundary = (event) => {
-          if (event.name === 'word' || event.name === 'sentence') {
-            spokenCharIndexRef.current = event.charIndex || 0;
-          }
-        };
-
-        const voices = window.speechSynthesis.getVoices();
-        let chosenVoice = null;
-
-        // Check if current selectedVoiceURI matches the active gender
-        if (selectedVoiceURI) {
-          const found = voices.find(v => v.voiceURI === selectedVoiceURI);
-          if (found) {
-            const isFoundMale = found.name.toLowerCase().includes('ravi') || found.name.toLowerCase().includes('david') || found.name.toLowerCase().includes('male') || found.name.toLowerCase().includes('mark');
-            if ((avatarConfig?.gender === 'male' && isFoundMale) || (avatarConfig?.gender !== 'male' && !isFoundMale)) {
-              chosenVoice = found;
-            }
-          }
-        }
-
-        // If no valid match, pick target voice based on avatar gender
-        if (!chosenVoice) {
-          chosenVoice = pickTargetVoice(voices, avatarConfig?.gender);
-        }
-
-        if (chosenVoice) {
-          utterance.voice = chosenVoice;
-        }
-
-        utterance.onend = () => {
-          setIsSpeaking(false);
-          setCurrentViseme(null);
-          if (visemeIntervalRef.current) clearInterval(visemeIntervalRef.current);
-          // Only mark topic teaching as finished if this utterance was the actual lesson explanation!
-          if (isTopicLesson) {
-            setIsTopicTeachingOver(true);
-          }
-        };
-
-        utterance.onerror = (e) => {
-          console.warn('Speech synthesis utterance error:', e);
-          setIsSpeaking(false);
-          setCurrentViseme(null);
-          if (isTopicLesson) {
-            setIsTopicTeachingOver(true);
-          }
-        };
-
-        window.speechSynthesis.speak(utterance);
-      };
-
-      // Slight delay avoids Windows Chrome/Edge audio drop after cancel()
-      setTimeout(() => {
-        doSpeak();
-      }, 50);
-    }
-
-    // Viseme Lip-Sync Animation Engine
-    if (visemes && visemes.length > 0) {
-      let frameIdx = 0;
-      if (visemeIntervalRef.current) clearInterval(visemeIntervalRef.current);
-
-      visemeIntervalRef.current = setInterval(() => {
-        if (frameIdx < visemes.length) {
-          setCurrentViseme(visemes[frameIdx]);
-          frameIdx++;
-        } else {
-          clearInterval(visemeIntervalRef.current);
-          setIsSpeaking(false);
-          setCurrentViseme(null);
-        }
-      }, 100);
-    } else {
-      setTimeout(() => setIsSpeaking(false), 5000);
-    }
   };
 
   // Student Interactive Feedback Check Handler ("I Understood!" vs "Please Explain Again!")
@@ -621,13 +529,6 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         if (transcript) {
-          const lower = transcript.toLowerCase();
-          // If active doubt is showing and student says "yes", "clear", "continue", or "resume", automatically resume!
-          if (activeDoubt && (lower.includes('clear') || lower.includes('yes') || lower.includes('continue') || lower.includes('resume') || lower.includes('samajh gaya') || lower.includes('theek hai'))) {
-            setStudentDoubtText('');
-            handleResumeLessonAfterDoubt(true);
-            return;
-          }
           setStudentDoubtText(transcript);
         }
       };
@@ -818,7 +719,6 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
             mood={avatarMood}
             onAgentTalkingChange={handleAgentTalkingChange}
             onDoubtAnswered={handleSpokenDoubtAnswered}
-            isSpeakingFallback={isSpeaking}
           />
         </div>
 

@@ -123,7 +123,8 @@ DOUBT CLARIFICATION PROTOCOL:
     }
   }, [agentTalking, liveInput, liveOutput, onDoubtAnswered]);
 
-  const effectiveTalking = agentTalking || isSpeakingFallback;
+  // Only true when the live agent stream is actively transmitting speech audio/video
+  const effectiveTalking = agentTalking;
 
   return (
     <div style={{
@@ -405,7 +406,7 @@ DOUBT CLARIFICATION PROTOCOL:
             display: 'inline-block' 
           }} /> 
           <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)' }}>
-            {isConnected ? 'Live Avatar Ready' : isConnecting ? 'Establishing Stream...' : 'Offline Mode'}
+            {isConnected ? (isMuted ? 'Live (Mic Muted)' : 'Live Avatar Ready') : isConnecting ? 'Establishing Stream...' : 'Offline Mode'}
           </span>
         </div>
 
@@ -451,7 +452,7 @@ DOUBT CLARIFICATION PROTOCOL:
               transition: 'all 0.15s ease',
               boxShadow: (!isMuted && micVolume > 10) ? '0 0 10px rgba(16, 185, 129, 0.35)' : 'none'
             }}
-            title={isMuted ? 'Unmute Student Microphone' : 'Mute Student Microphone'}
+            title={isMuted ? 'Microphone is muted — click to unmute and speak to tutor' : 'Microphone is active — click to mute'}
           >
             {isMuted ? (
               <MicOff size={14} color="#DC2626" />
@@ -471,7 +472,7 @@ DOUBT CLARIFICATION PROTOCOL:
                 )}
               </div>
             )}
-            <span>{isMuted ? 'Muted' : (micVolume > 10 ? 'Speaking...' : 'Mic On')}</span>
+            <span>{isMuted ? 'Unmute Mic' : (micVolume > 10 ? 'Speaking...' : 'Mic On (Active)')}</span>
           </button>
 
           {!isConnected && !isConnecting && (
@@ -498,6 +499,38 @@ DOUBT CLARIFICATION PROTOCOL:
           )}
         </div>
       </div>
+
+      {/* Dynamic Student Voice Guidance Banner */}
+      {isConnected && (
+        <div style={{
+          width: '100%',
+          marginTop: '8px',
+          padding: '6px 14px',
+          borderRadius: '12px',
+          background: isMuted ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+          border: isMuted ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid rgba(16, 185, 129, 0.2)',
+          fontSize: '0.78rem',
+          fontWeight: 600,
+          color: isMuted ? '#DC2626' : '#059669',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '6px',
+          boxSizing: 'border-box'
+        }}>
+          {isMuted ? (
+            <>
+              <MicOff size={13} color="#DC2626" />
+              <span>Microphone is muted. Click <strong>Unmute Mic</strong> above to speak to {tutorName}!</span>
+            </>
+          ) : (
+            <>
+              <Mic size={13} color="#059669" />
+              <span>Microphone is active! Speak anytime to ask {tutorName} questions or doubts.</span>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Connection & Stream Diagnostic Banner */}
       {error && !isConnected && (

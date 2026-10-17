@@ -55,10 +55,6 @@ export const useLiveSession = (
 
   const sessionPromiseRef = useRef<Promise<any> | null>(null);
   const inputAudioContextRef = useRef<AudioContext | null>(null);
-  const outputAudioContextRef = useRef<AudioContext | null>(null);
-  const outputNodeRef = useRef<GainNode | null>(null);
-  const videoSourceRef = useRef<MediaElementAudioSourceNode | null>(null);
-  const videoAnalyserRef = useRef<AnalyserNode | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const scriptProcessorRef = useRef<ScriptProcessorNode | null>(null);
   const mediaSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
@@ -244,58 +240,17 @@ export const useLiveSession = (
     }
   }, [startAudioInput]);
 
-  // Initialize Output AudioContext and MediaElementAudioSourceNode for unblocked audio
-  useEffect(() => {
-    let ctx = outputAudioContextRef.current;
-    if (!ctx || ctx.state === 'closed') {
-      try {
-        ctx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-        outputAudioContextRef.current = ctx;
-      } catch (e) {
-        console.warn("Could not create AudioContext:", e);
-      }
-    }
-
-    let gain = outputNodeRef.current;
-    if (ctx && (!gain || !outputNodeRef.current)) {
-      try {
-        gain = ctx.createGain();
-        gain.connect(ctx.destination);
-        outputNodeRef.current = gain;
-      } catch (e) {
-        console.warn("Could not create GainNode:", e);
-      }
-    }
-
-    if (ctx && gain && videoRef.current && !videoSourceRef.current) {
-      try {
-        const source = ctx.createMediaElementSource(videoRef.current);
-        videoSourceRef.current = source;
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 2048;
-        videoAnalyserRef.current = analyser;
-        source.connect(analyser);
-        analyser.connect(gain);
-      } catch (e) {
-        console.warn("Benign MediaElementAudioSourceNode notification:", e);
-      }
-    }
-  }, []);
-
-  // Unmute audio and resume suspended audio contexts on explicit user gesture
+  // Ensure video element plays audio directly through system speakers with full volume
   const unmuteAudio = useCallback(() => {
     if (videoRef.current) {
       videoRef.current.muted = false;
       videoRef.current.volume = 1.0;
-      if (videoRef.current.paused) {
+      if (videoRef.current.paused && videoRef.current.buffered.length > 0) {
         videoRef.current.play().catch((err) => console.warn("Unmute play error:", err));
       }
     }
     if (inputAudioContextRef.current && inputAudioContextRef.current.state === 'suspended') {
       inputAudioContextRef.current.resume().catch(() => {});
-    }
-    if (outputAudioContextRef.current && outputAudioContextRef.current.state === 'suspended') {
-      outputAudioContextRef.current.resume().catch(() => {});
     }
     setIsAudioBlocked(false);
   }, []);
@@ -317,7 +272,7 @@ export const useLiveSession = (
     };
   }, [unmuteAudio]);
 
-  // Apply selected audio output device
+  // Apply selected audio output device directly on video element
   useEffect(() => {
     const applyAudioOutput = async () => {
       if (!selectedAudioOutputId) return;
@@ -327,14 +282,6 @@ export const useLiveSession = (
           await (videoRef.current as any).setSinkId(selectedAudioOutputId);
         } catch (e) {
           console.warn("Unable to set video output device.", e);
-        }
-      }
-
-      if (outputAudioContextRef.current && typeof (outputAudioContextRef.current as any).setSinkId === 'function') {
-        try {
-          await (outputAudioContextRef.current as any).setSinkId(selectedAudioOutputId);
-        } catch (e) {
-          console.warn("Unable to set audio output device.", e);
         }
       }
     };
@@ -354,9 +301,6 @@ export const useLiveSession = (
     if (!isMuted) {
       if (inputAudioContextRef.current && inputAudioContextRef.current.state === 'suspended') {
         inputAudioContextRef.current.resume().catch(() => {});
-      }
-      if (outputAudioContextRef.current && outputAudioContextRef.current.state === 'suspended') {
-        outputAudioContextRef.current.resume().catch(() => {});
       }
       if (isConnected && !streamRef.current) {
         initMicrophoneStream();
@@ -607,23 +551,6 @@ export const useLiveSession = (
           return;
         }
 
-        // Attach Web Audio MediaElementSource if available
-        const ctx = outputAudioContextRef.current;
-        const gain = outputNodeRef.current;
-        if (ctx && gain && videoElement && !videoSourceRef.current) {
-          try {
-            const source = ctx.createMediaElementSource(videoElement);
-            videoSourceRef.current = source;
-            const analyser = ctx.createAnalyser();
-            analyser.fftSize = 2048;
-            videoAnalyserRef.current = analyser;
-            source.connect(analyser);
-            analyser.connect(gain);
-          } catch (e) {
-            console.warn("Benign MediaElementAudioSourceNode notification:", e);
-          }
-        }
-
         // Drain any chunks already queued
         drainVideoQueue();
 
@@ -660,32 +587,6 @@ export const useLiveSession = (
   const monitoringLoop = useCallback(() => {
     if (videoRef.current) {
       const video = videoRef.current;
-
-      // --- Latency Check ---
-      // Check if we are tracking 3 seconds of audible video playback
-      if (trackingAvatarAudioRef.current && videoAnalyserRef.current) {
-        if (avatarAudioStartPlayheadRef.current === null) {
-          const dataArray = new Float32Array(videoAnalyserRef.current.fftSize);
-          videoAnalyserRef.current.getFloatTimeDomainData(dataArray);
-          let sum = 0;
-          for (let i = 0; i < dataArray.length; i++) {
-            sum += dataArray[i] * dataArray[i];
-          }
-          const rms = Math.sqrt(sum / dataArray.length);
-
-          if (rms > 0.02) {
-            avatarAudioStartPlayheadRef.current = video.currentTime;
-            avatarAudioStartPlayheadSystemTimeRef.current = performance.now();
-          }
-        } else if (video.currentTime - avatarAudioStartPlayheadRef.current >= 3) {
-          if (avatarAudioStartPlayheadSystemTimeRef.current !== null && lastUserSpeechTimeRef.current > 0) {
-            latencyRef.current = avatarAudioStartPlayheadSystemTimeRef.current - lastUserSpeechTimeRef.current;
-          }
-          trackingAvatarAudioRef.current = false;
-          avatarAudioStartPlayheadRef.current = null;
-          avatarAudioStartPlayheadSystemTimeRef.current = null;
-        }
-      }
 
       // --- Adaptive buffer management based on agent talking state ---
       if (video.readyState >= 2 && !video.paused && video.buffered.length > 0) {
@@ -864,14 +765,6 @@ export const useLiveSession = (
         await initMicrophoneStream(validDeviceId);
       } catch (micErr: any) {
         console.warn("[LiveSession] Microphone access unavailable or blocked. Continuing in listen-only mode:", micErr);
-      }
-
-      if (outputAudioContextRef.current?.state === 'suspended') {
-        try {
-          await outputAudioContextRef.current.resume();
-        } catch (audioCtxErr) {
-          console.warn("[LiveSession] AudioContext resume waiting for user interaction:", audioCtxErr);
-        }
       }
 
       videoQueueRef.current = [];
