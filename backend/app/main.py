@@ -20,7 +20,7 @@ from app.services.pdf_service import pdf_service
 from app.services.teacher_service import teacher_service
 
 app = FastAPI(
-    title="My Tutor AI Agent Backend",
+    title="MyTutor AI Agent Backend",
     description="Multi-Platform AI Tutor & Receptionist Agent Ecosystem Engine",
     version="1.0.0"
 )
@@ -67,7 +67,7 @@ LESSON_PLANS_DB = load_cached_curriculums()
 def read_root():
     return {
         "status": "online",
-        "app": "My Tutor AI Agent Platform",
+        "app": "MyTutor AI Platform",
         "version": "1.0.0",
         "features": ["AI Tutor Agent", "AI Receptionist Agent", "Real-Time Viseme Lip-Sync", "TV D-Pad Support"]
     }

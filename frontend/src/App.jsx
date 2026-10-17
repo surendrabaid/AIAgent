@@ -83,7 +83,7 @@ export default function App() {
       <header className="topbar">
         <div className="brand" onClick={() => setActiveTab('setup')}>
           <div className="brand-icon">🎓</div>
-          <div className="brand-title">My <span>Tutor</span></div>
+          <div className="brand-title">My<span>Tutor</span></div>
           <span className="live-tag">Live Avatar Classroom</span>
         </div>
         <nav className="nav-links">
@@ -182,7 +182,7 @@ export default function App() {
         color: 'var(--text-subtle)',
         borderTop: '1px solid rgba(255,255,255,0.05)'
       }}>
-        My Tutor &copy; 2026 • Single Codebase for Android, iOS, Android TV & Set-Top Boxes
+        MyTutor &copy; 2026 • Single Codebase for Android, iOS, Android TV & Set-Top Boxes
       </footer>
     </div>
   );

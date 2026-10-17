@@ -1,7 +1,7 @@
-# My Tutor: Multi-Platform AI Teacher & Socratic Learning Ecosystem 🎓
+# MyTutor: Multi-Platform AI Teacher & Socratic Learning Ecosystem 🎓
 ### Personalized AI Avatars, Real-Time Bidirectional Speech & Interactive Socratic Pedagogy
 
-**My Tutor** (HelpMe) is a next-generation AI-powered educational platform engineered for **Web, iOS, Android, Android TV, and Set-Top Boxes (STBs)**. It delivers an engaging, private tutoring experience that ingests full textbook chapters, generates structured multi-unit lesson plans, and teaches students through photorealistic AI teacher avatars (**Joya** and **Mr. Rajesh**) with synchronized lip-sync, real-time voice doubt clarification, spatial TV remote navigation, and adaptive remedial loops.
+**MyTutor** is a next-generation AI-powered educational platform engineered for **Web, iOS, Android, Android TV, and Set-Top Boxes (STBs)**. It delivers an engaging, private tutoring experience that ingests full textbook chapters, generates structured multi-unit lesson plans, and teaches students through photorealistic AI teacher avatars (**Joya** and **Mr. Rajesh**) with synchronized lip-sync, real-time voice doubt clarification, spatial TV remote navigation, and adaptive remedial loops.
 
 ---
 
@@ -171,7 +171,7 @@ sequenceDiagram
 ## 🏗️ Repository Directory Structure
 
 ```
-HelpMe/
+MyTutor/
 ├── backend/                                # Python FastAPI Backend (Port 8000)
 │   ├── app/
 │   │   ├── api/
@@ -333,7 +333,7 @@ GOOGLE_CLOUD_PROJECT=your_gcp_project_id_here
 
 | Service | Technology | Port | Access URL | Description |
 | :--- | :--- | :--- | :--- | :--- |
-| **My Tutor Frontend** | React + Vite | `3000` | [http://localhost:3000](http://localhost:3000) | Primary web interface (Setup, Classroom, Report) |
+| **MyTutor Frontend** | React + Vite | `3000` | [http://localhost:3000](http://localhost:3000) | Primary web interface (Parent Setup, Live Classroom, Parent Report) |
 | **FastAPI Backend** | Python FastAPI | `8000` | [http://localhost:8000/docs](http://localhost:8000/docs) | Teaching state engine, syllabus generator & grading |
 | **Gemini Live Proxy** | Node.js Express | `5001` | [http://localhost:5001](http://localhost:5001) | Bidirectional WebSocket & audio streaming proxy |
 
