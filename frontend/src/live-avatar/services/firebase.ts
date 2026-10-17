@@ -54,8 +54,8 @@ const firebaseConfig = {
   authDomain: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN) || "project-9691fa52-ebb2-43ba-9de.firebaseapp.com",
   projectId: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_PROJECT_ID) || "project-9691fa52-ebb2-43ba-9de",
   storageBucket: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET) || "project-9691fa52-ebb2-43ba-9de.appspot.com",
-  messagingSenderId: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID) || "32555940559",
-  appId: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_APP_ID) || "1:32555940559:web:live-avatar-classroom",
+  messagingSenderId: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_MESSAGING_SENDER_ID) || "347207725095",
+  appId: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_APP_ID) || "1:347207725095:web:live-avatar-classroom",
 };
 
 let app: FirebaseApp | null = null;

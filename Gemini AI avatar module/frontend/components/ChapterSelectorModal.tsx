@@ -200,7 +200,10 @@ export const ChapterSelectorModal: React.FC<Props> = ({
       onClose();
     } catch (err: any) {
       console.error('Error uploading PDF textbook:', err);
-      setUploadError(err.message || 'Failed to upload and parse PDF');
+      const msg = err?.message === 'Load failed' || err?.message?.includes('fetch')
+        ? 'Could not connect to backend server (http://localhost:8000). Please ensure backend is running.'
+        : (err?.message || 'Failed to upload and parse PDF');
+      setUploadError(msg);
     } finally {
       setIsUploadingPdf(false);
       if (fileInputRef.current) fileInputRef.current.value = '';

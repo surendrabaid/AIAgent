@@ -26,11 +26,11 @@
           "question_id": "chk_1_1",
           "question_text": "According to the chapter, where and when was the subject born?",
           "options": [
-            "Born overseas and relocated during retirement",
             "The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rame...",
-            "Focused on He grew up in a humble family and learned the values\nof..."
+            "Focused on He grew up in a humble family and learned the values\nof...",
+            "Born overseas and relocated during retirement"
           ],
-          "correct_option_index": 1,
+          "correct_option_index": 0,
           "correct_answer_text": "The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rame...",
           "rubric_hint": "Review the facts directly stated in Early Life, Family Roots & Humble Beginnings."
         },
@@ -39,11 +39,11 @@
             "question_id": "chk_1_1",
             "question_text": "According to the chapter, where and when was the subject born?",
             "options": [
-              "Born overseas and relocated during retirement",
               "The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rame...",
-              "Focused on He grew up in a humble family and learned the values\nof..."
+              "Focused on He grew up in a humble family and learned the values\nof...",
+              "Born overseas and relocated during retirement"
             ],
-            "correct_option_index": 1,
+            "correct_option_index": 0,
             "correct_answer_text": "The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rame...",
             "rubric_hint": "Review the facts directly stated in Early Life, Family Roots & Humble Beginnings."
           },
@@ -51,8 +51,8 @@
             "question_id": "chk_1_2",
             "question_text": "How did the student demonstrate resilience and determination during childhood?",
             "options": [
-              "By leaving formal education early to work abroad",
               "By receiving a private royal tutor and avoiding labor",
+              "By leaving formal education early to work abroad",
               "He grew up in a humble family and learned the values\nof hard work, honesty, and kindness from his parents"
             ],
             "correct_option_index": 2,
@@ -81,11 +81,11 @@
           "question_id": "chk_2_2",
           "question_text": "What key fact does the chapter highlight in 'Early Life, Family Roots & Humble Beginnings'?",
           "options": [
-            "His love for learning and science led him to become an aerospace\nscientist, and he played an important role...",
             "That outcomes occur without any effort, planning, or study",
+            "His love for learning and science led him to become an aerospace\nscientist, and he played an important role...",
             "Rather than His love for learning and science led hi..., the lesson focused exclusively on theory"
           ],
-          "correct_option_index": 0,
+          "correct_option_index": 1,
           "correct_answer_text": "His love for learning and science led him to become an aerospace\nscientist, and he played an important role...",
           "rubric_hint": "Review the facts directly stated in Early Life, Family Roots & Humble Beginnings."
         },
@@ -94,11 +94,11 @@
             "question_id": "chk_2_2",
             "question_text": "What key fact does the chapter highlight in 'Early Life, Family Roots & Humble Beginnings'?",
             "options": [
-              "His love for learning and science led him to become an aerospace\nscientist, and he played an important role...",
               "That outcomes occur without any effort, planning, or study",
+              "His love for learning and science led him to become an aerospace\nscientist, and he played an important role...",
               "Rather than His love for learning and science led hi..., the lesson focused exclusively on theory"
             ],
-            "correct_option_index": 0,
+            "correct_option_index": 1,
             "correct_answer_text": "His love for learning and science led him to become an aerospace\nscientist, and he played an important role...",
             "rubric_hint": "Review the facts directly stated in Early Life, Family Roots & Humble Beginnings."
           }
@@ -124,11 +124,11 @@
           "question_id": "chk_3_1",
           "question_text": "What renowned title was earned for contributions to space and missile development?",
           "options": [
+            "Known as the Commander of Naval Fleet Operations",
             "Known as the Chief Financial Architect of Industrial Trade",
-            "Widely known as the 'Missile Man of India.'",
-            "Known as the Commander of Naval Fleet Operations"
+            "Widely known as the 'Missile Man of India.'"
           ],
-          "correct_option_index": 1,
+          "correct_option_index": 2,
           "correct_answer_text": "Widely known as the 'Missile Man of India.'",
           "rubric_hint": "Review the facts directly stated in Aerospace Achievements & Missile Man of India."
         },
@@ -137,11 +137,11 @@
             "question_id": "chk_3_1",
             "question_text": "What renowned title was earned for contributions to space and missile development?",
             "options": [
+              "Known as the Commander of Naval Fleet Operations",
               "Known as the Chief Financial Architect of Industrial Trade",
-              "Widely known as the 'Missile Man of India.'",
-              "Known as the Commander of Naval Fleet Operations"
+              "Widely known as the 'Missile Man of India.'"
             ],
-            "correct_option_index": 1,
+            "correct_option_index": 2,
             "correct_answer_text": "Widely known as the 'Missile Man of India.'",
             "rubric_hint": "Review the facts directly stated in Aerospace Achievements & Missile Man of India."
           },
@@ -149,11 +149,11 @@
             "question_id": "chk_3_2",
             "question_text": "What was the subject doing in final moments that reflected a lifelong love of education?",
             "options": [
-              "Attending a political convention in the capital",
               "Even after his\npresidency, he continued to teach and encourage students",
+              "Attending a political convention in the capital",
               "Conducting solitary laboratory experiments without students"
             ],
-            "correct_option_index": 1,
+            "correct_option_index": 0,
             "correct_answer_text": "Even after his\npresidency, he continued to teach and encourage students",
             "rubric_hint": "Review the facts directly stated in Aerospace Achievements & Missile Man of India."
           }
@@ -179,11 +179,11 @@
           "question_id": "chk_4_2",
           "question_text": "What key fact does the chapter highlight in 'Dedication to Teaching & Empowering Youth'?",
           "options": [
-            "His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desi...",
             "That outcomes occur without any effort, planning, or study",
+            "His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desi...",
             "Rather than His life reminds us that great achieveme..., the lesson focused exclusively on theory"
           ],
-          "correct_option_index": 0,
+          "correct_option_index": 1,
           "correct_answer_text": "His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desi...",
           "rubric_hint": "Review the facts directly stated in Dedication to Teaching & Empowering Youth."
         },
@@ -192,11 +192,11 @@
             "question_id": "chk_4_2",
             "question_text": "What key fact does the chapter highlight in 'Dedication to Teaching & Empowering Youth'?",
             "options": [
-              "His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desi...",
               "That outcomes occur without any effort, planning, or study",
+              "His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desi...",
               "Rather than His life reminds us that great achieveme..., the lesson focused exclusively on theory"
             ],
-            "correct_option_index": 0,
+            "correct_option_index": 1,
             "correct_answer_text": "His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desi...",
             "rubric_hint": "Review the facts directly stated in Dedication to Teaching & Empowering Youth."
           }
@@ -222,6 +222,280 @@
       }
     ],
     "full_pdf_text": "The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rameswaram, a small\ntown in Tamil Nadu, India. He grew up in a humble family and learned the values\nof hard work, honesty, and kindness from his parents. As a child, he helped his\nfamily by distributing newspapers while continuing his studies with great\ndetermination. His love for learning and science led him to become an aerospace\nscientist, and he played an important role in India’s space and missile\ndevelopment programmes. Because of his contributions, he became widely\nknown as the “Missile Man of India.” In 2002, he became the 11th President of\nIndia, serving the country with humility and inspiring millions of young people to\ndream big, work hard, and use their knowledge to help others. Even after his\npresidency, he continued to teach and encourage students. Dr. Kalam passed\naway on 27 July 2015 while delivering a lecture to students, doing what he loved\nmost. His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desire to serve our nation.",
-    "created_at": 1792036165.693537
+    "created_at": 1792228930.555389
+  },
+  "curr_1da1b9052a": {
+    "curriculum_id": "curr_1da1b9052a",
+    "chapter_title": "Class 5 Math Mini Book • Page 1",
+    "subject": "Textbook Unit",
+    "grade_level": "Grade 4",
+    "target_age": 8,
+    "topics": [
+      {
+        "topic_id": "topic_1",
+        "title": "Class & Math",
+        "concept_summary": "Class 5 Math Mini Book • Page 1\nMY MINI MATH BOOK\nClass 5 • Learn, Practise, Have Fun!\nName: ____________________________________\nSchool: _____________________________________\nMy maths goal: _______________________________\nInside this mini book\n1. Place value and big numbers\n2. Addition, subtraction, multiplication and division\n3. Fractions\n4. Shapes and measurement\n5. Word problems and a fun challenge\nTip: Try every question yourself first. If you make a mistake, that is a chance to learn!",
+        "explanation_script": "Let's focus on 'Class & Math'. Class 5 Math Mini Book • Page 1\nMY MINI MATH BOOK\nClass 5 • Learn, Practise, Have Fun!\nName: ____________________________________\nSchool: _____________________________________\nMy maths goal: _______________________________\nInside this mini book\n1. Place value and big numbers\n2. Addition, subtraction, multiplication and division\n3. Fractions\n4. Shapes and measurement\n5. Word problems and a fun challenge\nTip: Try every question yourself first. If you make a mistake, that is a chance to learn! This key principle is central to understanding Class 5 Math Mini Book • Page 1.",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Class & Math",
+          "bullet_points": [
+            "Class 5 Math Mini Book • Page 1\nMY MINI MATH BOOK\nClass 5 • Learn, Practise, Have Fun!",
+            "Name: ____________________________________\nSchool: _____________________________________\nMy maths goal: _______________________...",
+            "Place value and big numbers\n2."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_1_1",
+          "question_text": "What key fact does the chapter highlight in 'Class & Math'?",
+          "options": [
+            "Rather than Class 5 Math Mini Book • Page 1\nMY MINI ..., the lesson focused exclusively on theory",
+            "Class 5 Math Mini Book • Page 1\nMY MINI MATH BOOK\nClass 5 • Learn, Practise, Have Fun!",
+            "That outcomes occur without any effort, planning, or study"
+          ],
+          "correct_option_index": 1,
+          "correct_answer_text": "Class 5 Math Mini Book • Page 1\nMY MINI MATH BOOK\nClass 5 • Learn, Practise, Have Fun!",
+          "rubric_hint": "Review the facts directly stated in Class & Math."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_1_1",
+            "question_text": "What key fact does the chapter highlight in 'Class & Math'?",
+            "options": [
+              "Rather than Class 5 Math Mini Book • Page 1\nMY MINI ..., the lesson focused exclusively on theory",
+              "Class 5 Math Mini Book • Page 1\nMY MINI MATH BOOK\nClass 5 • Learn, Practise, Have Fun!",
+              "That outcomes occur without any effort, planning, or study"
+            ],
+            "correct_option_index": 1,
+            "correct_answer_text": "Class 5 Math Mini Book • Page 1\nMY MINI MATH BOOK\nClass 5 • Learn, Practise, Have Fun!",
+            "rubric_hint": "Review the facts directly stated in Class & Math."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_2",
+        "title": "Class & Math",
+        "concept_summary": "Class 5 Math Mini Book • Page 2\n1. Numbers and Operations\nRemember\n• In 48,326, the digit 8 in the thousands place means 8,000.\n• Addition puts amounts together. Subtraction finds the difference.\n• Multiplication is repeated addition. Division shares equally.\nLet’s practise\n1. Write 63,405 in words.\n2. What is the value of 7 in 27,914?\n3. 3,468 + 2,157 = __________\n4. 8,000 − 3,675 = __________\n5. 246 × 6 = __________\n6. 936 ÷ 9 = __________\nQuick check: Estimate 398 + 204 by rounding to the nearest hundred.",
+        "explanation_script": "Let's focus on 'Class & Math'. Class 5 Math Mini Book • Page 2\n1. Numbers and Operations\nRemember\n• In 48,326, the digit 8 in the thousands place means 8,000.\n• Addition puts amounts together. Subtraction finds the difference.\n• Multiplication is repeated addition. Division shares equally.\nLet’s practise\n1. Write 63,405 in words.\n2. What is the value of 7 in 27,914?\n3. 3,468 + 2,157 = __________\n4. 8,000 − 3,675 = __________\n5. 246 × 6 = __________\n6. 936 ÷ 9 = __________\nQuick check: Estimate 398 + 204 by rounding to the nearest hundred. This key principle is central to understanding Class 5 Math Mini Book • Page 1.",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Class & Math",
+          "bullet_points": [
+            "Class 5 Math Mini Book • Page 2\n1.",
+            "Numbers and Operations\nRemember\n• In 48,326, the digit 8 in the thousands place means 8,000.",
+            "• Addition puts amounts together."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_2_1",
+          "question_text": "What key fact does the chapter highlight in 'Class & Math'?",
+          "options": [
+            "That outcomes occur without any effort, planning, or study",
+            "Rather than Class 5 Math Mini Book • Page 2\n1..., the lesson focused exclusively on theory",
+            "Class 5 Math Mini Book • Page 2\n1"
+          ],
+          "correct_option_index": 2,
+          "correct_answer_text": "Class 5 Math Mini Book • Page 2\n1",
+          "rubric_hint": "Review the facts directly stated in Class & Math."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_2_1",
+            "question_text": "What key fact does the chapter highlight in 'Class & Math'?",
+            "options": [
+              "That outcomes occur without any effort, planning, or study",
+              "Rather than Class 5 Math Mini Book • Page 2\n1..., the lesson focused exclusively on theory",
+              "Class 5 Math Mini Book • Page 2\n1"
+            ],
+            "correct_option_index": 2,
+            "correct_answer_text": "Class 5 Math Mini Book • Page 2\n1",
+            "rubric_hint": "Review the facts directly stated in Class & Math."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_3",
+        "title": "Class & Math",
+        "concept_summary": "Class 5 Math Mini Book • Page 3\n2. Fractions\nA fraction shows equal parts of a whole. In 3/4, the 3 is the numerator (parts counted) and the 4 is\nthe denominator (equal parts in total).\nExamples\n• 1/2 means one of two equal parts.\n• 2/4 is equal to 1/2.\n• If a pizza has 8 equal slices and you eat 3, you ate 3/8.\nLet’s practise\n1. Write the fraction for 5 shaded parts out of 8 equal parts: ______\n2. Which is larger: 1/3 or 1/2? ______\n3. Fill in the blank: 2/6 = 1/____\n4. A chocolate bar has 10 equal pieces. Riya eats 4. What fraction is left? ______\nDraw a rectangle and divide it into 4 equal parts. Shade 3 parts to show 3/4.\nDrawing space:",
+        "explanation_script": "Let's focus on 'Class & Math'. Class 5 Math Mini Book • Page 3\n2. Fractions\nA fraction shows equal parts of a whole. In 3/4, the 3 is the numerator (parts counted) and the 4 is\nthe denominator (equal parts in total).\nExamples\n• 1/2 means one of two equal parts.\n• 2/4 is equal to 1/2.\n• If a pizza has 8 equal slices and you eat 3, you ate 3/8.\nLet’s practise\n1. Write the fraction for 5 shaded parts out of 8 equal parts: ______\n2. Which is larger: 1/3 or 1/2? ______\n3. Fill in the blank: 2/6 = 1/____\n4. A chocolate bar has 10 equal pieces. Riya eats 4. What fraction is left? ______\nDraw a rectangle and divide it into 4 equal parts. Shade 3 parts to show 3/4.\nDrawing space: This key principle is central to understanding Class 5 Math Mini Book • Page 1.",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Class & Math",
+          "bullet_points": [
+            "Class 5 Math Mini Book • Page 3\n2.",
+            "Fractions\nA fraction shows equal parts of a whole.",
+            "In 3/4, the 3 is the numerator (parts counted) and the 4 is\nthe denominator (equal parts in total)."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_3_1",
+          "question_text": "What key fact does the chapter highlight in 'Class & Math'?",
+          "options": [
+            "That outcomes occur without any effort, planning, or study",
+            "Rather than Class 5 Math Mini Book • Page 3\n2..., the lesson focused exclusively on theory",
+            "Class 5 Math Mini Book • Page 3\n2"
+          ],
+          "correct_option_index": 2,
+          "correct_answer_text": "Class 5 Math Mini Book • Page 3\n2",
+          "rubric_hint": "Review the facts directly stated in Class & Math."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_3_1",
+            "question_text": "What key fact does the chapter highlight in 'Class & Math'?",
+            "options": [
+              "That outcomes occur without any effort, planning, or study",
+              "Rather than Class 5 Math Mini Book • Page 3\n2..., the lesson focused exclusively on theory",
+              "Class 5 Math Mini Book • Page 3\n2"
+            ],
+            "correct_option_index": 2,
+            "correct_answer_text": "Class 5 Math Mini Book • Page 3\n2",
+            "rubric_hint": "Review the facts directly stated in Class & Math."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_4",
+        "title": "Class & Math",
+        "concept_summary": "Class 5 Math Mini Book • Page 4\n3. Shapes, Measurement and Word Problems\nRemember\n• Perimeter is the distance around a shape.\n• Area is the space inside a flat shape.\n• 1 metre = 100 centimetres; 1 kilogram = 1,000 grams.\nLet’s practise\n1. A rectangle is 8 cm long and 3 cm wide. Find its perimeter.\n2. A square has sides of 5 cm. Find its perimeter.\n3. Convert 4 m to centimetres.\n4. A pencil costs I8. How much do 7 pencils cost?\n5. There are 36 students in 4 equal teams. How many students are in each team?\n6. Meena reads 12 pages each day for 5 days. How many pages does she read?\nI Fun challenge: I am a two-digit number. My tens digit is 4. My ones digit is double my tens digit.\nWhat number am I?\nAnswers (check after trying)\n• Numbers: 1. Sixty-three thousand four hundred five. 2. 7,000. 3. 5,625. 4. 4,325. 5. 1,476. 6. 104. Quick check: about\n600.\n• Fractions: 1. 5/8. 2. 1/2. 3. 3. 4. 6/10 (or 3/5).\n• Shapes/word problems: 1. 22 cm. 2. 20 cm. 3. 400 cm. 4. I56. 5. 9 students. 6. 60 pages. Challenge: 48.",
+        "explanation_script": "Let's focus on 'Class & Math'. Class 5 Math Mini Book • Page 4\n3. Shapes, Measurement and Word Problems\nRemember\n• Perimeter is the distance around a shape.\n• Area is the space inside a flat shape.\n• 1 metre = 100 centimetres; 1 kilogram = 1,000 grams.\nLet’s practise\n1. A rectangle is 8 cm long and 3 cm wide. Find its perimeter.\n2. A square has sides of 5 cm. Find its perimeter.\n3. Convert 4 m to centimetres.\n4. A pencil costs I8. How much do 7 pencils cost?\n5. There are 36 students in 4 equal teams. How many students are in each team?\n6. Meena reads 12 pages each day for 5 days. How many pages does she read?\nI Fun challenge: I am a two-digit number. My tens digit is 4. My ones digit is double my tens digit.\nWhat number am I?\nAnswers (check after trying)\n• Numbers: 1. Sixty-three thousand four hundred five. 2. 7,000. 3. 5,625. 4. 4,325. 5. 1,476. 6. 104. Quick check: about\n600.\n• Fractions: 1. 5/8. 2. 1/2. 3. 3. 4. 6/10 (or 3/5).\n• Shapes/word problems: 1. 22 cm. 2. 20 cm. 3. 400 cm. 4. I56. 5. 9 students. 6. 60 pages. Challenge: 48. This key principle is central to understanding Class 5 Math Mini Book • Page 1.",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Class & Math",
+          "bullet_points": [
+            "Class 5 Math Mini Book • Page 4\n3.",
+            "Shapes, Measurement and Word Problems\nRemember\n• Perimeter is the distance around a shape.",
+            "• Area is the space inside a flat shape."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_4_1",
+          "question_text": "What key fact does the chapter highlight in 'Class & Math'?",
+          "options": [
+            "Rather than Class 5 Math Mini Book • Page 4\n3..., the lesson focused exclusively on theory",
+            "Class 5 Math Mini Book • Page 4\n3",
+            "That outcomes occur without any effort, planning, or study"
+          ],
+          "correct_option_index": 1,
+          "correct_answer_text": "Class 5 Math Mini Book • Page 4\n3",
+          "rubric_hint": "Review the facts directly stated in Class & Math."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_4_1",
+            "question_text": "What key fact does the chapter highlight in 'Class & Math'?",
+            "options": [
+              "Rather than Class 5 Math Mini Book • Page 4\n3..., the lesson focused exclusively on theory",
+              "Class 5 Math Mini Book • Page 4\n3",
+              "That outcomes occur without any effort, planning, or study"
+            ],
+            "correct_option_index": 1,
+            "correct_answer_text": "Class 5 Math Mini Book • Page 4\n3",
+            "rubric_hint": "Review the facts directly stated in Class & Math."
+          }
+        ]
+      }
+    ],
+    "key_vocabulary": [
+      {
+        "word": "Class",
+        "definition": "Key term from Class 5 Math Mini Book • Page 1 explaining fundamental concepts."
+      },
+      {
+        "word": "Math",
+        "definition": "Key term from Class 5 Math Mini Book • Page 1 explaining fundamental concepts."
+      },
+      {
+        "word": "Mini",
+        "definition": "Key term from Class 5 Math Mini Book • Page 1 explaining fundamental concepts."
+      },
+      {
+        "word": "Book",
+        "definition": "Key term from Class 5 Math Mini Book • Page 1 explaining fundamental concepts."
+      }
+    ],
+    "full_pdf_text": "Class 5 Math Mini Book • Page 1\nMY MINI MATH BOOK\nClass 5 • Learn, Practise, Have Fun!\nName: ____________________________________\nSchool: _____________________________________\nMy maths goal: _______________________________\nInside this mini book\n1. Place value and big numbers\n2. Addition, subtraction, multiplication and division\n3. Fractions\n4. Shapes and measurement\n5. Word problems and a fun challenge\nTip: Try every question yourself first. If you make a mistake, that is a chance to learn!\n\nClass 5 Math Mini Book • Page 2\n1. Numbers and Operations\nRemember\n• In 48,326, the digit 8 in the thousands place means 8,000.\n• Addition puts amounts together. Subtraction finds the difference.\n• Multiplication is repeated addition. Division shares equally.\nLet’s practise\n1. Write 63,405 in words.\n2. What is the value of 7 in 27,914?\n3. 3,468 + 2,157 = __________\n4. 8,000 − 3,675 = __________\n5. 246 × 6 = __________\n6. 936 ÷ 9 = __________\nQuick check: Estimate 398 + 204 by rounding to the nearest hundred.\n\nClass 5 Math Mini Book • Page 3\n2. Fractions\nA fraction shows equal parts of a whole. In 3/4, the 3 is the numerator (parts counted) and the 4 is\nthe denominator (equal parts in total).\nExamples\n• 1/2 means one of two equal parts.\n• 2/4 is equal to 1/2.\n• If a pizza has 8 equal slices and you eat 3, you ate 3/8.\nLet’s practise\n1. Write the fraction for 5 shaded parts out of 8 equal parts: ______\n2. Which is larger: 1/3 or 1/2? ______\n3. Fill in the blank: 2/6 = 1/____\n4. A chocolate bar has 10 equal pieces. Riya eats 4. What fraction is left? ______\nDraw a rectangle and divide it into 4 equal parts. Shade 3 parts to show 3/4.\nDrawing space:\n\nClass 5 Math Mini Book • Page 4\n3. Shapes, Measurement and Word Problems\nRemember\n• Perimeter is the distance around a shape.\n• Area is the space inside a flat shape.\n• 1 metre = 100 centimetres; 1 kilogram = 1,000 grams.\nLet’s practise\n1. A rectangle is 8 cm long and 3 cm wide. Find its perimeter.\n2. A square has sides of 5 cm. Find its perimeter.\n3. Convert 4 m to centimetres.\n4. A pencil costs I8. How much do 7 pencils cost?\n5. There are 36 students in 4 equal teams. How many students are in each team?\n6. Meena reads 12 pages each day for 5 days. How many pages does she read?\nI Fun challenge: I am a two-digit number. My tens digit is 4. My ones digit is double my tens digit.\nWhat number am I?\nAnswers (check after trying)\n• Numbers: 1. Sixty-three thousand four hundred five. 2. 7,000. 3. 5,625. 4. 4,325. 5. 1,476. 6. 104. Quick check: about\n600.\n• Fractions: 1. 5/8. 2. 1/2. 3. 3. 4. 6/10 (or 3/5).\n• Shapes/word problems: 1. 22 cm. 2. 20 cm. 3. 400 cm. 4. I56. 5. 9 students. 6. 60 pages. Challenge: 48.",
+    "created_at": 1792230340.884873
+  },
+  "curr_6ce46a8526": {
+    "curriculum_id": "curr_6ce46a8526",
+    "chapter_title": "Chapter 1: The Solar System. The Sun Is At The Center Of The Solar System. Mercury Is The Closest Planet.",
+    "subject": "Textbook Unit",
+    "grade_level": "Grade 4",
+    "target_age": 8,
+    "topics": [
+      {
+        "topic_id": "topic_1",
+        "title": "Solar & System",
+        "concept_summary": "Chapter 1: The Solar System. The Sun is at the center of the solar system. Mercury is the closest planet.",
+        "explanation_script": "Let's focus on 'Solar & System'. Chapter 1: The Solar System. The Sun is at the center of the solar system. Mercury is the closest planet. This key principle is central to understanding Chapter 1: The Solar System. The Sun Is At The Center Of The Solar System. Mercury Is The Closest Planet..",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Solar & System",
+          "bullet_points": [
+            "Chapter 1: The Solar System.",
+            "The Sun is at the center of the solar system.",
+            "Mercury is the closest planet."
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_1_1",
+          "question_text": "What key fact does the chapter highlight in 'Solar & System'?",
+          "options": [
+            "Chapter 1: The Solar System",
+            "Rather than Chapter 1: The Solar System..., the lesson focused exclusively on theory",
+            "That outcomes occur without any effort, planning, or study"
+          ],
+          "correct_option_index": 0,
+          "correct_answer_text": "Chapter 1: The Solar System",
+          "rubric_hint": "Review the facts directly stated in Solar & System."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_1_1",
+            "question_text": "What key fact does the chapter highlight in 'Solar & System'?",
+            "options": [
+              "Chapter 1: The Solar System",
+              "Rather than Chapter 1: The Solar System..., the lesson focused exclusively on theory",
+              "That outcomes occur without any effort, planning, or study"
+            ],
+            "correct_option_index": 0,
+            "correct_answer_text": "Chapter 1: The Solar System",
+            "rubric_hint": "Review the facts directly stated in Solar & System."
+          }
+        ]
+      }
+    ],
+    "key_vocabulary": [
+      {
+        "word": "Solar",
+        "definition": "Key term from Chapter 1: The Solar System. The Sun Is At The Center Of The Solar System. Mercury Is The Closest Planet. explaining fundamental concepts."
+      },
+      {
+        "word": "System",
+        "definition": "Key term from Chapter 1: The Solar System. The Sun Is At The Center Of The Solar System. Mercury Is The Closest Planet. explaining fundamental concepts."
+      },
+      {
+        "word": "Mercury",
+        "definition": "Key term from Chapter 1: The Solar System. The Sun Is At The Center Of The Solar System. Mercury Is The Closest Planet. explaining fundamental concepts."
+      }
+    ],
+    "full_pdf_text": "Chapter 1: The Solar System. The Sun is at the center of the solar system. Mercury is the closest planet.\n",
+    "created_at": 1792229890.711188
   }
 }
