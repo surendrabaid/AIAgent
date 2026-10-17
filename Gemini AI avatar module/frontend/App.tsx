@@ -678,7 +678,7 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
 
         {/* Stage Content: Real AI Avatar Stage + Control Bar (Centered & completely unobstructed) */}
         <div className="w-full flex-1 flex items-center justify-center p-2 sm:p-4 min-h-0 overflow-y-auto">
-          <div className="flex flex-col items-center justify-center w-full max-w-2xl shrink-0 gap-3">
+          <div className="flex flex-col items-center justify-center w-full max-w-3xl shrink-0 gap-3">
             <AvatarDisplay
               videoRef={videoRef}
               hasVideo={hasVideo}

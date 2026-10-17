@@ -54,7 +54,7 @@ export const AvatarDisplay: React.FC<Props> = ({
         isAvatarVisible
           ? {
               width: '100%',
-              maxWidth: `min(82vw, 68%, 70vh * ${aspectRatio})`,
+              maxWidth: `min(90vw, 580px, 64vh * ${aspectRatio})`,
               aspectRatio: aspectRatio,
             }
           : {}
@@ -74,16 +74,11 @@ export const AvatarDisplay: React.FC<Props> = ({
 
           {/* Top Left: Tutor Jay Identity Badge (Fixed Default) */}
           <div className="absolute top-4 left-4 z-30">
-            <div className="flex items-center gap-2.5 bg-slate-900/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15 text-white shadow-lg pointer-events-none select-none">
+            <div className="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 text-white shadow-lg pointer-events-none select-none">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <div className="text-left">
-                <span className="text-xs font-bold tracking-wide block leading-tight">
-                  {activePersona.name}
-                </span>
-                <span className="text-[10px] text-slate-300 font-normal block leading-none">
-                  {activePersona.title}
-                </span>
-              </div>
+              <span className="text-xs font-bold tracking-wide">
+                {activePersona.name}
+              </span>
             </div>
           </div>
 
