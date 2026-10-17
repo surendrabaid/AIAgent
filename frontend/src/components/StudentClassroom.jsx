@@ -219,17 +219,18 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       const next = !prev;
       if (next) {
         if ('speechSynthesis' in window) {
-          window.speechSynthesis.pause();
+          window.speechSynthesis.cancel();
         }
+        setIsSpeaking(false);
         if (liveTutorRef.current?.pauseAudio) {
           liveTutorRef.current.pauseAudio();
         }
       } else {
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.resume();
-        }
         if (liveTutorRef.current?.resumeAudio) {
           liveTutorRef.current.resumeAudio();
+        }
+        if (!liveTutorRef.current?.isConnected && currentResponse?.speech_text) {
+          speakTeacherResponse(currentResponse.speech_text, currentResponse.visemes || [], false);
         }
       }
       return next;
@@ -691,505 +692,282 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
   const currentTopic = lessonPlan?.topics?.find(t => t.topic_id === currentResponse?.topic_id) || lessonPlan?.topics?.[0];
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '16px' }}>
-      {/* Top Header Controls */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '20px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {onBackToSetup && (
-            <button
-              onClick={handleExitToSetup}
-              className="btn-secondary"
-              style={{ padding: '6px 14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              <ArrowLeft size={16} /> Exit to Setup
-            </button>
-          )}
-
-          {/* Pause / Resume Teaching Header Action */}
-          <button
+    <div className="page-wrapper">
+      {/* CLASSROOM TOP BAR */}
+      <div className="classroom-topbar">
+        {onBackToSetup && (
+          <button 
             type="button"
-            onClick={handleTogglePauseTeaching}
-            style={{
-              padding: '6px 14px',
-              fontSize: '0.82rem',
-              fontWeight: 800,
-              borderRadius: '12px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s ease',
-              background: isTeachingPaused ? 'linear-gradient(135deg, #10B981, #059669)' : '#FFFFFF',
-              color: isTeachingPaused ? '#FFFFFF' : '#334155',
-              border: isTeachingPaused ? '1.5px solid #059669' : '1px solid #CBD5E1',
-              boxShadow: isTeachingPaused ? '0 0 12px rgba(16, 185, 129, 0.4)' : 'none'
-            }}
-            title={isTeachingPaused ? 'Resume teaching audio and lesson' : 'Pause teaching audio and take your time'}
+            className="back-btn" 
+            onClick={handleExitToSetup}
           >
-            {isTeachingPaused ? (
-              <>
-                <Play size={14} fill="#FFFFFF" /> Resume Teaching
-              </>
-            ) : (
-              <>
-                <Pause size={14} /> Pause Teaching
-              </>
-            )}
+            ← Back
           </button>
-
-          <div className="tv-mode-badge">
-            <Tv size={14} /> Android STB / TV Remote Ready
-          </div>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            Student: <strong style={{ color: 'var(--text-main)' }}>{childName}</strong>
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Star Counter Badge */}
-          <div className="glass-card" style={{ padding: '6px 16px', display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--accent-gold)' }}>
-            <Star size={18} fill="var(--accent-gold)" color="var(--accent-gold)" />
-            <span style={{ fontWeight: 800, fontSize: '0.95rem' }}>{stars} Stars</span>
-          </div>
-        </div>
+        )}
+        <span className="unit-title">
+          {lessonPlan?.chapter_title ? `${lessonPlan.chapter_title}: ${currentTopic?.title || 'Overview'}` : 'Unit 1: Our Families and Communities'}
+        </span>
+        <span className="pill tv">📺 Android STB / TV Remote Ready</span>
+        <span className="pill stars">⭐ {stars} Stars</span>
+        <span style={{ marginLeft: '4px', fontSize: '11px', color: 'var(--muted)' }}>›</span>
       </div>
 
-      {/* Main Classroom Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '320px 1fr',
-        gap: '24px',
-        alignItems: 'stretch',
-        marginBottom: '24px'
-      }}>
-        {/* Left Column: Gemini 3.8 Live Video Avatar & Pause Toggle */}
-        <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <LiveTutorStage 
-            ref={liveTutorRef}
-            avatarConfig={avatarConfig}
-            childName={childName}
-            mood={avatarMood}
-            onAgentTalkingChange={handleAgentTalkingChange}
-            onDoubtAnswered={handleSpokenDoubtAnswered}
-            isTeachingPaused={isTeachingPaused}
-            onTogglePause={handleTogglePauseTeaching}
-          />
+      {/* CLASSROOM GRID */}
+      <div className="classroom-grid">
+        {/* AVATAR PANEL */}
+        <LiveTutorStage 
+          ref={liveTutorRef}
+          avatarConfig={avatarConfig}
+          childName={childName}
+          mood={avatarMood}
+          onAgentTalkingChange={handleAgentTalkingChange}
+          onDoubtAnswered={handleSpokenDoubtAnswered}
+          isTeachingPaused={isTeachingPaused}
+          onTogglePause={handleTogglePauseTeaching}
+          speechText={currentResponse?.speech_text}
+        />
 
-          {/* Quick-Access Pause / Resume Button below avatar */}
-          <button
-            type="button"
-            onClick={handleTogglePauseTeaching}
-            style={{
-              marginTop: '12px',
-              width: '100%',
-              padding: '9px 16px',
-              borderRadius: '12px',
-              fontSize: '0.85rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              transition: 'all 0.2s ease',
-              background: isTeachingPaused ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' : '#FFFFFF',
-              color: isTeachingPaused ? '#FFFFFF' : '#334155',
-              border: isTeachingPaused ? '1.5px solid #059669' : '1px solid #CBD5E1',
-              boxShadow: isTeachingPaused ? '0 4px 14px rgba(16, 185, 129, 0.35)' : '0 2px 6px rgba(0,0,0,0.04)'
-            }}
-          >
-            {isTeachingPaused ? (
-              <>
-                <Play size={15} fill="#FFFFFF" /> Resume Teaching
-              </>
-            ) : (
-              <>
-                <Pause size={15} /> Pause Teaching
-              </>
-            )}
-          </button>
-        </div>
+        {/* RIGHT LESSON PANEL */}
+        <div className="right-panel">
+          <div className="lesson-area">
+            <div className="unit-label">
+              {lessonPlan?.chapter_title?.toUpperCase() || 'UNIT 1: OUR FAMILIES AND COMMUNITIES'}
+            </div>
+            <div className="lesson-title">
+              {currentTopic?.title || currentResponse?.slide?.headline || "Living Together in Supportive Communities"}
+            </div>
 
-        {/* Right Column: Visual Slide Board & Teacher Dialogue */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <SlideBoard 
-            slide={currentResponse?.slide}
-            topicTitle={currentTopic?.title}
-            chapterTitle={lessonPlan?.chapter_title}
-            realWorldAnalogy={currentTopic?.real_world_analogy}
-            teacherName={avatarConfig?.name}
-          />
+            <div className="lesson-content-grid" style={{ gridTemplateColumns: '1fr' }}>
+              {/* Key Points */}
+              <div className="keypoints-box">
+                <div className="keypoints-title">Key Points</div>
+                <ul className="keypoints-list">
+                  {(currentResponse?.slide?.bullet_points && currentResponse.slide.bullet_points.length > 0
+                    ? currentResponse.slide.bullet_points
+                    : [
+                        "Families live close together to form cooperative communities",
+                        "Mutual aid means helping each other out in times of need",
+                        "Working together builds vibrant and harmonious neighborhoods"
+                      ]
+                  ).map((pt, idx) => (
+                    <li key={idx}>
+                      <span className="kp-check">✓</span>
+                      <span>{pt}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
 
-          {/* Active Doubt Clarification Box (when teacher is answering child's query) */}
-          {activeDoubt ? (
-            <div style={{
-              padding: '16px 20px',
-              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(99, 102, 241, 0.1) 100%)',
-              borderRadius: '16px',
-              border: '2px solid var(--accent-gold)',
-              boxShadow: '0 4px 14px rgba(245, 158, 11, 0.15)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                  <HelpCircle size={22} color="var(--accent-gold)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      Clarifying {childName}'s Doubt: "{activeDoubt?.query || 'Question'}"
-                    </span>
-                    <p style={{ fontSize: '0.95rem', color: 'var(--text-main)', marginTop: '4px', lineHeight: 1.5, fontWeight: 500 }}>
-                      <strong style={{ color: 'var(--accent-purple)' }}>{avatarConfig?.name || 'Teacher'}:</strong> "{typeof activeDoubt?.explanation === 'string' ? activeDoubt.explanation : (activeDoubt?.explanation?.teacher_explanation || JSON.stringify(activeDoubt?.explanation || ''))}"
-                    </p>
-                  </div>
+            {/* Active Doubt Clarification (when teacher is clarifying a query) */}
+            {activeDoubt && (
+              <div style={{
+                background: '#fff9ea',
+                border: '1.5px solid var(--accent)',
+                borderRadius: '12px',
+                padding: '16px 20px',
+                marginBottom: '16px'
+              }}>
+                <div style={{ fontSize: '14px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase', marginBottom: '6px' }}>
+                  ❓ Clarifying {childName}'s Question: "{activeDoubt.query}"
+                </div>
+                <div style={{ fontSize: '16px', color: 'var(--ink)', lineHeight: 1.6 }}>
+                  <strong>{avatarConfig.name || 'Joya'}:</strong> "{typeof activeDoubt.explanation === 'string' ? activeDoubt.explanation : activeDoubt.explanation?.teacher_explanation || ''}"
+                </div>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => handleResumeLessonAfterDoubt(true)}
+                    className="btn-start"
+                    style={{ padding: '9px 18px', fontSize: '14.5px', borderRadius: '8px' }}
+                  >
+                    ✓ Yes, I am clear! Continue lesson
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => handleResumeLessonAfterDoubt(false)}
+                    style={{
+                      padding: '9px 16px',
+                      fontSize: '14.5px',
+                      borderRadius: '8px',
+                      border: '1.5px solid var(--border)',
+                      background: '#FFFFFF',
+                      color: 'var(--ink)',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Explain once more simply
+                  </button>
                 </div>
               </div>
+            )}
 
-              {/* Comprehension Confirmation & Continue Actions */}
+            {/* Student Comprehension Check Bar */}
+            {isTopicTeachingOver && !isQuizReady && !evalResult && (
               <div style={{
+                background: 'var(--green-bg)',
+                border: '1.5px solid #a7f3d0',
+                borderRadius: '12px',
+                padding: '16px 20px',
+                marginBottom: '16px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                paddingTop: '10px',
-                borderTop: '1px solid rgba(245, 158, 11, 0.25)',
                 flexWrap: 'wrap',
-                gap: '10px'
+                gap: '12px'
               }}>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                  Is this clear now, {childName}?
-                </span>
-
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={() => handleResumeLessonAfterDoubt(true)}
-                    className="btn-primary"
-                    style={{
-                      padding: '10px 20px',
-                      fontSize: '0.92rem',
-                      background: '#059669',
-                      borderColor: '#059669',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)'
-                    }}
+                <div>
+                  <div style={{ fontSize: '17px', fontWeight: 800, color: '#065f46' }}>
+                    {childName}, is everything clear to you in this topic?
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#047857', marginTop: '2px' }}>
+                    Ready to check your knowledge with a quiz question?
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => handleFeedbackCheck(true)}
+                    disabled={isFeedbackSubmitting}
+                    className="btn-start"
+                    style={{ padding: '9px 18px', fontSize: '14.5px', borderRadius: '8px', background: 'linear-gradient(135deg, #10b981, #059669)' }}
                   >
-                    <CheckCircle2 size={18} /> Yes, I am clear! Resume teaching from where we stopped
+                    ✓ Yes, it's clear! Start Quiz
                   </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleResumeLessonAfterDoubt(false)}
-                    className="btn-secondary"
+                  <button 
+                    type="button" 
+                    onClick={() => handleFeedbackCheck(false)}
+                    disabled={isFeedbackSubmitting}
                     style={{
-                      padding: '10px 18px',
-                      fontSize: '0.88rem',
-                      color: '#B45309',
-                      borderColor: 'var(--accent-gold)',
-                      background: '#FFFFFF'
+                      padding: '9px 16px',
+                      fontSize: '14.5px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #a7f3d0',
+                      background: '#FFFFFF',
+                      color: '#065f46',
+                      fontWeight: 700,
+                      cursor: 'pointer'
                     }}
                   >
-                    <RefreshCw size={15} /> Explain more simply
+                    Re-explain this topic simply
                   </button>
                 </div>
               </div>
-            </div>
-          ) : currentResponse?.speech_text ? (
-            <div style={{
-              padding: '12px 18px',
-              background: '#FFFFFF',
-              borderRadius: '12px',
-              border: '1px solid var(--border-glass)',
-              fontSize: '0.9rem',
-              color: 'var(--text-main)',
-              textAlign: 'left',
-              lineHeight: '1.5',
-              maxHeight: '120px',
-              overflowY: 'auto',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '8px'
-            }}>
-              <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>💬</span>
-              <div>
-                <strong style={{ color: 'var(--accent-purple)' }}>{avatarConfig?.name || 'Teacher'}:</strong> "{currentResponse.speech_text}"
-              </div>
-            </div>
-          ) : null}
-        </div>
-      </div>
+            )}
 
-      {/* Student Comprehension Check Bar - Appears ONLY when current topic teaching is over */}
-      {isTopicTeachingOver && !isQuizReady && !evalResult && (
-        <div className="glass-panel" style={{
-          padding: '20px 24px',
-          marginBottom: '24px',
-          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%)',
-          border: '2px solid var(--accent-purple)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderRadius: '16px',
-          animation: 'fadeIn 0.3s ease-in-out'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <Smile size={28} color="var(--accent-purple)" />
-            <div>
-              <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                {childName}, is everything clear to you in this topic?
-              </h4>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                Can we go ahead to check your knowledge of this topic, or would you like {avatarConfig?.name || 'Teacher'} to re-explain?
-              </span>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button 
-              type="button"
-              onClick={() => handleFeedbackCheck(true)}
-              disabled={isFeedbackSubmitting}
-              className="btn-primary"
-              style={{
-                padding: '12px 22px',
-                fontSize: '0.92rem',
-                background: '#059669',
-                borderColor: '#059669',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)'
-              }}
-            >
-              <CheckCircle2 size={18} /> Yes, it's clear! Let's check knowledge
-            </button>
-
-            <button 
-              type="button"
-              onClick={() => handleFeedbackCheck(false)}
-              disabled={isFeedbackSubmitting}
-              className="btn-secondary"
-              style={{
-                padding: '12px 20px',
-                fontSize: '0.88rem',
-                borderColor: 'var(--accent-gold)',
-                color: '#B45309',
-                background: '#FFFFFF',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              <RefreshCw size={16} /> Re-explain this topic simply
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Interactive Doubt Clarification Box */}
-      <div className="glass-panel" style={{ padding: '20px', marginBottom: '24px', background: 'rgba(245, 158, 11, 0.04)', border: '1px solid rgba(245, 158, 11, 0.25)' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-gold)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <MessageSquare size={18} /> Ask {avatarConfig.name || 'Joya'} Any Doubt (Voice or Text)
-        </h3>
-
-        <form onSubmit={handleAskDoubt} style={{ display: 'flex', gap: '10px', marginBottom: doubtsList.length > 0 ? '16px' : '0' }}>
-          <input 
-            type="text" 
-            placeholder={`Ask a question (e.g., "${avatarConfig.name}, can you explain this concept again?")`}
-            value={studentDoubtText}
-            onChange={(e) => setStudentDoubtText(e.target.value)}
-            style={{
-              flex: 1,
-              padding: '12px 16px',
-              background: '#FFFFFF',
-              border: '1px solid #CBD5E1',
-              borderRadius: '12px',
-              color: 'var(--text-main)',
-              fontSize: '0.95rem',
-              outline: 'none'
-            }}
-          />
-          <button 
-            type="button" 
-            onClick={startVoiceInput}
-            className="btn-secondary"
-            style={{
-              background: isListening ? 'rgba(239, 68, 68, 0.15)' : '#FFFFFF',
-              borderColor: isListening ? '#EF4444' : '#CBD5E1',
-              color: isListening ? '#DC2626' : 'var(--text-main)',
-              fontWeight: isListening ? 800 : 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <Mic size={18} color={isListening ? '#EF4444' : 'var(--text-main)'} className={isListening ? 'animate-pulse' : ''} />
-            {isListening ? 'Listening...' : 'Speak'}
-          </button>
-          <button type="submit" className="btn-primary" disabled={isThinking}>
-            {isThinking ? <Brain size={18} /> : <><Send size={18} /> Ask Teacher</>}
-          </button>
-          {pendingLessonResponse && (
-            <button
-              type="button"
-              onClick={() => handleResumeLessonAfterDoubt(true)}
-              className="btn-primary"
-              style={{
-                background: '#059669',
-                borderColor: '#059669',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-              title="Resume teaching from the exact sentence where we paused"
-            >
-              <CheckCircle2 size={16} /> Resume Teaching
-            </button>
-          )}
-        </form>
-
-        {/* Doubts History Notebook */}
-        {doubtsList.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '160px', overflowY: 'auto' }}>
-            {doubtsList.map((d, idx) => (
-              <div key={idx} className="glass-card" style={{ padding: '12px 16px', fontSize: '0.85rem' }}>
-                <p style={{ color: 'var(--accent-cyan)', fontWeight: 700, marginBottom: '4px' }}>
-                  ❓ {childName}'s Doubt: "{d.query}"
-                </p>
-                <p style={{ color: 'var(--text-main)', fontStyle: 'italic' }}>
-                  💬 {avatarConfig?.name || 'Teacher'}: "{typeof d.explanation === 'string' ? d.explanation : (d.explanation?.teacher_explanation || JSON.stringify(d.explanation || ''))}"
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Remedial Re-explanation Banner */}
-      {evalResult && !evalResult.is_correct && (
-        <div style={{
-          background: 'rgba(239, 68, 68, 0.08)',
-          border: '1.5px solid #EF4444',
-          borderRadius: '16px',
-          padding: '16px 20px',
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px'
-        }}>
-          <AlertCircle size={24} color="#EF4444" style={{ flexShrink: 0 }} />
-          <div>
-            <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#DC2626', marginBottom: '2px' }}>
-              💡 Adaptive Remedial Review: {avatarConfig?.name || 'Teacher'} is re-explaining this concept!
-            </h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>
-              {avatarConfig?.name || 'Your teacher'} doesn't advance until {childName} understands 100%! Listen to the re-explanation above and try the follow-up question below.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Bottom Section: Question & D-Pad Remote Navigation (Visible ONLY when topic teaching is over) */}
-      {currentResponse?.question && (isQuizReady || evalResult) && (
-        <div className="glass-panel" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{
-                background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
-                color: '#FFFFFF',
-                padding: '4px 12px',
-                borderRadius: '20px',
-                fontSize: '0.82rem',
-                fontWeight: 800,
-                letterSpacing: '0.5px'
+            {/* Checkpoint Quiz Question & TV Remote D-Pad Navigation */}
+            {currentResponse?.question && (isQuizReady || evalResult) && (
+              <div style={{
+                background: '#ffffff',
+                border: '1.5px solid var(--border)',
+                borderRadius: '14px',
+                padding: '18px 20px',
+                marginBottom: '16px'
               }}>
-                Question {currentResponse.question_index || 1} of {currentResponse.total_topic_questions || 1}
-              </span>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <HelpCircle color="var(--accent-purple)" size={22} /> {currentResponse.question.question_text}
-              </h3>
-            </div>
-
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: '#FFFFFF', border: '1px solid #CBD5E1', padding: '4px 10px', borderRadius: '8px' }}>
-              Use <strong style={{ color: 'var(--accent-purple)' }}>[↑] [↓] Arrow Keys</strong> & <strong style={{ color: 'var(--accent-purple)' }}>[ENTER]</strong> on TV Remote
-            </div>
-          </div>
-
-          {/* Option Cards with TV D-Pad Focus Rings */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-            {currentResponse.question.options.map((optionText, idx) => {
-              const isFocused = focusedOptionIdx === idx;
-              const isSelected = selectedOption === idx;
-
-              return (
-                <button
-                  key={idx}
-                  disabled={isEvaluating || (evalResult && evalResult.is_correct)}
-                  onClick={() => handleOptionSubmit(idx)}
-                  className={`glass-card dpad-focusable ${isFocused ? 'dpad-focused' : ''}`}
-                  style={{
-                    padding: '18px 16px',
-                    textAlign: 'left',
-                    cursor: (isEvaluating || (evalResult && evalResult.is_correct)) ? 'not-allowed' : 'pointer',
-                    opacity: (isEvaluating || (evalResult && evalResult.is_correct)) ? 0.75 : 1,
-                    borderRadius: '14px',
-                    color: 'var(--text-main)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    minHeight: '90px'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: isFocused ? 'var(--accent-purple)' : 'var(--text-subtle)' }}>
-                      Option {idx + 1}
-                    </span>
-                    {isSelected && <CheckCircle size={18} color="var(--accent-green)" />}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase' }}>
+                    Quiz Question {currentResponse.question_index || 1} of {currentResponse.total_topic_questions || 1}
                   </div>
-                  <span style={{ fontSize: '1rem', fontWeight: 700 }}>
-                    {optionText}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+                  <div style={{ fontSize: '13px', color: 'var(--muted)' }}>
+                    TV Remote: [↑][↓] Arrows &amp; [ENTER]
+                  </div>
+                </div>
+                <div style={{ fontSize: '17px', fontWeight: 800, color: 'var(--ink)', marginBottom: '14px', lineHeight: 1.5 }}>
+                  {currentResponse.question.question_text}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                  {currentResponse.question.options.map((optionText, idx) => {
+                    const isFocused = focusedOptionIdx === idx;
+                    const isSelected = selectedOption === idx;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        disabled={isEvaluating || (evalResult && evalResult.is_correct)}
+                        onClick={() => handleOptionSubmit(idx)}
+                        className={`dpad-focusable ${isFocused ? 'dpad-focused' : ''}`}
+                        style={{
+                          padding: '14px 16px',
+                          borderRadius: '10px',
+                          border: isFocused ? '2px solid var(--primary)' : isSelected ? '2px solid var(--green)' : '1.5px solid var(--border)',
+                          background: isFocused ? 'var(--primary-light)' : '#ffffff',
+                          textAlign: 'left',
+                          cursor: (isEvaluating || (evalResult && evalResult.is_correct)) ? 'not-allowed' : 'pointer'
+                        }}
+                      >
+                        <div style={{ fontSize: '13px', fontWeight: 800, color: isFocused ? 'var(--primary)' : 'var(--muted)', marginBottom: '6px' }}>
+                          Option {idx + 1}
+                        </div>
+                        <div style={{ fontSize: '15.5px', fontWeight: 700, color: 'var(--ink)', lineHeight: 1.4 }}>
+                          {optionText}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
 
-          {/* Action Bar */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '12px', borderTop: '1px solid var(--border-glass)' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Interactive Socratic Lesson with {avatarConfig.name} &bull; Checkpoint {currentResponse.question_index || 1}/{currentResponse.total_topic_questions || 1}
-            </span>
-
-            {evalResult && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <span style={{
-                  fontWeight: 700,
-                  color: evalResult.is_correct ? 'var(--accent-green)' : 'var(--accent-gold)'
-                }}>
-                  {evalResult.is_correct 
-                    ? (evalResult.topic_completed ? '🎉 Topic Mastered! Outstanding!' : '✨ Shabash! Correct! Loading next question...') 
-                    : '💡 Re-explaining Concept...'}
-                </span>
-
-                {evalResult.is_correct && evalResult.topic_completed && (
-                  <button onClick={handleNextTopic} className="btn-primary">
-                    Next Topic <ArrowRight size={18} />
-                  </button>
+                {/* Remedial / Correct Alert */}
+                {evalResult && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '10px 16px',
+                    borderRadius: '8px',
+                    background: evalResult.is_correct ? 'var(--green-bg)' : '#fee2e2',
+                    color: evalResult.is_correct ? '#065f46' : '#991b1b',
+                    fontSize: '15px',
+                    fontWeight: 700
+                  }}>
+                    <span>
+                      {evalResult.is_correct 
+                        ? (evalResult.topic_completed ? '🎉 Topic Mastered! Outstanding!' : '✨ Correct! Next question loading...') 
+                        : '💡 Re-explaining concept... Try follow-up!'}
+                    </span>
+                    {evalResult.is_correct && evalResult.topic_completed && (
+                      <button 
+                        type="button" 
+                        onClick={handleNextTopic} 
+                        className="btn-start"
+                        style={{ padding: '8px 16px', fontSize: '14px', borderRadius: '8px' }}
+                      >
+                        Next Topic →
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             )}
+
+            {/* Transcript */}
+            <div className="transcript-box">
+              <strong>{avatarConfig?.name || 'Joya'}:</strong> "{currentResponse?.speech_text || 'Welcome to the classroom! Today we are learning together.'}"
+            </div>
           </div>
+
+          {/* ASK BAR */}
+          <form onSubmit={handleAskDoubt} className="ask-bar">
+            <input 
+              className="ask-input" 
+              value={studentDoubtText}
+              onChange={(e) => setStudentDoubtText(e.target.value)}
+              placeholder={`Ask a question (e.g., "${avatarConfig?.name || 'Joya'}, can you explain this concept again?")`} 
+            />
+            <button 
+              type="button" 
+              className="mic-btn"
+              onClick={startVoiceInput}
+              title="Click to speak your question"
+            >
+              {isListening ? '🔴' : '🎙'}
+            </button>
+            <button type="submit" className="ask-btn" disabled={isThinking}>
+              {isThinking ? 'Thinking...' : '✋ Ask Teacher'}
+            </button>
+          </form>
         </div>
-      )}
+      </div>
     </div>
   );
 }

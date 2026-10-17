@@ -3,23 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>My Tutor</title>
-    <!-- Google Fonts -->
+    <!-- Google Fonts Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
-        darkMode: 'class',
         theme: {
           extend: {
+            fontFamily: {
+              sans: ['Inter', "'Segoe UI'", 'system-ui', 'sans-serif'],
+            },
             colors: {
               brand: {
-                50: '#eef2ff',
+                50: '#eeecff',
                 100: '#e0e7ff',
-                500: '#6366f1',
+                500: '#6255f6',
                 600: '#4f46e5',
                 700: '#4338ca',
               }

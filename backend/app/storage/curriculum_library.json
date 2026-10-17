@@ -838,5 +838,218 @@
     ],
     "full_pdf_text": "The Inspiring Life of Dr. A. P. J. Abdul Kalam\nDr. A. P. J. Abdul Kalam was born on 15 October 1931 in Rameswaram, a small\ntown in Tamil Nadu, India. He grew up in a humble family and learned the values\nof hard work, honesty, and kindness from his parents. As a child, he helped his\nfamily by distributing newspapers while continuing his studies with great\ndetermination. His love for learning and science led him to become an aerospace\nscientist, and he played an important role in India’s space and missile\ndevelopment programmes. Because of his contributions, he became widely\nknown as the “Missile Man of India.” In 2002, he became the 11th President of\nIndia, serving the country with humility and inspiring millions of young people to\ndream big, work hard, and use their knowledge to help others. Even after his\npresidency, he continued to teach and encourage students. Dr. Kalam passed\naway on 27 July 2015 while delivering a lecture to students, doing what he loved\nmost. His life reminds us that great achievements can begin with simple dreams,\nsincere effort, and a strong desire to serve our nation.",
     "created_at": 1792118084.8667421
+  },
+  "curr_d12ad03ff9": {
+    "curriculum_id": "curr_d12ad03ff9",
+    "chapter_title": "Unit 1 : Our Families And Communities",
+    "subject": "Textbook Unit",
+    "grade_level": "Grade 4",
+    "target_age": 9,
+    "topics": [
+      {
+        "topic_id": "topic_1",
+        "title": "Living Together in Supportive Communities",
+        "concept_summary": "Namaste Tisha! Welcome to our exciting journey into Unit 1, where we learn all about our families and communities. Have you ever wondered why we don't live all alone, but rather in houses close to one another? It is because humans are social beings who love to help each other out! When families live near each other, they form a community where everyone shares the work and supports one another. Through mutual aid—which is just a fancy way of saying helping each other—we build vibrant and happy neighborhoods. Isn't that wonderful? By cooperating with our neighbors, we make our surroundings a safe and joyful place for everyone.",
+        "explanation_script": "Namaste Tisha! Welcome to our exciting journey into Unit 1, where we learn all about our families and communities. Have you ever wondered why we don't live all alone, but rather in houses close to one another? It is because humans are social beings who love to help each other out! When families live near each other, they form a community where everyone shares the work and supports one another. Through mutual aid—which is just a fancy way of saying helping each other—we build vibrant and happy neighborhoods. Isn't that wonderful? By cooperating with our neighbors, we make our surroundings a safe and joyful place for everyone.",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Living Together in Supportive Communities",
+          "bullet_points": [
+            "Families live close together to form cooperative communities",
+            "Mutual aid means helping each other out in times of need",
+            "Working together builds vibrant and harmonious neighborhoods"
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_1_1",
+          "question_text": "What do we call the supportive group formed when different families live close to one another?",
+          "options": [
+            "A solitary island",
+            "A community",
+            "A lonely desert"
+          ],
+          "correct_option_index": 1,
+          "correct_answer_text": "A community",
+          "rubric_hint": "Child should select correct answer."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_1_1",
+            "question_text": "What do we call the supportive group formed when different families live close to one another?",
+            "options": [
+              "A solitary island",
+              "A community",
+              "A lonely desert"
+            ],
+            "correct_option_index": 1,
+            "correct_answer_text": "A community",
+            "rubric_hint": "Child should select correct answer."
+          },
+          {
+            "question_id": "chk_1_2",
+            "question_text": "What does 'mutual aid' mean in a neighborhood?",
+            "options": [
+              "Competing against each other",
+              "Helping and supporting each other",
+              "Ignoring our neighbors"
+            ],
+            "correct_option_index": 1,
+            "correct_answer_text": "Helping and supporting each other",
+            "rubric_hint": "Child should select correct answer."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_2",
+        "title": "Caring for Nature: Plants and Animals",
+        "concept_summary": "Let's take a closer look at how we take care of our shared environment, Tisha. Did you know that our survival depends on the wonderful plants and animals around us? They provide us with so much, from the delicious food we eat to the cozy clothes we wear every single day! Because they give us so much life, it is our duty to protect and respect them. Together, we cultivate various plants and care for different animals. When we take care of nature, nature takes care of us right back. Isn't that a magical partnership?",
+        "explanation_script": "Let's take a closer look at how we take care of our shared environment, Tisha. Did you know that our survival depends on the wonderful plants and animals around us? They provide us with so much, from the delicious food we eat to the cozy clothes we wear every single day! Because they give us so much life, it is our duty to protect and respect them. Together, we cultivate various plants and care for different animals. When we take care of nature, nature takes care of us right back. Isn't that a magical partnership?",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Caring for Nature: Plants and Animals",
+          "bullet_points": [
+            "Plants and animals provide us with food, clothing, and more",
+            "We cultivate plants and care for animals to keep the environment healthy",
+            "Protecting nature ensures our own well-being and survival"
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_2_1",
+          "question_text": "What do plants and animals provide us with?",
+          "options": [
+            "Plastic and metal cars",
+            "Food and clothing",
+            "Video games and toys"
+          ],
+          "correct_option_index": 1,
+          "correct_answer_text": "Food and clothing",
+          "rubric_hint": "Child should select correct answer."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_2_1",
+            "question_text": "What do plants and animals provide us with?",
+            "options": [
+              "Plastic and metal cars",
+              "Food and clothing",
+              "Video games and toys"
+            ],
+            "correct_option_index": 1,
+            "correct_answer_text": "Food and clothing",
+            "rubric_hint": "Child should select correct answer."
+          },
+          {
+            "question_id": "chk_2_2",
+            "question_text": "Why must we protect plants and animals?",
+            "options": [
+              "Because they sustain us and keep our environment healthy",
+              "Because they are scary",
+              "Because we don't need them"
+            ],
+            "correct_option_index": 0,
+            "correct_answer_text": "Because they sustain us and keep our environment healthy",
+            "rubric_hint": "Child should select correct answer."
+          }
+        ]
+      },
+      {
+        "topic_id": "topic_3",
+        "title": "Celebrations and Gratitude for Nature",
+        "concept_summary": "Now let's talk about the most fun part of living in a community, Tisha—celebrations! Melas and festivals bring everyone together to play, sing, dance, and share immense joy. But while we celebrate, we also remember to show gratitude. We express our thankfulness by respecting the natural elements that make life possible on Earth, such as the sun, moon, air, water, and soil. By being grateful to nature and celebrating together, we keep our community happy, peaceful, and full of positive energy!",
+        "explanation_script": "Now let's talk about the most fun part of living in a community, Tisha—celebrations! Melas and festivals bring everyone together to play, sing, dance, and share immense joy. But while we celebrate, we also remember to show gratitude. We express our thankfulness by respecting the natural elements that make life possible on Earth, such as the sun, moon, air, water, and soil. By being grateful to nature and celebrating together, we keep our community happy, peaceful, and full of positive energy!",
+        "real_world_analogy": null,
+        "visual_slide": {
+          "headline": "Celebrations and Gratitude for Nature",
+          "bullet_points": [
+            "Melas and festivals bring us together to play, sing, and dance",
+            "We express gratitude by respecting natural elements like sun, air, and water",
+            "Celebrations make our communities harmonious and full of joy"
+          ],
+          "diagram_type": "concept_map",
+          "image_prompt": null,
+          "svg_illustration": null
+        },
+        "checkpoint": {
+          "question_id": "chk_3_1",
+          "question_text": "What brings people together to play, sing, and dance in a community?",
+          "options": [
+            "Doing homework alone",
+            "Sleeping early",
+            "Melas and festivals"
+          ],
+          "correct_option_index": 2,
+          "correct_answer_text": "Melas and festivals",
+          "rubric_hint": "Child should select correct answer."
+        },
+        "checkpoints": [
+          {
+            "question_id": "chk_3_1",
+            "question_text": "What brings people together to play, sing, and dance in a community?",
+            "options": [
+              "Doing homework alone",
+              "Sleeping early",
+              "Melas and festivals"
+            ],
+            "correct_option_index": 2,
+            "correct_answer_text": "Melas and festivals",
+            "rubric_hint": "Child should select correct answer."
+          },
+          {
+            "question_id": "chk_3_2",
+            "question_text": "Which of these are natural elements that we express gratitude towards?",
+            "options": [
+              "Plastic bags and video games",
+              "Cars and tall buildings",
+              "Sun, moon, air, water, and soil"
+            ],
+            "correct_option_index": 2,
+            "correct_answer_text": "Sun, moon, air, water, and soil",
+            "rubric_hint": "Child should select correct answer."
+          },
+          {
+            "question_id": "chk_3_3",
+            "question_text": "How do festivals help a community?",
+            "options": [
+              "They bring people together to share joy and dance",
+              "They make people fight",
+              "They make everyone stay indoors"
+            ],
+            "correct_option_index": 0,
+            "correct_answer_text": "They bring people together to share joy and dance",
+            "rubric_hint": "Child should select correct answer."
+          }
+        ]
+      }
+    ],
+    "key_vocabulary": [
+      {
+        "word": "Community",
+        "definition": "A group of families living close to one another who support and cooperate with each other."
+      },
+      {
+        "word": "Mutual Aid",
+        "definition": "People helping and supporting one another in times of need."
+      },
+      {
+        "word": "Cultivate",
+        "definition": "To prepare land and grow plants or crops."
+      },
+      {
+        "word": "Melas",
+        "definition": "Festive gatherings or fairs where people come together to celebrate, play, and dance."
+      },
+      {
+        "word": "Gratitude",
+        "definition": "A feeling of appreciation and thankfulness towards someone or something, like nature."
+      }
+    ],
+    "full_pdf_text": "Unit 1 : Our Families and Communities\r\n\r\nWe all come from different families that live close to one another in supportive and cooperative communities. Together, we cultivate a variety of plants and care for different animals, contributing to the well-being of our shared environment. \r\n\r\nThrough mutual aid and collective efforts, we build vibrant and harmonious communities.This unit explores the many facets of our \r\nfamilies and communities, highlighting our collaborative work and mutual support. We are dedicated to maintaining and respecting our surroundings, protecting the plants and animals that sustain us with food, clothing, \r\nand more. Celebrations, such as melas and festivals, bring us together \r\nto play, sing, and dance, while we also express gratitude by respecting \r\nthe natural elements including the sun, moon, air, water, and soil.\r\n\r\n",
+    "created_at": 1792221768.813219
   }
 }

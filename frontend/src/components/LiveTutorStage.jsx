@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef, useCallback, useMemo } from 'react';
 import { useLiveSession } from '../live-avatar/hooks/useLiveSession';
 import { LiveAvatarCanvas } from '../live-avatar/components/LiveAvatarCanvas';
-import { Volume2, VolumeX, Mic, MicOff, RefreshCw, Signal, Radio, Sparkles, CheckCircle2, AlertCircle, User, Award, Pause, Play } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, Radio, Pause, Play } from 'lucide-react';
 
 const AVATAR_BASE = 'https://www.gstatic.com/pantheon/images/aiplatform/vertex_ai_studio/avatars';
 
@@ -11,9 +11,9 @@ const LiveTutorStage = forwardRef(({
   mood = 'idle',
   onAgentTalkingChange,
   onDoubtAnswered,
-  isSpeakingFallback = false,
   isTeachingPaused = false,
   onTogglePause,
+  speechText = '',
 }, ref) => {
   const gender = avatarConfig?.gender || 'female';
   const tutorName = avatarConfig?.name || (gender === 'male' ? 'Mr. Rajesh' : 'Joya');
@@ -26,7 +26,7 @@ const LiveTutorStage = forwardRef(({
     specialty: 'Science & Mathematics',
     voiceName: (gender === 'male' ? 'fenrir' : 'kore'),
     avatarName: gender === 'male' ? 'Jay' : 'Carmen',
-    imageUrl: gender === 'male' ? `${AVATAR_BASE}/jay.png` : `${AVATAR_BASE}/carmen_2.png`,
+    imageUrl: gender === 'male' ? '/male_teacher_avatar.jpg' : '/female_teacher_avatar.jpg',
     themeColor: gender === 'male' ? 'from-blue-600 to-indigo-600' : 'from-pink-600 to-indigo-600',
     description: 'Patient, warm, and explains complex concepts with intuitive real-world analogies.',
     accentQuote: "Let's explore and discover together!"
@@ -120,6 +120,9 @@ DOUBT CLARIFICATION PROTOCOL:
   useEffect(() => {
     if (isTeachingPaused) {
       pauseSession();
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
     } else {
       resumeSession();
     }
@@ -143,98 +146,33 @@ DOUBT CLARIFICATION PROTOCOL:
     }
   }, [agentTalking, liveInput, liveOutput, onDoubtAnswered]);
 
-  // Only true when the live agent stream is actively transmitting speech audio/video
   const effectiveTalking = agentTalking;
 
   return (
-    <div style={{
-      width: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      position: 'relative'
-    }}>
-      {/* Live Video Stage Container */}
+    <div className="avatar-panel">
+      {/* Avatar Stage Container */}
       <div 
-        className="glass-panel"
+        className="avatar-stage"
         onClick={unmuteAudio}
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '380px',
-          borderRadius: '24px',
-          overflow: 'hidden',
-          cursor: isAudioBlocked ? 'pointer' : 'default',
-          border: effectiveTalking 
-            ? '2px solid rgba(16, 185, 129, 0.8)' 
-            : isConnected
-            ? '2px solid rgba(99, 102, 241, 0.4)'
-            : '1px solid rgba(255, 255, 255, 0.15)',
-          boxShadow: effectiveTalking 
-            ? '0 0 35px rgba(16, 185, 129, 0.35), 0 20px 50px rgba(0,0,0,0.6)' 
-            : '0 20px 50px rgba(0, 0, 0, 0.5)',
-          background: '#090D16',
-          transition: 'all 0.3s ease'
-        }}
+        style={{ cursor: isAudioBlocked ? 'pointer' : 'default' }}
       >
-        {/* Top Video Overlay Bar: LIVE Status & WebRTC Signal */}
-        <div style={{
-          position: 'absolute',
-          top: '14px',
-          left: '14px',
-          right: '14px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          zIndex: 20,
-          pointerEvents: 'none'
-        }}>
-          {/* Live Badge */}
-          <div style={{
-            background: 'rgba(15, 23, 42, 0.88)',
-            backdropFilter: 'blur(10px)',
-            border: isConnected ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(239, 68, 68, 0.4)',
-            color: '#FFF',
-            padding: '5px 12px',
-            borderRadius: '20px',
-            fontSize: '0.75rem',
-            fontWeight: 800,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: isConnected ? '#10B981' : isConnecting ? '#F59E0B' : '#EF4444',
-              boxShadow: isConnected ? '0 0 10px #10B981' : '0 0 10px #EF4444'
-            }} />
-            <Radio size={12} color={isConnected ? '#10B981' : '#EF4444'} /> 
-            {isConnected ? 'LIVE • Gemini 3.8' : isConnecting ? 'Connecting Live Stream...' : 'Offline Fallback'}
-          </div>
+        <div className="avatar-stage-bg" />
 
-          {/* WebRTC HD & Signal Badge */}
-          <div style={{
-            background: 'rgba(15, 23, 42, 0.88)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            color: 'var(--accent-cyan)',
-            padding: '5px 12px',
-            borderRadius: '20px',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
-          }}>
-            <Signal size={12} color="var(--accent-cyan)" /> 
-            {hasVideo ? '24 FPS Video • 28ms' : isConnected ? 'Audio Stream Ready' : 'AI Studio'}
-          </div>
+        {/* Live Badge */}
+        <div className="live-badge">
+          <span style={{
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            background: isConnected ? '#10B981' : isConnecting ? '#F59E0B' : '#EF4444',
+            boxShadow: isConnected ? '0 0 6px #10B981' : 'none',
+            display: 'inline-block'
+          }} />
+          {isConnected ? '● LIVE' : isConnecting ? 'CONNECTING...' : 'OFFLINE'}
         </div>
 
-        {/* Real Live Avatar Canvas (Gemini 3.8 Live Video + Smooth Rigging Fallback) */}
-        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+        {/* Real Live Avatar Canvas */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: '50px', zIndex: 2 }}>
           <LiveAvatarCanvas
             persona={activePersona}
             mood={mood}
@@ -259,26 +197,27 @@ DOUBT CLARIFICATION PROTOCOL:
             backdropFilter: 'blur(3px)'
           }}>
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 unmuteAudio();
               }}
               style={{
-                background: 'linear-gradient(135deg, #4F46E5, #06B6D4)',
+                background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
                 color: '#FFFFFF',
-                border: '2px solid rgba(255, 255, 255, 0.6)',
+                border: '2px solid rgba(255, 255, 255, 0.8)',
                 borderRadius: '30px',
-                padding: '12px 24px',
-                fontSize: '0.92rem',
+                padding: '10px 20px',
+                fontSize: '0.88rem',
                 fontWeight: 800,
                 cursor: 'pointer',
-                boxShadow: '0 8px 30px rgba(79, 70, 229, 0.7), 0 0 20px rgba(6, 182, 212, 0.5)',
+                boxShadow: '0 8px 24px rgba(98, 85, 246, 0.5)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px'
+                gap: '8px'
               }}
             >
-              <Volume2 size={20} />
+              <Volume2 size={18} />
               <span>Tap to Hear {tutorName} Speak 🔊</span>
             </button>
           </div>
@@ -294,31 +233,30 @@ DOUBT CLARIFICATION PROTOCOL:
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 36,
-            background: 'rgba(15, 23, 42, 0.78)',
+            background: 'rgba(30, 42, 74, 0.82)',
             backdropFilter: 'blur(5px)',
             color: '#FFFFFF',
             textAlign: 'center',
-            padding: '20px',
+            padding: '16px',
             animation: 'fadeIn 0.25s ease'
           }}>
             <div style={{
-              width: '54px',
-              height: '54px',
+              width: '46px',
+              height: '46px',
               borderRadius: '50%',
-              background: 'rgba(234, 179, 8, 0.2)',
-              border: '2px solid #EAB308',
+              background: 'rgba(255, 203, 85, 0.2)',
+              border: '2px solid var(--accent)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: '10px',
-              boxShadow: '0 0 20px rgba(234, 179, 8, 0.3)'
+              marginBottom: '8px'
             }}>
-              <Pause size={24} color="#EAB308" />
+              <Pause size={22} color="var(--accent)" />
             </div>
-            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '0 0 6px 0', color: '#FDE047' }}>
+            <h4 style={{ fontSize: '1.05rem', fontWeight: 800, margin: '0 0 4px 0', color: 'var(--accent)' }}>
               Teaching Paused
             </h4>
-            <p style={{ fontSize: '0.82rem', color: '#CBD5E1', maxWidth: '240px', margin: '0 0 16px 0', lineHeight: 1.4 }}>
+            <p style={{ fontSize: '0.78rem', color: '#CBD5E1', maxWidth: '220px', margin: '0 0 12px 0', lineHeight: 1.3 }}>
               Take your time to read the slide, ask a doubt, or take study notes.
             </p>
             {onTogglePause && (
@@ -328,286 +266,106 @@ DOUBT CLARIFICATION PROTOCOL:
                   e.stopPropagation();
                   onTogglePause();
                 }}
-                style={{
-                  background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: '24px',
-                  padding: '9px 22px',
-                  fontSize: '0.88rem',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: '0 6px 20px rgba(16, 185, 129, 0.5)'
-                }}
+                className="btn-start"
+                style={{ padding: '7px 18px', fontSize: '0.82rem', borderRadius: '20px' }}
               >
-                <Play size={15} fill="#FFFFFF" /> Resume Teaching
+                <Play size={13} fill="#FFFFFF" /> Resume Teaching
               </button>
             )}
           </div>
         )}
 
-        {/* Floating Student Voice Activity & Transcription Bubble */}
-        {(liveInput || (!isMuted && micVolume > 15)) && (
+        {/* Floating Student Voice Activity */}
+        {liveInput && (
           <div style={{
             position: 'absolute',
-            top: '56px',
-            left: '14px',
-            right: '14px',
-            background: 'rgba(15, 23, 42, 0.94)',
-            backdropFilter: 'blur(12px)',
+            bottom: '48px',
+            left: '10px',
+            right: '10px',
+            background: 'rgba(30, 42, 74, 0.94)',
+            backdropFilter: 'blur(10px)',
             border: '1px solid rgba(16, 185, 129, 0.6)',
-            borderRadius: '14px',
-            padding: '8px 14px',
-            zIndex: 25,
+            borderRadius: '10px',
+            padding: '6px 10px',
+            zIndex: 15,
+            color: '#FFFFFF',
+            fontSize: '11px',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
-            transition: 'all 0.2s ease'
+            gap: '6px'
           }}>
-            <div style={{
-              width: '10px',
-              height: '10px',
-              borderRadius: '50%',
-              background: '#10B981',
-              boxShadow: '0 0 10px #10B981',
-              flexShrink: 0
-            }} />
-            <div style={{ flex: 1, overflow: 'hidden' }}>
-              <span style={{ fontSize: '0.72rem', color: '#10B981', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {liveInput ? 'You Spoke' : 'Listening... speak to interrupt or ask a doubt'}
-              </span>
-              <p style={{
-                margin: 0,
-                fontSize: '0.84rem',
-                color: '#F8FAFC',
-                fontWeight: 600,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}>
-                {liveInput || "Microphone active. Ask a question anytime!"}
-              </p>
-            </div>
+            <span>🎤</span>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <strong>{childName}:</strong> "{liveInput}"
+            </span>
           </div>
         )}
 
-        {/* Bottom Video Name Overlay */}
-        <div style={{
-          position: 'absolute',
-          bottom: '14px',
-          left: '14px',
-          background: 'rgba(15, 23, 42, 0.88)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          padding: '6px 14px',
-          borderRadius: '12px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          zIndex: 20
-        }}>
-          <div style={{
-            width: '10px',
-            height: '10px',
-            borderRadius: '50%',
-            background: effectiveTalking ? '#10B981' : isConnected ? '#3B82F6' : '#6B7280'
-          }} />
+        {/* Bottom Stage Overlay Label Bar */}
+        <div className="avatar-label-bar">
           <div>
-            <p style={{ fontSize: '0.85rem', fontWeight: 800, color: '#FFF', lineHeight: '1.1' }}>
-              {tutorName}
-            </p>
-            <p style={{ fontSize: '0.7rem', color: 'var(--accent-gold)', fontWeight: 600 }}>
-              ✨ Gemini Live Tutor
-            </p>
+            <div className="avatar-name">{tutorName}</div>
+            <div className="avatar-sub">{childName}'s AI Tutor</div>
+          </div>
+          <div className="audio-bars">
+            <span style={effectiveTalking ? {} : { animation: 'none', height: '4px' }} />
+            <span style={effectiveTalking ? {} : { animation: 'none', height: '4px' }} />
+            <span style={effectiveTalking ? {} : { animation: 'none', height: '4px' }} />
+            <span style={effectiveTalking ? {} : { animation: 'none', height: '4px' }} />
+            <span style={effectiveTalking ? {} : { animation: 'none', height: '4px' }} />
           </div>
         </div>
-
-        {/* Live Audio Spectrum Waveform Indicator (Bottom Right of Video) */}
-        <div style={{
-          position: 'absolute',
-          bottom: '14px',
-          right: '14px',
-          background: 'rgba(15, 23, 42, 0.88)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          padding: '8px 12px',
-          borderRadius: '12px',
-          display: 'flex',
-          alignItems: 'flex-end',
-          gap: '4px',
-          height: '32px',
-          zIndex: 20
-        }}>
-          <style>{`
-            @keyframes eqBarPulseAnim {
-              0% { transform: scaleY(0.25); }
-              50% { transform: scaleY(1.0); }
-              100% { transform: scaleY(0.35); }
-            }
-          `}</style>
-          {[0.2, 0.45, 0.1, 0.6, 0.3, 0.5, 0.15].map((delay, idx) => (
-            <div 
-              key={idx}
-              style={{
-                width: '3px',
-                height: '18px',
-                background: effectiveTalking ? 'var(--accent-cyan)' : 'rgba(255,255,255,0.3)',
-                borderRadius: '2px',
-                transformOrigin: 'bottom',
-                transform: effectiveTalking ? undefined : 'scaleY(0.25)',
-                animation: effectiveTalking ? `eqBarPulseAnim 0.6s ease-in-out infinite alternate ${delay}s` : 'none',
-                transition: 'background 0.2s ease'
-              }}
-            />
-          ))}
-        </div>
       </div>
 
-      {/* Video Call Controls Toolbar (Mic Toggle & Reconnect) */}
-      <div className="glass-card" style={{
-        marginTop: '12px',
-        padding: '8px 16px',
-        borderRadius: '16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-        boxSizing: 'border-box',
-        background: '#FFFFFF',
-        border: '1px solid rgba(0, 0, 0, 0.08)',
-        boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)'
-      }}>
-        {/* Connection status indicator */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ 
-            width: '8px', 
-            height: '8px', 
-            borderRadius: '50%', 
-            background: isConnected ? '#10B981' : isConnecting ? '#F59E0B' : '#EF4444', 
-            boxShadow: isConnected ? '0 0 8px #10B981' : '0 0 8px #EF4444',
-            display: 'inline-block' 
-          }} /> 
-          <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)' }}>
-            {isConnected ? (isMuted ? 'Live (Mic Muted)' : 'Live Avatar Ready') : isConnecting ? 'Establishing Stream...' : 'Offline Mode'}
-          </span>
-        </div>
+      {/* Avatar Controls Below Stage */}
+      <div className="avatar-controls">
+        <div className="status-chips">
+          <div className="chip active chip-green">
+            <span style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: isConnected ? '#10B981' : isConnecting ? '#F59E0B' : '#EF4444',
+              display: 'inline-block'
+            }} />
+            <span>{isConnected ? 'Avatar Ready' : isConnecting ? 'Connecting...' : 'Offline'}</span>
+          </div>
 
-        {/* Interactive Controls: Mic mute & Reconnect */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* Speaker Unmute Button */}
+          {/* Microphone Mute/Unmute Toggle */}
           <button
-            onClick={() => unmuteAudio()}
-            style={{
-              background: isAudioBlocked ? '#FEF3C7' : '#F1F5F9',
-              border: isAudioBlocked ? '1px solid #F59E0B' : '1px solid #CBD5E1',
-              borderRadius: '10px',
-              padding: '6px 10px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              color: isAudioBlocked ? '#B45309' : 'var(--text-main)',
-              transition: 'all 0.2s ease'
-            }}
-            title={isAudioBlocked ? 'Browser muted audio. Click to enable sound' : 'Audio output is active'}
-          >
-            {isAudioBlocked ? <VolumeX size={14} color="#B45309" /> : <Volume2 size={14} color="#059669" />}
-            <span>{isAudioBlocked ? 'Tap for Sound' : 'Sound On'}</span>
-          </button>
-
-          <button
+            type="button"
+            className={`chip ${isMuted ? '' : 'active chip-green'}`}
             onClick={() => setIsMuted(prev => !prev)}
-            style={{
-              background: isMuted ? '#FEE2E2' : (micVolume > 10 ? 'rgba(16, 185, 129, 0.18)' : '#F1F5F9'),
-              border: isMuted ? '1px solid #FCA5A5' : (micVolume > 10 ? '1px solid #10B981' : '1px solid #CBD5E1'),
-              borderRadius: '10px',
-              padding: '6px 12px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              color: isMuted ? '#DC2626' : (micVolume > 10 ? '#059669' : 'var(--text-main)'),
-              transition: 'all 0.15s ease',
-              boxShadow: (!isMuted && micVolume > 10) ? '0 0 10px rgba(16, 185, 129, 0.35)' : 'none'
-            }}
-            title={isMuted ? 'Microphone is muted — click to unmute and speak to tutor' : 'Microphone is active — click to mute'}
+            title={isMuted ? 'Microphone is muted — click to unmute and speak' : 'Microphone is active — click to mute'}
           >
             {isMuted ? (
-              <MicOff size={14} color="#DC2626" />
+              <><MicOff size={12} color="#dc2626" /> <span>Mic Muted</span></>
             ) : (
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <Mic size={14} color={micVolume > 10 ? '#059669' : '#10B981'} />
-                {micVolume > 10 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-2px',
-                    right: '-2px',
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: '#10B981'
-                  }} />
-                )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Mic size={12} color={micVolume > 10 ? '#059669' : '#10b981'} />
+                <span>{micVolume > 10 ? 'Speaking...' : 'Mic Active'}</span>
               </div>
             )}
-            <span>{isMuted ? 'Unmute Mic' : (micVolume > 10 ? 'Speaking...' : 'Mic On (Active)')}</span>
           </button>
-
-          {!isConnected && !isConnecting && (
-            <button
-              onClick={() => connect()}
-              style={{
-                background: 'rgba(99, 102, 241, 0.1)',
-                border: '1px solid rgba(99, 102, 241, 0.3)',
-                borderRadius: '10px',
-                padding: '6px 10px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                color: 'var(--accent-purple)'
-              }}
-              title="Reconnect Gemini Live Stream"
-            >
-              <RefreshCw size={13} />
-              <span>Retry</span>
-            </button>
-          )}
         </div>
-      </div>
 
-      {/* Dynamic Student Voice Guidance Banner */}
-      {isConnected && (
+        {/* Dynamic Student Voice Guidance Banner */}
         <div style={{
-          width: '100%',
-          marginTop: '8px',
-          padding: '6px 14px',
-          borderRadius: '12px',
-          background: isMuted ? 'rgba(239, 68, 68, 0.08)' : 'rgba(16, 185, 129, 0.08)',
-          border: isMuted ? '1px solid rgba(239, 68, 68, 0.2)' : '1px solid rgba(16, 185, 129, 0.2)',
-          fontSize: '0.78rem',
+          padding: '7px 10px',
+          borderRadius: '10px',
+          fontSize: '11px',
           fontWeight: 600,
-          color: isMuted ? '#DC2626' : '#059669',
+          background: isMuted ? '#fee2e2' : '#ecfdf5',
+          border: isMuted ? '1px solid #fca5a5' : '1px solid #a7f3d0',
+          color: isMuted ? '#991b1b' : '#065f46',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: '6px',
-          boxSizing: 'border-box'
+          gap: '6px'
         }}>
           {isMuted ? (
             <>
-              <MicOff size={13} color="#DC2626" />
-              <span>Microphone is muted. Click <strong>Unmute Mic</strong> above to speak to {tutorName}!</span>
+              <MicOff size={13} color="#dc2626" />
+              <span>Microphone is muted. Click <strong>Mic Muted</strong> to speak to {tutorName}!</span>
             </>
           ) : (
             <>
@@ -616,48 +374,21 @@ DOUBT CLARIFICATION PROTOCOL:
             </>
           )}
         </div>
-      )}
 
-      {/* Connection & Stream Diagnostic Banner */}
-      {error && !isConnected && (
-        <div style={{
-          width: '100%',
-          marginTop: '8px',
-          padding: '8px 14px',
-          borderRadius: '12px',
-          background: 'rgba(239, 68, 68, 0.08)',
-          border: '1px solid rgba(239, 68, 68, 0.25)',
-          color: '#DC2626',
-          fontSize: '0.78rem',
-          fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '8px',
-          boxSizing: 'border-box'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>⚠️</span>
-            <span>{error}</span>
-          </div>
-          <button
-            onClick={() => connect()}
-            style={{
-              background: '#DC2626',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '4px 10px',
-              fontSize: '0.74rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              whiteSpace: 'nowrap'
-            }}
+        {onTogglePause && (
+          <button 
+            type="button" 
+            className="pause-btn"
+            onClick={onTogglePause}
           >
-            Reconnect
+            {isTeachingPaused ? (
+              <><Play size={14} fill="currentColor" /> Resume Teaching</>
+            ) : (
+              <><Pause size={14} /> Pause Teaching</>
+            )}
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 });

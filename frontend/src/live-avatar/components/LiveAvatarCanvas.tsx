@@ -128,6 +128,7 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
         className={`absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-300 ${
           showLiveVideo ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
+        style={{ objectPosition: 'center 35%' }}
         playsInline
         autoPlay
       />
@@ -143,7 +144,8 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
               setAspectRatio(naturalWidth / naturalHeight);
             }
           }}
-          className="w-full h-full object-cover transform scale-105"
+          className="w-full h-full object-cover"
+          style={{ objectPosition: 'center 35%' }}
         />
 
         {/* Ambient Mood & Speech Lighting Glow */}

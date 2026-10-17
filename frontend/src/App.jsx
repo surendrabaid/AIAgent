@@ -79,49 +79,87 @@ export default function App() {
   // Live Avatar Classroom is the single active learning interface
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top Bar */}
-      <header style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '6px 18px',
-        background: 'rgba(255, 255, 255, 0.9)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid #E2E8F0'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <GraduationCap size={18} color="var(--accent-purple)" />
-          <span style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--text-main)' }}>
-            My Tutor
-          </span>
-          <span style={{ fontSize: '0.68rem', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent-purple)', fontWeight: 800, padding: '2px 8px', borderRadius: '12px' }}>
-            Live Avatar Classroom
-          </span>
+      {/* Top Bar matching template design */}
+      <header className="topbar">
+        <div className="brand" onClick={() => setActiveTab('setup')}>
+          <div className="brand-icon">🎓</div>
+          <div className="brand-title">My <span>Tutor</span></div>
+          <span className="live-tag">Live Avatar Classroom</span>
         </div>
-
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
-          fontSize: '0.72rem',
-          fontWeight: 600,
-          color: backendStatus === 'online' ? '#059669' : '#D97706',
-          background: backendStatus === 'online' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-          padding: '3px 9px',
-          borderRadius: '12px'
-        }}>
-          <span style={{
-            width: '6px',
-            height: '6px',
-            borderRadius: '50%',
-            background: backendStatus === 'online' ? '#10B981' : '#F59E0B'
-          }} />
-          <span>{backendStatus === 'online' ? 'System Online' : 'Connecting Backend...'}</span>
+        <nav className="nav-links">
+          {activeTab !== 'setup' && (
+            <button 
+              type="button" 
+              className="nav-link"
+              onClick={() => setActiveTab('setup')}
+            >
+              🏠 Home
+            </button>
+          )}
+          <button 
+            type="button"
+            className={`nav-link ${activeTab === 'setup' ? 'active' : ''}`}
+            onClick={() => setActiveTab('setup')}
+          >
+            ⚙️ Parent Setup
+          </button>
+          {sessionData && (
+            <button 
+              type="button"
+              className={`nav-link ${activeTab === 'classroom' ? 'active' : ''}`}
+              onClick={() => setActiveTab('classroom')}
+            >
+              📚 Classroom
+            </button>
+          )}
+          {reportData && (
+            <button 
+              type="button"
+              className={`nav-link ${activeTab === 'report' ? 'active' : ''}`}
+              onClick={() => setActiveTab('report')}
+            >
+              📊 Report
+            </button>
+          )}
+        </nav>
+        <div className="nav-right">
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '11px',
+            fontWeight: 700,
+            color: backendStatus === 'online' ? '#059669' : '#D97706',
+            background: backendStatus === 'online' ? '#D1FAE5' : '#FEF3C7',
+            padding: '4px 10px',
+            borderRadius: '99px'
+          }}>
+            <span style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              background: backendStatus === 'online' ? '#10B981' : '#F59E0B'
+            }} />
+            <span>{backendStatus === 'online' ? 'System Online' : 'Connecting...'}</span>
+          </div>
+          {activeTab !== 'setup' && (
+            <>
+              <div className="user-pill">
+                <div className="user-avatar">👤</div>
+                Parent
+                <span style={{ fontSize: '10px', color: 'var(--muted)' }}>▾</span>
+              </div>
+              <button className="cart-btn" type="button" title="Learning Resources">🛒</button>
+            </>
+          )}
         </div>
       </header>
 
+      {/* Spacer below sticky topbar matching template */}
+      <div style={{ height: '36px' }} />
+
       {/* Main Content */}
-      <main style={{ flex: 1, padding: '4px 8px' }}>
+      <main style={{ flex: 1, width: '100%' }}>
         {activeTab === 'setup' && (
           <ParentSetup 
             onStartLesson={handleStartLesson}
