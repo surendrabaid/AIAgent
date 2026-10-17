@@ -100,11 +100,53 @@ class GeminiLiveAvatarService:
             else:
                 print("[LiveAvatar Auth] First attempt: Manual GCP_ACCESS_TOKEN is expired or invalid. Falling back to dynamic token acquisition...")
 
-        # 2. SECOND ATTEMPT: Dynamic token acquisition
         # Check memory cache
         now = time.time()
         if self._cached_token and now < self._cached_token_expiry:
             return self._cached_token
+
+        # Priority 1: Check GCP_SERVICE_ACCOUNT_JSON for dynamic auto-refreshing token (No gcloud SDK required)
+        sa_json = os.getenv("GCP_SERVICE_ACCOUNT_JSON", "").strip()
+        if not sa_json:
+            candidate_paths = [
+                os.path.join(os.path.dirname(__file__), "..", "..", ".env"),
+                os.path.join(os.path.dirname(__file__), "..", "..", "..", "Gemini AI avatar module", "backend", ".env.local"),
+                os.path.join(os.path.dirname(__file__), "..", "..", "..", "gemini-ai-avatar-module", "backend", ".env.local"),
+            ]
+            for p in candidate_paths:
+                if os.path.exists(p):
+                    try:
+                        with open(p, "r", encoding="utf-8") as f:
+                            content = f.read()
+                        import re
+                        m = re.search(r'^\s*GCP_SERVICE_ACCOUNT_JSON\s*=\s*(.*)$', content, re.M)
+                        if m:
+                            val = m.group(1).strip()
+                            if (val.startswith("'") and val.endswith("'")) or (val.startswith('"') and val.endswith('"')):
+                                val = val[1:-1].strip()
+                            if val:
+                                sa_json = val
+                                break
+                    except Exception:
+                        pass
+
+        if sa_json:
+            try:
+                import json
+                import google.auth
+                import google.auth.transport.requests
+                creds_dict = json.loads(sa_json)
+                creds, _ = google.auth.load_credentials_from_dict(creds_dict, scopes=["https://www.googleapis.com/auth/cloud-platform"])
+                if creds:
+                    request = google.auth.transport.requests.Request()
+                    creds.refresh(request)
+                    if creds.token:
+                        self._cached_token = creds.token
+                        self._cached_token_expiry = now + (45 * 60)
+                        print("[LiveAvatar Auth] Acquired dynamic access token via GCP_SERVICE_ACCOUNT_JSON (Auto-refreshing, No gcloud SDK required).")
+                        return creds.token
+            except Exception as e:
+                print(f"[LiveAvatar Auth] Note: GCP_SERVICE_ACCOUNT_JSON auth attempt: {e}")
 
         # Try Google Application Default Credentials (ADC)
         try:
