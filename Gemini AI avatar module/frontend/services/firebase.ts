@@ -140,6 +140,14 @@ class FirebaseService {
       uid = `google_${email.replace(/[^a-z0-9]/gi, '_')}`;
     }
 
+    // Check if the student already has a saved profile in Firestore or local cache
+    let existingProfile: StudentProfile | null = null;
+    try {
+      existingProfile = await this.getStudentProfile(uid);
+    } catch (e) {
+      console.warn('[FirebaseService] Profile check note:', e);
+    }
+
     // Resolve clean student name from Google displayName or email
     let studentName = displayName?.trim();
     if (!studentName && email) {
