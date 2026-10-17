@@ -4,23 +4,26 @@ import { Upload, User, GraduationCap, Sparkles, BookOpen, Bot, Check, ArrowRight
 export default function ParentSetup({ onStartLesson }) {
   // Load cached settings from localStorage if available
   const [childName, setChildName] = useState(() => {
-    return localStorage.getItem('helpme_child_name') || 'Vihana';
+    const saved = localStorage.getItem('mytutor_child_name') || localStorage.getItem('helpme_child_name');
+    return (saved && saved !== 'Vihana') ? saved : 'Tisha';
   });
   const [childAge, setChildAge] = useState(() => {
-    const saved = localStorage.getItem('helpme_child_age');
-    return saved ? parseInt(saved, 10) : 8;
+    const saved = localStorage.getItem('mytutor_child_age') || localStorage.getItem('helpme_child_age');
+    return (saved && saved !== '8') ? parseInt(saved, 10) : 9;
   });
   const [grade, setGrade] = useState(() => {
-    return localStorage.getItem('helpme_grade') || 'Grade 3';
+    const saved = localStorage.getItem('mytutor_grade') || localStorage.getItem('helpme_grade');
+    return (saved && saved !== 'Grade 3') ? saved : 'Grade 4';
   });
   const [gender, setGender] = useState(() => {
-    return localStorage.getItem('helpme_teacher_gender') || 'female';
+    return localStorage.getItem('mytutor_teacher_gender') || localStorage.getItem('helpme_teacher_gender') || 'female';
   });
   const [avatarStyle, setAvatarStyle] = useState(() => {
-    return localStorage.getItem('helpme_avatar_style') || 'young_mentor';
+    return localStorage.getItem('mytutor_avatar_style') || localStorage.getItem('helpme_avatar_style') || 'young_mentor';
   });
   const [avatarName, setAvatarName] = useState(() => {
-    return localStorage.getItem('helpme_avatar_name') || 'Miss Priya';
+    const saved = localStorage.getItem('mytutor_avatar_name') || localStorage.getItem('helpme_avatar_name');
+    return (saved && saved !== 'Miss Priya' && saved !== 'Miss Sarah') ? saved : 'Joya';
   });
   const [pdfFile, setPdfFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -28,12 +31,12 @@ export default function ParentSetup({ onStartLesson }) {
   // Automatically save any modifications to localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('helpme_child_name', childName);
-      localStorage.setItem('helpme_child_age', childAge.toString());
-      localStorage.setItem('helpme_grade', grade);
-      localStorage.setItem('helpme_teacher_gender', gender);
-      localStorage.setItem('helpme_avatar_style', avatarStyle);
-      localStorage.setItem('helpme_avatar_name', avatarName);
+      localStorage.setItem('mytutor_child_name', childName);
+      localStorage.setItem('mytutor_child_age', childAge.toString());
+      localStorage.setItem('mytutor_grade', grade);
+      localStorage.setItem('mytutor_teacher_gender', gender);
+      localStorage.setItem('mytutor_avatar_style', avatarStyle);
+      localStorage.setItem('mytutor_avatar_name', avatarName);
     } catch (e) {
       console.warn('LocalStorage save error:', e);
     }
@@ -279,7 +282,7 @@ export default function ParentSetup({ onStartLesson }) {
                   onClick={() => {
                     setGender('female');
                     if (avatarName === 'Mr. Rajesh' || avatarName === 'Mr. Sharma') {
-                      setAvatarName('Miss Priya');
+                      setAvatarName('Joya');
                     }
                   }}
                   className={`glass-card ${gender === 'female' ? 'dpad-focused' : ''}`}
@@ -291,7 +294,7 @@ export default function ParentSetup({ onStartLesson }) {
                   type="button"
                   onClick={() => {
                     setGender('male');
-                    if (avatarName === 'Miss Priya' || avatarName === 'Miss Sarah') {
+                    if (avatarName === 'Joya' || avatarName === 'Miss Priya' || avatarName === 'Miss Sarah') {
                       setAvatarName('Mr. Rajesh');
                     }
                   }}

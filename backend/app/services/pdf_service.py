@@ -38,7 +38,7 @@ class PDFProcessorService:
 
         return f"Chapter material for {filename}. Contains key educational units and concepts."
 
-    def generate_ai_lesson_plan(self, raw_text: str, filename: str, child_age: int = 8, grade: str = "Grade 3", child_name: str = "Vihana") -> LessonPlan:
+    def generate_ai_lesson_plan(self, raw_text: str, filename: str, child_age: int = 9, grade: str = "Grade 4", child_name: str = "Tisha") -> LessonPlan:
         """
         Generates a comprehensive, un-truncated Lesson Plan from the uploaded material.
         Uses live LLM API (OpenAI GPT-4o / Gemini) if API key is provided, or the Socratic NLP Engine.

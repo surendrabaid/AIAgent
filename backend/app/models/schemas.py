@@ -27,7 +27,7 @@ class ChildProfile(BaseModel):
 class AvatarConfig(BaseModel):
     gender: GenderEnum = GenderEnum.FEMALE
     style: AvatarStyleEnum = AvatarStyleEnum.TEACHER_YOUNG
-    name: str = "Miss Priya"
+    name: str = "Joya"
     voice_accent: str = "Indian Natural"
     voice_speed: float = 1.0
     hair_color: Optional[str] = "#1A1A1A"

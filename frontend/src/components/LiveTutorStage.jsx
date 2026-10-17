@@ -7,14 +7,14 @@ const AVATAR_BASE = 'https://www.gstatic.com/pantheon/images/aiplatform/vertex_a
 
 const LiveTutorStage = forwardRef(({
   avatarConfig,
-  childName = 'Student',
+  childName = 'Tisha',
   mood = 'idle',
   onAgentTalkingChange,
   onDoubtAnswered,
   isSpeakingFallback = false,
 }, ref) => {
   const gender = avatarConfig?.gender || 'female';
-  const tutorName = avatarConfig?.name || (gender === 'male' ? 'Mr. Rajesh' : 'Miss Priya');
+  const tutorName = avatarConfig?.name || (gender === 'male' ? 'Mr. Rajesh' : 'Joya');
 
   // Build persona for LiveAvatarCanvas
   const activePersona = {

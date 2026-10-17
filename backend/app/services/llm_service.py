@@ -14,7 +14,7 @@ class GoogleGeminiService:
     def is_configured(self) -> bool:
         return bool(self.gemini_api_key)
 
-    def generate_gemini_lesson_plan(self, full_text: str, chapter_title: str, child_name: str = "Vihana", grade: str = "Grade 3") -> Optional[Dict[str, Any]]:
+    def generate_gemini_lesson_plan(self, full_text: str, chapter_title: str, child_name: str = "Tisha", grade: str = "Grade 4") -> Optional[Dict[str, Any]]:
         """
         Feeds the uploaded textbook file content exclusively to Google Gemini API (gemini-3.8-flash)
         to generate a multi-unit Socratic lesson plan, detailed explanations, visual slides, and contextual quizzes.
@@ -23,7 +23,7 @@ class GoogleGeminiService:
             return None
 
         prompt = f"""
-You are Miss Priya, an expert, encouraging, warm Indian AI Teacher powered by Google Gemini.
+You are Joya, an expert, encouraging, warm Indian AI Teacher powered by Google Gemini.
 Your mission is to teach {child_name} (Grade: {grade}) the entire textbook chapter: "{chapter_title}" like a real master teacher sitting right in front of them.
 
 CRITICAL INSTRUCTIONS FOR MASTER TUTORING:
@@ -139,7 +139,7 @@ Return ONLY valid JSON matching this schema.
         current_topic_title: str,
         all_topics_summary: str,
         child_name: str,
-        teacher_name: str = "Miss Priya"
+        teacher_name: str = "Joya"
     ) -> Optional[Dict[str, Any]]:
         """
         Understands the student's query with full pedagogical memory:

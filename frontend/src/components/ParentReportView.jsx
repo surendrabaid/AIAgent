@@ -3,16 +3,16 @@ import { Award, CheckCircle2, AlertCircle, Lightbulb, RefreshCw, Star, Share2 } 
 
 export default function ParentReportView({ reportData, onRestart }) {
   const report = reportData || {
-    child_name: 'Vihana',
+    child_name: 'Tisha',
     chapter_title: 'Photosynthesis & Plant Life',
     completed_at: 'Just now',
     overall_comprehension_pct: 92,
     mastered_topics: ['What Plants Need: Sunlight & Water', 'Inside the Leaf: Chloroplasts'],
     struggle_topics: ['The Gift of Oxygen'],
-    teacher_notes: 'Vihana was highly enthusiastic and quickly grasped how chlorophyll acts as a solar panel!',
+    teacher_notes: 'Tisha was highly enthusiastic and quickly grasped how chlorophyll acts as a solar panel!',
     recommended_activities: [
       'Take a walk outside and look closely at green leaves together',
-      'Ask Vihana to explain why plants need sunlight at dinner'
+      'Ask Tisha to explain why plants need sunlight at dinner'
     ]
   };
 

@@ -617,7 +617,7 @@ class TeacherStateService:
         if not session:
             return ParentReport(
                 session_id=session_id,
-                child_name="Vihana",
+                child_name="Tisha",
                 chapter_title="Textbook Chapter",
                 completed_at="Just now",
                 overall_comprehension_pct=95,

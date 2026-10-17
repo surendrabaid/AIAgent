@@ -7,8 +7,8 @@ import { Volume2, Mic, Tv, ArrowRight, ArrowLeft, Star, Award, CheckCircle, Chec
 export default function StudentClassroom({ sessionData, onLessonFinished, onBackToSetup }) {
   const [currentResponse, setCurrentResponse] = useState(sessionData?.current_response || null);
   const [lessonPlan, setLessonPlan] = useState(sessionData?.lesson_plan || null);
-  const [avatarConfig, setAvatarConfig] = useState(sessionData?.avatar_config || { gender: 'female', name: 'Miss Priya' });
-  const [childName, setChildName] = useState(sessionData?.child_name || 'Vihana');
+  const [avatarConfig, setAvatarConfig] = useState(sessionData?.avatar_config || { gender: 'female', name: 'Joya' });
+  const [childName, setChildName] = useState(sessionData?.child_name || 'Tisha');
 
   // Gemini Live Avatar Stage Ref & Mood
   const liveTutorRef = useRef(null);
@@ -904,7 +904,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
       {/* Interactive Doubt Clarification Box */}
       <div className="glass-panel" style={{ padding: '20px', marginBottom: '24px', background: 'rgba(245, 158, 11, 0.04)', border: '1px solid rgba(245, 158, 11, 0.25)' }}>
         <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-gold)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <MessageSquare size={18} /> Ask {avatarConfig.name || 'Miss Priya'} Any Doubt (Voice or Text)
+          <MessageSquare size={18} /> Ask {avatarConfig.name || 'Joya'} Any Doubt (Voice or Text)
         </h3>
 
         <form onSubmit={handleAskDoubt} style={{ display: 'flex', gap: '10px', marginBottom: doubtsList.length > 0 ? '16px' : '0' }}>

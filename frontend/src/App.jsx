@@ -28,24 +28,24 @@ export default function App() {
       const res = await fetch('http://localhost:8000/api/sample-lesson');
       const lessonPlan = await res.json();
       
-      const startRes = await fetch(`http://localhost:8000/api/start-lesson?curriculum_id=${lessonPlan.curriculum_id}&child_name=Vihana&gender=female&avatar_style=young_mentor&avatar_name=Miss Sarah`, {
+      const startRes = await fetch(`http://localhost:8000/api/start-lesson?curriculum_id=${lessonPlan.curriculum_id}&child_name=Tisha&gender=female&avatar_style=young_mentor&avatar_name=Joya`, {
         method: 'POST'
       });
       const startData = await startRes.json();
       
       setSessionData({
         ...startData,
-        child_name: 'Vihana'
+        child_name: 'Tisha'
       });
       setActiveTab('classroom');
     } catch (err) {
       console.warn('Backend API connection fallback for fast sample:', err);
       setSessionData({
-        child_name: 'Vihana',
-        avatar_config: { gender: 'female', name: 'Miss Sarah' },
+        child_name: 'Tisha',
+        avatar_config: { gender: 'female', name: 'Joya' },
         current_response: {
           topic_id: 'topic_1',
-          speech_text: "Hi Vihana! I am Miss Sarah. Welcome to Science class! Today we are learning how green plants use sunlight to make food!",
+          speech_text: "Hi Tisha! I am Joya. Welcome to Science class! Today we are learning how green plants use sunlight to make food!",
           visemes: [],
           slide: {
             headline: "Plant Power Source ☀️🌱",
@@ -92,7 +92,7 @@ export default function App() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <GraduationCap size={20} color="var(--accent-purple)" />
           <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-main)' }}>
-            HelpMe AI Tutor
+            My Tutor
           </span>
           <span style={{ fontSize: '0.72rem', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--accent-purple)', fontWeight: 800, padding: '2px 8px', borderRadius: '12px' }}>
             Live Avatar Classroom
@@ -163,7 +163,7 @@ export default function App() {
         color: 'var(--text-subtle)',
         borderTop: '1px solid rgba(255,255,255,0.05)'
       }}>
-        HelpMe AI Agent Ecosystem &copy; 2026 • Single Codebase for Android, iOS, Android TV & Set-Top Boxes
+        My Tutor &copy; 2026 • Single Codebase for Android, iOS, Android TV & Set-Top Boxes
       </footer>
     </div>
   );

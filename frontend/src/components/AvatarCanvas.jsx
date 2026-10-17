@@ -4,7 +4,7 @@ import { Volume2, Mic, Brain, Sparkles, UserCheck, Video, Radio, Signal, MicOff,
 export default function AvatarCanvas({ avatarConfig, currentViseme, isSpeaking, isListening, isThinking }) {
   const [audioLevel, setAudioLevel] = useState(0);
   const gender = avatarConfig?.gender || 'female';
-  const avatarName = avatarConfig?.name || (gender === 'male' ? 'Professor Sharma' : 'Miss Priya');
+  const avatarName = avatarConfig?.name || (gender === 'male' ? 'Professor Sharma' : 'Joya');
   const photoSrc = gender === 'male' ? '/indian_male_teacher.png' : '/indian_female_teacher.png';
 
   // Dynamic Audio Spectrum Waveform simulator

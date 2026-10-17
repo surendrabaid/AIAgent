@@ -20,7 +20,7 @@ from app.services.pdf_service import pdf_service
 from app.services.teacher_service import teacher_service
 
 app = FastAPI(
-    title="HelpMe AI Agent Backend",
+    title="My Tutor AI Agent Backend",
     description="Multi-Platform AI Tutor & Receptionist Agent Ecosystem Engine",
     version="1.0.0"
 )
@@ -67,7 +67,7 @@ LESSON_PLANS_DB = load_cached_curriculums()
 def read_root():
     return {
         "status": "online",
-        "app": "HelpMe AI Agent Platform",
+        "app": "My Tutor AI Agent Platform",
         "version": "1.0.0",
         "features": ["AI Tutor Agent", "AI Receptionist Agent", "Real-Time Viseme Lip-Sync", "TV D-Pad Support"]
     }
@@ -103,9 +103,9 @@ def get_curriculum_library():
 async def upload_curriculum(
     file: Optional[UploadFile] = File(None),
     raw_text: Optional[str] = Form(None),
-    child_name: str = Form("Vihana"),
-    child_age: int = Form(8),
-    grade: str = Form("Grade 3")
+    child_name: str = Form("Tisha"),
+    child_age: int = Form(9),
+    grade: str = Form("Grade 4")
 ):
     filename = "Uploaded_Textbook.pdf"
     file_bytes = b""
@@ -159,10 +159,10 @@ async def upload_curriculum(
 @app.post("/api/start-lesson")
 def start_lesson(
     curriculum_id: str,
-    child_name: str = "Vihana",
+    child_name: str = "Tisha",
     gender: str = "female",
     avatar_style: str = "young_mentor",
-    avatar_name: str = "Miss Sarah"
+    avatar_name: str = "Joya"
 ):
     lesson_plan = LESSON_PLANS_DB.get(curriculum_id)
     if not lesson_plan:
