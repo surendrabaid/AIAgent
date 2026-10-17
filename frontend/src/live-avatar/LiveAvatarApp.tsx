@@ -284,8 +284,15 @@ const LiveAvatarApp: React.FC<LiveAvatarAppProps> = ({ onBackToSelection }) => {
     setSelectedAudioOutputId(e.target.value);
   };
 
+  // Check if all chapters in the list are completed
+  const areAllChaptersCompleted = allChapters.length > 0 && allChapters.every(c => {
+    const status = chapterStatuses[c.id] || c.status;
+    return status === 'completed' || Boolean(chapterScores[c.id]);
+  });
+
   // Check if at least one valid chapter is selected to teach
   const hasChapterSelected = Boolean(
+    !areAllChaptersCompleted &&
     selectedChapter &&
     selectedChapter.id &&
     selectedChapter.id !== EMPTY_CHAPTER.id &&
@@ -767,6 +774,7 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
           }}
           chapterScores={chapterScores}
           allChapters={allChapters}
+          chapterStatuses={chapterStatuses}
           onSelectChapter={handleSelectChapter}
           activeTab={activeStudyTab}
           onSetActiveTab={setActiveStudyTab}

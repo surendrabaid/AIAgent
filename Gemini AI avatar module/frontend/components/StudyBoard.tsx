@@ -19,6 +19,7 @@ interface Props {
   onUnlockQuiz?: () => void;
   chapterScores?: Record<string, ChapterScore>;
   allChapters?: Chapter[];
+  chapterStatuses?: Record<string, ChapterStatus>;
   onSelectChapter?: (chapter: Chapter) => void;
   activeTab?: 'concepts' | 'quiz' | 'scoreboard';
   onSetActiveTab?: (tab: 'concepts' | 'quiz' | 'scoreboard') => void;
@@ -46,6 +47,7 @@ export const StudyBoard: React.FC<Props> = ({
   onUnlockQuiz,
   chapterScores = {},
   allChapters = [],
+  chapterStatuses = {},
   onSelectChapter,
   activeTab: controlledActiveTab,
   onSetActiveTab,
@@ -76,10 +78,19 @@ export const StudyBoard: React.FC<Props> = ({
   const currentChapterScore = chapterScores[chapter.id];
   const isPdfChapter = chapter.subjectId === 'pdf-curriculum' || !!chapter.sourcePdf;
 
+  // Active list of chapters
+  const activeChapterList = allChapters.length > 0
+    ? allChapters
+    : (chapter && chapter.id !== 'empty-placeholder' ? [chapter] : []);
+
+  // Determine if all chapters in the list are completed
+  const areAllChaptersCompleted = activeChapterList.length > 0 && activeChapterList.every(ch => {
+    const st = chapterStatuses[ch.id] || (ch.id === chapter.id ? chapterStatus : ch.status);
+    return st === 'completed' || Boolean(chapterScores[ch.id]);
+  });
+
   // Aggregate stats strictly across active chapters in the list (excluding removed chapters)
-  const activeChapterIds = new Set(
-    (allChapters.length > 0 ? allChapters : (chapter.id !== 'empty-placeholder' ? [chapter] : [])).map(c => c.id)
-  );
+  const activeChapterIds = new Set(activeChapterList.map(c => c.id));
   const scoreEntries = Object.entries(chapterScores)
     .filter(([id]) => activeChapterIds.has(id))
     .map(([, score]) => score);
@@ -87,7 +98,86 @@ export const StudyBoard: React.FC<Props> = ({
   const avgAccuracy = totalQuizzesTaken > 0
     ? Math.round(scoreEntries.reduce((sum, s) => sum + s.percentage, 0) / totalQuizzesTaken)
     : 0;
-  const chaptersMastered = scoreEntries.filter(s => s.percentage >= 80).length;
+
+  // Render Completed Chapter Scores List (without Switch button)
+  const renderCompletedScores = () => {
+    const scoredChapters = activeChapterList.filter(ch => Boolean(chapterScores[ch.id]));
+
+    return (
+      <div className="space-y-2.5 pt-2">
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Completed Chapter Scores
+          </h4>
+          <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded-full">
+            {scoredChapters.length} {scoredChapters.length === 1 ? 'chapter' : 'chapters'}
+          </span>
+        </div>
+
+        {scoredChapters.length > 0 ? (
+          <div className="space-y-2">
+            {scoredChapters.map((ch) => {
+              const chScore = chapterScores[ch.id];
+              const isCurrent = ch.id === chapter.id && !areAllChaptersCompleted;
+
+              return (
+                <div
+                  key={ch.id}
+                  className={`p-3 rounded-2xl border transition flex items-center justify-between gap-2 ${
+                    isCurrent
+                      ? 'border-indigo-400 dark:border-indigo-700 bg-indigo-50/30 dark:bg-indigo-950/20'
+                      : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h5 className="font-bold text-xs text-slate-900 dark:text-white truncate max-w-[200px]">
+                        {ch.title}
+                      </h5>
+                      {isCurrent && (
+                        <span className="text-[9px] font-extrabold uppercase bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.2 rounded-md">
+                          Current
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-0.5 truncate">
+                      Completed on {chScore.completedAt}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="text-right">
+                      <span className="text-xs font-extrabold text-slate-900 dark:text-white">
+                        {chScore.score}/{chScore.total}
+                      </span>
+                      <span className={`block text-[10px] font-bold ${
+                        chScore.percentage >= 80
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : chScore.percentage >= 50
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-rose-600 dark:text-rose-400'
+                      }`}>
+                        {chScore.percentage}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="p-4 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-center space-y-1">
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+              No completed chapters yet
+            </p>
+            <p className="text-[11px] text-slate-400">
+              Take and complete a quiz to see your scores recorded here.
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="h-full bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 transition-all duration-300 ease-in-out w-80 md:w-96 lg:w-[430px] overflow-hidden shadow-sm">
@@ -122,8 +212,68 @@ export const StudyBoard: React.FC<Props> = ({
         </button>
       </div>
 
-      {/* Chapter Title & Status Bar */}
-      <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-indigo-50/70 via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
+      {areAllChaptersCompleted ? (
+        <div className="flex-1 flex flex-col overflow-y-auto">
+          {/* All Chapters Completed Hero Banner */}
+          <div className="p-5 m-3.5 rounded-3xl bg-gradient-to-br from-emerald-50 via-indigo-50/40 to-purple-50/50 dark:from-emerald-950/40 dark:via-slate-900 dark:to-indigo-950/30 border border-emerald-200/80 dark:border-emerald-800/60 text-center shadow-xs space-y-3.5">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center text-3xl shadow-lg shadow-emerald-500/20">
+              🎉
+            </div>
+            <div className="space-y-1">
+              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                All Chapters Completed
+              </span>
+              <h3 className="text-base font-black text-slate-900 dark:text-white leading-tight">
+                You completed all chapters!
+              </h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
+                Great job! You have completed all chapters in the list. Please add new chapters to continue learning.
+              </p>
+            </div>
+
+            <button
+              onClick={onOpenChapterModal}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-gradient-to-r from-indigo-600 via-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-md hover:shadow-lg transition cursor-pointer"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>+ Please Add New Chapters</span>
+            </button>
+          </div>
+
+          {/* Curriculum Scoreboard Overview */}
+          <div className="px-4 pb-4 space-y-4">
+            <div className="flex items-center justify-between pt-1">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Curriculum Scoreboard
+              </h4>
+              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-full">
+                {activeChapterList.length} completed
+              </span>
+            </div>
+
+            {/* Top Stat Cards: Quizzes & Avg Score only (Mastered removed) */}
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="p-3 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 text-center">
+                <span className="text-[10px] font-semibold uppercase text-slate-400">Quizzes</span>
+                <p className="text-lg font-extrabold text-indigo-600 dark:text-indigo-400">{totalQuizzesTaken}</p>
+              </div>
+              <div className="p-3 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40 text-center">
+                <span className="text-[10px] font-semibold uppercase text-slate-400">Avg Score</span>
+                <p className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">{avgAccuracy}%</p>
+              </div>
+            </div>
+
+            {/* Completed Chapter Scores List */}
+            {renderCompletedScores()}
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Chapter Title & Status Bar */}
+          <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-indigo-50/70 via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
         <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
           {/* Chapter Status Badge */}
           <div className="flex items-center gap-2">
@@ -489,8 +639,8 @@ export const StudyBoard: React.FC<Props> = ({
         {/* TAB 3: Chapter-Wise Scoreboard */}
         {activeTab === 'scoreboard' && (
           <div className="space-y-4">
-            {/* Overview Stats Row */}
-            <div className="grid grid-cols-3 gap-2">
+            {/* Overview Stats Row: Quizzes & Avg Score only (Mastered removed) */}
+            <div className="grid grid-cols-2 gap-2.5">
               <div className="p-3 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 text-center">
                 <span className="text-[10px] font-semibold uppercase text-slate-400">Quizzes</span>
                 <p className="text-lg font-extrabold text-indigo-600 dark:text-indigo-400">{totalQuizzesTaken}</p>
@@ -499,195 +649,103 @@ export const StudyBoard: React.FC<Props> = ({
                 <span className="text-[10px] font-semibold uppercase text-slate-400">Avg Score</span>
                 <p className="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">{avgAccuracy}%</p>
               </div>
-              <div className="p-3 rounded-2xl bg-purple-50/70 dark:bg-purple-950/30 border border-purple-100 dark:border-purple-900/40 text-center">
-                <span className="text-[10px] font-semibold uppercase text-slate-400">Mastered</span>
-                <p className="text-lg font-extrabold text-purple-600 dark:text-purple-400">{chaptersMastered}</p>
-              </div>
             </div>
 
-            {/* Current Chapter Score Details */}
-            {currentChapterScore ? (
-              <div className="p-4 rounded-2xl border border-indigo-200 dark:border-indigo-900/50 bg-gradient-to-br from-indigo-50/50 via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 space-y-3 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                      Active Chapter Score
-                    </span>
-                    <h4 className="font-extrabold text-sm text-slate-900 dark:text-white leading-snug">
-                      {chapter.title}
-                    </h4>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xl font-black text-indigo-600 dark:text-indigo-400">
-                      {currentChapterScore.score}/{currentChapterScore.total}
-                    </span>
-                    <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                      {currentChapterScore.percentage}% Accuracy
-                    </p>
-                  </div>
-                </div>
-
-                {/* Question Details Review */}
-                {currentChapterScore.details && currentChapterScore.details.length > 0 && (
-                  <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Question Review
-                    </span>
-                    {currentChapterScore.details.map((item, dIdx) => (
-                      <div
-                        key={dIdx}
-                        className={`p-2.5 rounded-xl border text-xs ${
-                          item.isCorrect
-                            ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-slate-800 dark:text-slate-200'
-                            : 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50 text-slate-800 dark:text-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-start gap-1.5 font-semibold leading-snug">
-                          <span className={item.isCorrect ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}>
-                            {item.isCorrect ? '✓' : '✗'}
-                          </span>
-                          <span className="flex-1">Q{dIdx + 1}: {item.question}</span>
-                        </div>
-                        <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 pl-4">
-                          <span>Your answer: </span>
-                          <span className={item.isCorrect ? 'font-bold text-emerald-700 dark:text-emerald-300' : 'font-bold text-rose-700 dark:text-rose-300'}>
-                            {item.selectedOption}
-                          </span>
-                          {!item.isCorrect && (
-                            <span className="ml-2 font-medium text-emerald-600 dark:text-emerald-400">
-                              (Correct: {item.correctOption})
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="pt-1 flex items-center justify-between">
-                  <button
-                    onClick={onStartQuiz}
-                    className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
-                  >
-                    <span>🔄 Retake This Quiz</span>
-                  </button>
-                  <button
-                    onClick={onResetQuiz}
-                    className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 underline"
-                  >
-                    Reset Scores
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/20 text-center space-y-2">
-                <span className="text-2xl">📝</span>
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  No quiz taken yet for "{chapter.title}".
-                </p>
-                <p className="text-[11px] text-slate-400">
-                  Complete the lesson and click "Start Live Quiz" to record your score!
-                </p>
-              </div>
-            )}
-
-            {/* Chapter-Wise Scoreboard Table: Only active chapters currently in list that have scores */}
-            {(() => {
-              const activeChapterList = allChapters.length > 0
-                ? allChapters
-                : (chapter && chapter.id !== 'empty-placeholder' ? [chapter] : []);
-
-              const completedScoredChapters = activeChapterList.filter(
-                (ch) => Boolean(chapterScores[ch.id])
-              );
-
-              return (
-                <div className="space-y-2.5 pt-2">
+            {/* Active Chapter Quiz Details: ONLY show if status is in_progress */}
+            {chapterStatus === 'in_progress' && (
+              currentChapterScore ? (
+                <div className="p-4 rounded-2xl border border-indigo-200 dark:border-indigo-900/50 bg-gradient-to-br from-indigo-50/50 via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 space-y-3 shadow-xs">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                      Completed Chapter Scores
-                    </h4>
-                    <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded-full">
-                      {completedScoredChapters.length} {completedScoredChapters.length === 1 ? 'chapter' : 'chapters'}
-                    </span>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                        Active Chapter Score
+                      </span>
+                      <h4 className="font-extrabold text-sm text-slate-900 dark:text-white leading-snug">
+                        {chapter.title}
+                      </h4>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-black text-indigo-600 dark:text-indigo-400">
+                        {currentChapterScore.score}/{currentChapterScore.total}
+                      </span>
+                      <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                        {currentChapterScore.percentage}% Accuracy
+                      </p>
+                    </div>
                   </div>
 
-                  {completedScoredChapters.length > 0 ? (
-                    <div className="space-y-2">
-                      {completedScoredChapters.map((ch) => {
-                        const chScore = chapterScores[ch.id];
-                        const isCurrent = ch.id === chapter.id;
-
-                        return (
-                          <div
-                            key={ch.id}
-                            className={`p-3 rounded-2xl border transition flex items-center justify-between gap-2 ${
-                              isCurrent
-                                ? 'border-indigo-400 dark:border-indigo-700 bg-indigo-50/30 dark:bg-indigo-950/20'
-                                : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 hover:border-slate-300'
-                            }`}
-                          >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <h5 className="font-bold text-xs text-slate-900 dark:text-white truncate max-w-[200px]">
-                                  {ch.title}
-                                </h5>
-                                {isCurrent && (
-                                  <span className="text-[9px] font-extrabold uppercase bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.2 rounded-md">
-                                    Current
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-[10px] text-slate-400 mt-0.5 truncate">
-                                Completed on {chScore.completedAt}
-                              </p>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <div className="text-right">
-                                <span className="text-xs font-extrabold text-slate-900 dark:text-white">
-                                  {chScore.score}/{chScore.total}
-                                </span>
-                                <span className={`block text-[10px] font-bold ${
-                                  chScore.percentage >= 80
-                                    ? 'text-emerald-600 dark:text-emerald-400'
-                                    : chScore.percentage >= 50
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : 'text-rose-600 dark:text-rose-400'
-                                }`}>
-                                  {chScore.percentage}%
-                                </span>
-                              </div>
-
-                              {!isCurrent && onSelectChapter && (
-                                <button
-                                  onClick={() => onSelectChapter(ch)}
-                                  className="px-2 py-1 rounded-lg text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
-                                >
-                                  Switch
-                                </button>
-                              )}
-                            </div>
+                  {/* Question Details Review */}
+                  {currentChapterScore.details && currentChapterScore.details.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Question Review
+                      </span>
+                      {currentChapterScore.details.map((item, dIdx) => (
+                        <div
+                          key={dIdx}
+                          className={`p-2.5 rounded-xl border text-xs ${
+                            item.isCorrect
+                              ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-slate-800 dark:text-slate-200'
+                              : 'bg-rose-50/50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/50 text-slate-800 dark:text-slate-200'
+                          }`}
+                        >
+                          <div className="flex items-start gap-1.5 font-semibold leading-snug">
+                            <span className={item.isCorrect ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}>
+                              {item.isCorrect ? '✓' : '✗'}
+                            </span>
+                            <span className="flex-1">Q{dIdx + 1}: {item.question}</span>
                           </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="p-4 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 text-center space-y-1">
-                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                        No completed chapters yet
-                      </p>
-                      <p className="text-[11px] text-slate-400">
-                        Take and complete a quiz to see your scores recorded here.
-                      </p>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 pl-4">
+                            <span>Your answer: </span>
+                            <span className={item.isCorrect ? 'font-bold text-emerald-700 dark:text-emerald-300' : 'font-bold text-rose-700 dark:text-rose-300'}>
+                              {item.selectedOption}
+                            </span>
+                            {!item.isCorrect && (
+                              <span className="ml-2 font-medium text-emerald-600 dark:text-emerald-400">
+                                (Correct: {item.correctOption})
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
+
+                  <div className="pt-1 flex items-center justify-between">
+                    <button
+                      onClick={onStartQuiz}
+                      className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                    >
+                      <span>🔄 Retake This Quiz</span>
+                    </button>
+                    <button
+                      onClick={onResetQuiz}
+                      className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 underline"
+                    >
+                      Reset Scores
+                    </button>
+                  </div>
                 </div>
-              );
-            })()}
+              ) : (
+                <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/20 text-center space-y-2">
+                  <span className="text-2xl">📝</span>
+                  <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    No quiz taken yet for "{chapter.title}".
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    Complete the lesson and click "Start Live Quiz" to record your score!
+                  </p>
+                </div>
+              )
+            )}
+
+            {/* Chapter-Wise Scoreboard Table */}
+            {renderCompletedScores()}
           </div>
         )}
       </div>
-    </div>
-  );
+    </>
+  )}
+</div>
+);
 };
