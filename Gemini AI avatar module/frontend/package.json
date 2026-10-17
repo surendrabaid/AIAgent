@@ -9,10 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "latest",
-    "react-dom": "latest",
     "@google/genai": "latest",
-    "lucide-react": "latest"
+    "firebase": "^13.0.0",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",

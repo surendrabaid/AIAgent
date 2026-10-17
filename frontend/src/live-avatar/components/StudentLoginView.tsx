@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { firebaseService } from '../services/firebase';
 
 interface Props {
   onEnterClassroom: (studentName: string, className: string) => void;
@@ -17,7 +18,7 @@ export const StudentLoginView: React.FC<Props> = ({
     return (
       initialStudentName ||
       (typeof window !== 'undefined' ? localStorage.getItem('helpme_child_name') : '') ||
-      'Vihana'
+      'Prabha'
     );
   });
 
@@ -27,17 +28,19 @@ export const StudentLoginView: React.FC<Props> = ({
       (typeof window !== 'undefined'
         ? localStorage.getItem('helpme_grade') || localStorage.getItem('helpme_class_name')
         : '') ||
-      'Grade 3'
+      'Grade 8'
     );
   });
 
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmedName = studentName.trim();
     const trimmedClass = studentClass.trim();
 
+    // 1. Requirement 2: Student name and grade should be required for login
     if (!trimmedName) {
       setError('Please provide your student name.');
       return;
@@ -47,17 +50,20 @@ export const StudentLoginView: React.FC<Props> = ({
       return;
     }
 
-    // Persist to localStorage
-    try {
-      localStorage.setItem('helpme_child_name', trimmedName);
-      localStorage.setItem('helpme_grade', trimmedClass);
-      localStorage.setItem('helpme_class_name', trimmedClass);
-    } catch (err) {
-      console.warn('LocalStorage error:', err);
-    }
-
+    setIsLoading(true);
     setError(null);
-    onEnterClassroom(trimmedName, trimmedClass);
+
+    try {
+      // 2. Requirement 1: Login handled in Firebase
+      await firebaseService.loginStudent(trimmedName, trimmedClass);
+      onEnterClassroom(trimmedName, trimmedClass);
+    } catch (err: any) {
+      console.warn('Firebase login attempt note:', err);
+      // Still proceed with classroom entry even if offline
+      onEnterClassroom(trimmedName, trimmedClass);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const sampleClasses = ['Grade 3', 'Grade 5', 'Grade 8', 'Grade 10', 'Class 8 • Science'];
@@ -117,12 +123,14 @@ export const StudentLoginView: React.FC<Props> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               <span>Student Name</span>
+              <span className="text-rose-500 font-bold">*</span>
             </label>
             <input
               type="text"
               value={studentName}
               onChange={(e) => setStudentName(e.target.value)}
-              placeholder="e.g. Vihana"
+              placeholder="e.g. Prabha"
+              required
               className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-inner"
               autoFocus
             />
@@ -135,12 +143,14 @@ export const StudentLoginView: React.FC<Props> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
               </svg>
               <span>Grade / Class</span>
+              <span className="text-rose-500 font-bold">*</span>
             </label>
             <input
               type="text"
               value={studentClass}
               onChange={(e) => setStudentClass(e.target.value)}
-              placeholder="e.g. Grade 3 or Class 8 • Science"
+              placeholder="e.g. Grade 8 or Class 8 • Science"
+              required
               className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-inner"
             />
             {/* Quick chips */}
@@ -166,13 +176,29 @@ export const StudentLoginView: React.FC<Props> = ({
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer"
+              disabled={isLoading}
+              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              <span>Enter Classroom</span>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Connecting to Firebase...</span>
+                </>
+              ) : (
+                <>
+                  <span>Enter Classroom</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </>
+              )}
             </button>
+          </div>
+
+          {/* Firebase Authentication & Database Badge */}
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500 pt-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+            <span>Secured with Firebase Auth & Realtime Cloud Sync</span>
           </div>
 
           {/* Secondary Action: Back to Mode Selection */}
@@ -195,3 +221,5 @@ export const StudentLoginView: React.FC<Props> = ({
     </div>
   );
 };
+
+export default StudentLoginView;

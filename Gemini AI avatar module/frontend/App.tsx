@@ -13,18 +13,24 @@ import { useLiveSession } from './hooks/useLiveSession';
 import { EMPTY_CHAPTER } from './data/curriculum';
 import { TUTOR_PERSONAS } from './data/avatars';
 import { StudentLoginView } from './components/StudentLoginView';
+import { firebaseService } from './services/firebase';
 import { VideoMode, Chapter, TeachingMode, QuizSessionState, AvatarPersona, AvatarMood, ChapterStatus, ChapterScore } from './types';
 
 const App: React.FC = () => {
   const { theme, setTheme } = useTheme();
 
-  // Student Authentication / Profile state
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Student Authentication / Profile state managed with Firebase
+  const [studentUid, setStudentUid] = useState<string>(() => {
+    return (typeof window !== 'undefined' ? localStorage.getItem('helpme_student_uid') : '') || '';
+  });
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    return (typeof window !== 'undefined' ? localStorage.getItem('helpme_firebase_logged_in') === 'true' : false);
+  });
   const [studentName, setStudentName] = useState(() => {
-    return (typeof window !== 'undefined' ? localStorage.getItem('helpme_child_name') : '') || 'Vihana';
+    return (typeof window !== 'undefined' ? localStorage.getItem('helpme_child_name') : '') || 'Prabha';
   });
   const [studentClass, setStudentClass] = useState(() => {
-    return (typeof window !== 'undefined' ? (localStorage.getItem('helpme_grade') || localStorage.getItem('helpme_class_name')) : '') || 'Grade 3';
+    return (typeof window !== 'undefined' ? (localStorage.getItem('helpme_grade') || localStorage.getItem('helpme_class_name')) : '') || 'Grade 8';
   });
   const {
     audioDevices, selectedDeviceId, setSelectedDeviceId,
@@ -146,6 +152,49 @@ const App: React.FC = () => {
     fetchBackendChapters();
   }, []);
 
+  // Sync Student Authentication & Database from Firebase
+  useEffect(() => {
+    const unsubscribe = firebaseService.onAuthStateChanged(async (profile) => {
+      if (profile) {
+        setStudentUid(profile.uid);
+        setStudentName(profile.studentName);
+        setStudentClass(profile.grade);
+        setIsLoggedIn(true);
+
+        try {
+          // Fetch chapter statuses from Firebase Database
+          const fbStatuses = await firebaseService.getChapterStatuses(profile.uid);
+          if (fbStatuses && Object.keys(fbStatuses).length > 0) {
+            setChapterStatuses(prev => ({ ...prev, ...fbStatuses }));
+          }
+
+          // Fetch score card from Firebase Database
+          const fbScores = await firebaseService.getChapterScores(profile.uid);
+          if (fbScores && Object.keys(fbScores).length > 0) {
+            setChapterScores(prev => ({ ...prev, ...fbScores }));
+          }
+
+          // Fetch custom chapters from Firebase Database
+          const fbChapters = await firebaseService.getChapters(profile.uid);
+          if (fbChapters && fbChapters.length > 0) {
+            setAllChapters(prev => {
+              const map = new Map<string, Chapter>();
+              prev.forEach(c => map.set(c.id, c));
+              fbChapters.forEach(c => map.set(c.id, c));
+              return Array.from(map.values());
+            });
+          }
+        } catch (syncErr) {
+          console.warn('[Firebase] Sync error:', syncErr);
+        }
+      } else {
+        setIsLoggedIn(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const handleUpdateChapterStatus = (chapterId: string, status: ChapterStatus) => {
     setChapterStatuses(prev => {
       const updated = { ...prev, [chapterId]: status };
@@ -155,6 +204,11 @@ const App: React.FC = () => {
         console.warn('LocalStorage save error:', e);
       }
       return updated;
+    });
+
+    // Requirement 4: Maintain completed, uncompleted, and in_progress chapters in Firebase Database
+    firebaseService.saveChapterStatus(studentUid, chapterId, status).catch(err => {
+      console.warn('[Firebase] Error saving chapter status:', err);
     });
 
     if (status === 'completed' && chapterId === selectedChapter.id) {
@@ -325,6 +379,11 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
       }
       return prev;
     });
+
+    // 5. Requirement 5 & 6: Remove chapter, status, and score card from Firebase Database
+    firebaseService.deleteChapter(studentUid, chapterId).catch(err => {
+      console.warn('[Firebase] Error removing chapter:', err);
+    });
   };
 
   // Handle adding new uploaded chapter
@@ -336,6 +395,9 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
       } catch (e) {}
       return updated;
     });
+
+    // Save chapter in Firebase Database
+    firebaseService.saveChapter(studentUid, newChapter).catch(console.warn);
     handleSelectChapter(newChapter);
   };
 
@@ -466,10 +528,16 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
         const updated = { ...prev, [selectedChapter.id]: newScore };
         try {
           localStorage.setItem('ai_avatar_chapter_scores', JSON.stringify(updated));
+          localStorage.setItem('live_avatar_chapter_scores', JSON.stringify(updated));
         } catch (e) {
           console.warn('LocalStorage save error:', e);
         }
         return updated;
+      });
+
+      // Requirement 6: Store score card in Firebase Database
+      firebaseService.saveChapterScore(studentUid, selectedChapter.id, newScore).catch(err => {
+        console.warn('[Firebase] Error saving chapter score:', err);
       });
 
       setQuizState(prev => ({ ...prev, isCompleted: true, isActive: false }));
@@ -535,6 +603,8 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
         onEnterClassroom={(name, grade) => {
           setStudentName(name);
           setStudentClass(grade);
+          const uid = localStorage.getItem('helpme_student_uid') || `student_${name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+          setStudentUid(uid);
           setIsLoggedIn(true);
         }}
       />
@@ -557,8 +627,13 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
         activePersona={activePersona}
         studentName={studentName}
         className={studentClass}
-        onLogout={() => {
+        onLogout={async () => {
           disconnect();
+          try {
+            await firebaseService.logoutStudent();
+          } catch (e) {
+            console.warn('[Firebase] Logout warning:', e);
+          }
           setIsLoggedIn(false);
         }}
       />
@@ -654,11 +729,13 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
               delete updated[selectedChapter.id];
               try {
                 localStorage.setItem('ai_avatar_chapter_scores', JSON.stringify(updated));
+                localStorage.setItem('live_avatar_chapter_scores', JSON.stringify(updated));
               } catch (e) {
                 console.warn('LocalStorage save error:', e);
               }
               return updated;
             });
+            firebaseService.deleteChapterScore(studentUid, selectedChapter.id).catch(console.warn);
           }}
           chapterStatus={currentChapterStatus}
           onUpdateChapterStatus={handleUpdateChapterStatus}
