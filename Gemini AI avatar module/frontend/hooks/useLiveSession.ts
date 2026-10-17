@@ -161,14 +161,27 @@ export const useLiveSession = (
 
         // Noise gate: Ignore absolute background noise / whisper below 0.005
         if (rms < 0.005) {
+          // If the user spoke recently (< 1200ms ago), send clean zero PCM frames so Gemini Live's VAD measures silence and generates the response
+          const now = performance.now();
+          if (lastUserSpeechTimeRef.current > 0 && now - lastUserSpeechTimeRef.current < 1200) {
+            const silentData = new Float32Array(inputData.length);
+            const pcmBlob = createBlob(silentData);
+            if (sessionPromiseRef.current) {
+              sessionPromiseRef.current.then((session) => {
+                try {
+                  session.sendRealtimeInput({ media: pcmBlob });
+                } catch (err) {}
+              });
+            }
+          }
           return;
         }
 
         // Echo gate when avatar is speaking:
         // EchoCancellation in getUserMedia removes most speaker feedback.
-        // We only gate tiny residual ambient noise (< 0.018) while the agent is talking,
-        // allowing real user speech (> 0.018) to barge in!
-        if (agentTalkingRef.current && rms < 0.018) {
+        // We only gate tiny residual ambient noise (< 0.015) while the agent is talking,
+        // allowing real user speech (> 0.015) to barge in!
+        if (agentTalkingRef.current && rms < 0.015) {
           return;
         }
 
@@ -309,6 +322,15 @@ export const useLiveSession = (
       }
     } else {
       setMicVolume(0);
+      if (sessionPromiseRef.current) {
+        sessionPromiseRef.current.then((session) => {
+          try {
+            if (typeof (session as any).sendRealtimeInput === 'function') {
+              (session as any).sendRealtimeInput({ audioStreamEnd: true });
+            }
+          } catch (e) {}
+        });
+      }
     }
   }, [isMuted, isConnected, initMicrophoneStream, startAudioInput]);
 
@@ -621,6 +643,17 @@ export const useLiveSession = (
         checkAndStartPlayback();
       }
 
+      // If video has paused/finished speech and is idle, ensure agentTalking is false
+      if (video.paused && agentTalkingRef.current && !isTurnReceivingRef.current && videoQueueRef.current.length === 0) {
+        const bufferedEnd = video.buffered.length > 0 ? video.buffered.end(video.buffered.length - 1) : 0;
+        const bufferAhead = Math.max(0, bufferedEnd - video.currentTime);
+        if (bufferAhead <= 0.20 || video.ended) {
+          agentTalkingRef.current = false;
+          setAgentTalking(false);
+          flushTranscriptionsRef.current?.();
+        }
+      }
+
       // Throttle debug stats to at most once every 500ms to eliminate 60 FPS React re-renders
       const now = performance.now();
       if (now - lastStatsUpdateRef.current >= 500) {
@@ -851,18 +884,13 @@ export const useLiveSession = (
               const video = videoRef.current;
               if (video) {
                 try {
+                  if (video.buffered.length > 0) {
+                    const bufEnd = video.buffered.end(video.buffered.length - 1);
+                    video.currentTime = Math.max(video.currentTime, bufEnd);
+                  }
                   video.pause();
                 } catch (e) {
-                  console.warn("Interruption pause warning:", e);
-                }
-              }
-
-              const sb = sourceBufferRef.current;
-              if (sb && !sb.updating) {
-                try {
-                  sb.abort();
-                } catch (e) {
-                  console.warn("Interruption SourceBuffer abort warning:", e);
+                  console.warn("Interruption fast-forward error:", e);
                 }
               }
 
