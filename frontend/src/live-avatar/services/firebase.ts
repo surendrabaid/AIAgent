@@ -48,9 +48,9 @@ export interface GoogleAuthResult {
   existingProfile?: StudentProfile | null;
 }
 
-// Firebase configuration using project environment or Google Cloud project defaults
+// Firebase configuration loaded securely from environment variables
 const firebaseConfig = {
-  apiKey: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_API_KEY) || "AIzaSyAbc0PnDmqZl0Jga3lBMgVQdGNPNQi68eE",
+  apiKey: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_API_KEY) || "",
   authDomain: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN) || "project-9691fa52-ebb2-43ba-9de.firebaseapp.com",
   projectId: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_PROJECT_ID) || "project-9691fa52-ebb2-43ba-9de",
   storageBucket: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_FIREBASE_STORAGE_BUCKET) || "project-9691fa52-ebb2-43ba-9de.appspot.com",
@@ -63,10 +63,14 @@ let auth: Auth | null = null;
 let db: Firestore | null = null;
 
 try {
-  app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  db = getFirestore(app);
-  console.log('[FirebaseService] Firebase initialized successfully with project:', firebaseConfig.projectId);
+  if (firebaseConfig.apiKey) {
+    app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    console.log('[FirebaseService] Firebase initialized successfully with project:', firebaseConfig.projectId);
+  } else {
+    console.info('[FirebaseService] VITE_FIREBASE_API_KEY is not set. Operating in offline/local fallback mode.');
+  }
 } catch (err: any) {
   console.warn('[FirebaseService] Firebase initialization note:', err?.message || err);
 }
