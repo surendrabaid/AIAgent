@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef, useCallback, useMemo } from 'react';
 import { useLiveSession } from '../live-avatar/hooks/useLiveSession';
 import { LiveAvatarCanvas } from '../live-avatar/components/LiveAvatarCanvas';
-import { Volume2, VolumeX, Mic, MicOff, RefreshCw, Signal, Radio, Sparkles, CheckCircle2, AlertCircle, User, Award } from 'lucide-react';
+import { Volume2, VolumeX, Mic, MicOff, RefreshCw, Signal, Radio, Sparkles, CheckCircle2, AlertCircle, User, Award, Pause, Play } from 'lucide-react';
 
 const AVATAR_BASE = 'https://www.gstatic.com/pantheon/images/aiplatform/vertex_ai_studio/avatars';
 
@@ -12,6 +12,8 @@ const LiveTutorStage = forwardRef(({
   onAgentTalkingChange,
   onDoubtAnswered,
   isSpeakingFallback = false,
+  isTeachingPaused = false,
+  onTogglePause,
 }, ref) => {
   const gender = avatarConfig?.gender || 'female';
   const tutorName = avatarConfig?.name || (gender === 'male' ? 'Mr. Rajesh' : 'Joya');
@@ -81,7 +83,10 @@ DOUBT CLARIFICATION PROTOCOL:
     connect,
     disconnect,
     sendTextMessage,
-    micVolume
+    micVolume,
+    pauseSession,
+    resumeSession,
+    isPaused
   } = useLiveSession('', isMuted, false, webcamVideoRef, configOverrides);
 
   // Auto-connect to live session on mount
@@ -98,12 +103,27 @@ DOUBT CLARIFICATION PROTOCOL:
       sendTextMessage(text);
       return true;
     },
+    pauseAudio: () => {
+      pauseSession();
+    },
+    resumeAudio: () => {
+      resumeSession();
+    },
     isConnected,
     hasVideo,
     agentTalking,
     reconnect: () => connect(),
     disconnect: () => disconnect()
-  }), [isConnected, hasVideo, agentTalking, sendTextMessage, connect, disconnect]);
+  }), [isConnected, hasVideo, agentTalking, sendTextMessage, connect, disconnect, pauseSession, resumeSession]);
+
+  // Sync teaching pause state with live session (video playback + audio + canvas)
+  useEffect(() => {
+    if (isTeachingPaused) {
+      pauseSession();
+    } else {
+      resumeSession();
+    }
+  }, [isTeachingPaused, pauseSession, resumeSession]);
 
   // Notify parent of agentTalking state changes
   useEffect(() => {
@@ -222,6 +242,7 @@ DOUBT CLARIFICATION PROTOCOL:
             isConnected={isConnected}
             videoRef={videoRef}
             hasVideo={hasVideo}
+            isPaused={isTeachingPaused || isPaused}
           />
         </div>
 
@@ -260,6 +281,71 @@ DOUBT CLARIFICATION PROTOCOL:
               <Volume2 size={20} />
               <span>Tap to Hear {tutorName} Speak 🔊</span>
             </button>
+          </div>
+        )}
+
+        {/* Teaching Paused Overlay Banner */}
+        {isTeachingPaused && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 36,
+            background: 'rgba(15, 23, 42, 0.78)',
+            backdropFilter: 'blur(5px)',
+            color: '#FFFFFF',
+            textAlign: 'center',
+            padding: '20px',
+            animation: 'fadeIn 0.25s ease'
+          }}>
+            <div style={{
+              width: '54px',
+              height: '54px',
+              borderRadius: '50%',
+              background: 'rgba(234, 179, 8, 0.2)',
+              border: '2px solid #EAB308',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '10px',
+              boxShadow: '0 0 20px rgba(234, 179, 8, 0.3)'
+            }}>
+              <Pause size={24} color="#EAB308" />
+            </div>
+            <h4 style={{ fontSize: '1.15rem', fontWeight: 800, margin: '0 0 6px 0', color: '#FDE047' }}>
+              Teaching Paused
+            </h4>
+            <p style={{ fontSize: '0.82rem', color: '#CBD5E1', maxWidth: '240px', margin: '0 0 16px 0', lineHeight: 1.4 }}>
+              Take your time to read the slide, ask a doubt, or take study notes.
+            </p>
+            {onTogglePause && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onTogglePause();
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '24px',
+                  padding: '9px 22px',
+                  fontSize: '0.88rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 6px 20px rgba(16, 185, 129, 0.5)'
+                }}
+              >
+                <Play size={15} fill="#FFFFFF" /> Resume Teaching
+              </button>
+            )}
           </div>
         )}
 

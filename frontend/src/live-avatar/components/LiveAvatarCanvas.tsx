@@ -8,6 +8,7 @@ interface Props {
   isConnected: boolean;
   videoRef: React.RefObject<HTMLVideoElement | null>;
   hasVideo: boolean;
+  isPaused?: boolean;
 }
 
 export const LiveAvatarCanvas: React.FC<Props> = ({
@@ -17,6 +18,7 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
   isConnected,
   videoRef,
   hasVideo,
+  isPaused = false,
 }) => {
   const [mouthOpen, setMouthOpen] = useState<number>(0);
   const [isBlinking, setIsBlinking] = useState<boolean>(false);
@@ -24,10 +26,10 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
   const [aspectRatio, setAspectRatio] = useState<number>(1);
   const animFrameRef = useRef<number | null>(null);
 
-  // Live video is shown ONLY when active video stream exists AND avatar is speaking.
-  // When agentTalking is false (or interrupted), we seamlessly show the neutral lifelike portrait
+  // Live video is shown ONLY when active video stream exists AND avatar is speaking AND session is not paused.
+  // When agentTalking is false (or session is paused), we seamlessly show the neutral lifelike portrait
   // where the teacher has mouth closed, eyes blinking, and natural attentive listening head tilt!
-  const showLiveVideo = hasVideo && agentTalking;
+  const showLiveVideo = hasVideo && agentTalking && !isPaused;
 
   // Procedural lip-sync and breathing simulation:
   // When live video is active (showLiveVideo), the video stream renders the avatar.
@@ -69,7 +71,7 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
       setHeadTilt({ x: targetX, y: targetY });
 
       // Procedural mouth visemes: ONLY when NOT in video mode and agent is speaking (Option 2 TTS fallback)
-      if (!hasVideo && agentTalking) {
+      if (!hasVideo && agentTalking && !isPaused) {
         const speechWave =
           Math.sin(elapsed * 12) * 0.4 +
           Math.sin(elapsed * 19) * 0.3 +
@@ -77,7 +79,7 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
         const normalized = Math.max(0.08, Math.min(1, (speechWave + 1) / 2));
         setMouthOpen(normalized);
       } else {
-        setMouthOpen(0); // Mouth ALWAYS closed when listening or in Option 1 idle state!
+        setMouthOpen(0); // Mouth ALWAYS closed when listening, paused, or in Option 1 idle state!
       }
 
       animFrameRef.current = requestAnimationFrame(loop);
@@ -87,7 +89,7 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [showLiveVideo, agentTalking, mood, hasVideo]);
+  }, [showLiveVideo, agentTalking, mood, hasVideo, isPaused]);
 
   // Natural spontaneous blinking cycle (active during listening/portrait mode)
   useEffect(() => {
@@ -151,7 +153,7 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
               ? 'bg-radial from-amber-400/20 via-transparent to-transparent animate-pulse'
               : mood === 'empathetic'
               ? 'bg-radial from-rose-400/15 via-transparent to-transparent'
-              : agentTalking
+              : agentTalking && !isPaused
               ? 'bg-radial from-indigo-500/20 via-transparent to-transparent'
               : 'bg-gradient-to-t from-slate-950/60 via-transparent to-transparent'
           }`}
@@ -202,7 +204,7 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
         </div>
 
         {/* Procedural Lip-Sync Mouth Rig (Option 2 speech fallback only) */}
-        {!hasVideo && agentTalking && (
+        {!hasVideo && agentTalking && !isPaused && (
           <div
             className="absolute inset-0 pointer-events-none flex items-center justify-center"
             style={{ transform: 'translateY(16%)' }}

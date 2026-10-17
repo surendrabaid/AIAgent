@@ -48,6 +48,8 @@ export const useLiveSession = (
   const lastMicVolumeUpdateRef = useRef<number>(0);
   const agentTalkingRef = useRef<boolean>(false);
   const isTurnReceivingRef = useRef<boolean>(false);
+  const isPausedRef = useRef<boolean>(false);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
   const currentInputTextRef = useRef<string>('');
   const currentOutputTextRef = useRef<string>('');
   const pendingMessageQueueRef = useRef<string[]>([]);
@@ -255,6 +257,7 @@ export const useLiveSession = (
 
   // Ensure video element plays audio directly through system speakers with full volume
   const unmuteAudio = useCallback(() => {
+    if (isPausedRef.current) return;
     if (videoRef.current) {
       videoRef.current.muted = false;
       videoRef.current.volume = 1.0;
@@ -476,6 +479,7 @@ export const useLiveSession = (
 
   // Pre-roll jitter cushion: start playback smoothly with 200ms cushion or turn finish
   const checkAndStartPlayback = useCallback(() => {
+    if (isPausedRef.current) return;
     const videoElement = videoRef.current;
     if (!videoElement) return;
 
@@ -609,6 +613,14 @@ export const useLiveSession = (
   const monitoringLoop = useCallback(() => {
     if (videoRef.current) {
       const video = videoRef.current;
+
+      if (isPausedRef.current) {
+        if (!video.paused) {
+          video.pause();
+        }
+        video.muted = true;
+        return;
+      }
 
       // --- Adaptive buffer management based on agent talking state ---
       if (video.readyState >= 2 && !video.paused && video.buffered.length > 0) {
@@ -1056,6 +1068,30 @@ export const useLiveSession = (
     });
   }, []);
 
+  const pauseSession = useCallback(() => {
+    isPausedRef.current = true;
+    setIsPaused(true);
+    if (videoRef.current) {
+      videoRef.current.muted = true;
+      videoRef.current.volume = 0;
+      videoRef.current.pause();
+    }
+    agentTalkingRef.current = false;
+    setAgentTalking(false);
+  }, []);
+
+  const resumeSession = useCallback(() => {
+    isPausedRef.current = false;
+    setIsPaused(false);
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.volume = 1.0;
+      if (videoRef.current.buffered.length > 0) {
+        checkAndStartPlayback();
+      }
+    }
+  }, [checkAndStartPlayback]);
+
   return {
     isConnected,
     isConnecting,
@@ -1075,6 +1111,9 @@ export const useLiveSession = (
     disconnect,
     switchMicrophone,
     sendTextMessage,
-    micVolume
+    micVolume,
+    pauseSession,
+    resumeSession,
+    isPaused
   };
 };

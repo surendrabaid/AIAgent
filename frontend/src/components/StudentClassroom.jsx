@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import LiveTutorStage from './LiveTutorStage';
 import AvatarCanvas from './AvatarCanvas';
 import SlideBoard from './SlideBoard';
-import { Volume2, Mic, Tv, ArrowRight, ArrowLeft, Star, Award, CheckCircle, CheckCircle2, HelpCircle, MessageSquare, Sparkles, Send, Brain, Sliders, RefreshCw, AlertCircle, ThumbsUp, HelpCircle as HelpIcon, Smile } from 'lucide-react';
+import { Volume2, Mic, Tv, ArrowRight, ArrowLeft, Star, Award, CheckCircle, CheckCircle2, HelpCircle, MessageSquare, Sparkles, Send, Brain, Sliders, RefreshCw, AlertCircle, ThumbsUp, HelpCircle as HelpIcon, Smile, Pause, Play } from 'lucide-react';
 
 export default function StudentClassroom({ sessionData, onLessonFinished, onBackToSetup }) {
   const [currentResponse, setCurrentResponse] = useState(sessionData?.current_response || null);
@@ -42,6 +42,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
   // Topic Teaching completion & QnA readiness state
   const [isTopicTeachingOver, setIsTopicTeachingOver] = useState(false);
   const [isQuizReady, setIsQuizReady] = useState(false);
+  const [isTeachingPaused, setIsTeachingPaused] = useState(false);
 
   const visemeIntervalRef = useRef(null);
 
@@ -210,6 +211,29 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
     if (onBackToSetup) {
       onBackToSetup();
     }
+  };
+
+  // Handler for Pause / Resume Teaching
+  const handleTogglePauseTeaching = () => {
+    setIsTeachingPaused((prev) => {
+      const next = !prev;
+      if (next) {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.pause();
+        }
+        if (liveTutorRef.current?.pauseAudio) {
+          liveTutorRef.current.pauseAudio();
+        }
+      } else {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.resume();
+        }
+        if (liveTutorRef.current?.resumeAudio) {
+          liveTutorRef.current.resumeAudio();
+        }
+      }
+      return next;
+    });
   };
 
   // Keyboard Event Listener for Android TV Remote D-Pad Navigation
@@ -685,6 +709,39 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
               <ArrowLeft size={16} /> Exit to Setup
             </button>
           )}
+
+          {/* Pause / Resume Teaching Header Action */}
+          <button
+            type="button"
+            onClick={handleTogglePauseTeaching}
+            style={{
+              padding: '6px 14px',
+              fontSize: '0.82rem',
+              fontWeight: 800,
+              borderRadius: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s ease',
+              background: isTeachingPaused ? 'linear-gradient(135deg, #10B981, #059669)' : '#FFFFFF',
+              color: isTeachingPaused ? '#FFFFFF' : '#334155',
+              border: isTeachingPaused ? '1.5px solid #059669' : '1px solid #CBD5E1',
+              boxShadow: isTeachingPaused ? '0 0 12px rgba(16, 185, 129, 0.4)' : 'none'
+            }}
+            title={isTeachingPaused ? 'Resume teaching audio and lesson' : 'Pause teaching audio and take your time'}
+          >
+            {isTeachingPaused ? (
+              <>
+                <Play size={14} fill="#FFFFFF" /> Resume Teaching
+              </>
+            ) : (
+              <>
+                <Pause size={14} /> Pause Teaching
+              </>
+            )}
+          </button>
+
           <div className="tv-mode-badge">
             <Tv size={14} /> Android STB / TV Remote Ready
           </div>
@@ -710,7 +767,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
         alignItems: 'stretch',
         marginBottom: '24px'
       }}>
-        {/* Left Column: Gemini 3.8 Live Video Avatar */}
+        {/* Left Column: Gemini 3.8 Live Video Avatar & Pause Toggle */}
         <div className="glass-panel" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
           <LiveTutorStage 
             ref={liveTutorRef}
@@ -719,7 +776,43 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
             mood={avatarMood}
             onAgentTalkingChange={handleAgentTalkingChange}
             onDoubtAnswered={handleSpokenDoubtAnswered}
+            isTeachingPaused={isTeachingPaused}
+            onTogglePause={handleTogglePauseTeaching}
           />
+
+          {/* Quick-Access Pause / Resume Button below avatar */}
+          <button
+            type="button"
+            onClick={handleTogglePauseTeaching}
+            style={{
+              marginTop: '12px',
+              width: '100%',
+              padding: '9px 16px',
+              borderRadius: '12px',
+              fontSize: '0.85rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease',
+              background: isTeachingPaused ? 'linear-gradient(135deg, #10B981 0%, #059669 100%)' : '#FFFFFF',
+              color: isTeachingPaused ? '#FFFFFF' : '#334155',
+              border: isTeachingPaused ? '1.5px solid #059669' : '1px solid #CBD5E1',
+              boxShadow: isTeachingPaused ? '0 4px 14px rgba(16, 185, 129, 0.35)' : '0 2px 6px rgba(0,0,0,0.04)'
+            }}
+          >
+            {isTeachingPaused ? (
+              <>
+                <Play size={15} fill="#FFFFFF" /> Resume Teaching
+              </>
+            ) : (
+              <>
+                <Pause size={15} /> Pause Teaching
+              </>
+            )}
+          </button>
         </div>
 
         {/* Right Column: Visual Slide Board & Teacher Dialogue */}
