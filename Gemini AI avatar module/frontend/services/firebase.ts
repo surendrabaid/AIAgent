@@ -331,19 +331,20 @@ class FirebaseService {
    * Logs out the current student using Firebase Auth.
    */
   async logoutStudent(): Promise<void> {
-    if (auth) {
-      try {
-        await withTimeout(signOut(auth), 2000).catch(() => {});
-        console.log('[FirebaseService] Successfully signed out of Firebase Auth.');
-      } catch (err: any) {
-        console.warn('[FirebaseService] Sign out note:', err.message);
-      }
-    }
-
     try {
       localStorage.removeItem('helpme_firebase_logged_in');
       localStorage.removeItem('helpme_student_uid');
+      localStorage.removeItem('helpme_child_name');
     } catch (e) {}
+
+    if (auth) {
+      try {
+        await withTimeout(signOut(auth), 2500).catch(() => {});
+        console.log('[FirebaseService] Successfully signed out of Firebase Auth.');
+      } catch (err: any) {
+        console.warn('[FirebaseService] Sign out note:', err?.message || err);
+      }
+    }
   }
 
   /**

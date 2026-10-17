@@ -59,6 +59,7 @@ const LiveAvatarApp: React.FC<LiveAvatarAppProps> = ({ onBackToSelection }) => {
   const [isStudyBoardOpen, setIsStudyBoardOpen] = useState(true);
   const [showDebug, setShowDebug] = useState(false);
   const [isAvatarVisible, setIsAvatarVisible] = useState(true);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Chapters list strictly loaded from PDF cache & backend
   const [allChapters, setAllChapters] = useState<Chapter[]>(() => {
@@ -204,12 +205,31 @@ const LiveAvatarApp: React.FC<LiveAvatarAppProps> = ({ onBackToSelection }) => {
           console.warn('[Firebase] Sync error:', syncErr);
         }
       } else {
+        setStudentUid('');
         setIsLoggedIn(false);
       }
     });
 
     return () => unsubscribe();
   }, []);
+
+  // Handle Logout Confirmation
+  const handleConfirmLogout = async () => {
+    try {
+      disconnect();
+    } catch (err) {
+      console.warn('[Logout] Disconnect warning:', err);
+    }
+    try {
+      await firebaseService.logoutStudent();
+    } catch (e) {
+      console.warn('[Firebase] Logout warning:', e);
+    }
+    setStudentUid('');
+    setStudentName('');
+    setIsLoggedIn(false);
+    setShowLogoutConfirm(false);
+  };
 
   const handleUpdateChapterStatus = (chapterId: string, status: ChapterStatus) => {
     setChapterStatuses(prev => {
@@ -655,15 +675,7 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
         activePersona={activePersona}
         studentName={studentName}
         className={studentClass}
-        onLogout={async () => {
-          disconnect();
-          try {
-            await firebaseService.logoutStudent();
-          } catch (e) {
-            console.warn('[Firebase] Logout warning:', e);
-          }
-          setIsLoggedIn(false);
-        }}
+        onLogout={() => setShowLogoutConfirm(true)}
       />
 
       {/* Center: Live Avatar Stage */}
@@ -801,6 +813,52 @@ Please warmly greet me to "${chapter.title}" in 2 punchy sentences, and proactiv
         onAddChapter={handleAddChapter}
         chapters={allChapters}
       />
+
+      {/* Logout Confirmation Window Modal */}
+      {showLogoutConfirm && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fadeIn"
+          onClick={() => setShowLogoutConfirm(false)}
+        >
+          <div 
+            className="w-full max-w-sm sm:max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl border border-slate-200/90 dark:border-slate-800 flex flex-col items-center text-center gap-4 relative animate-scaleUp"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Warning / Logout Icon */}
+            <div className="w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-950/60 border border-red-200 dark:border-red-900/50 flex items-center justify-center text-red-600 dark:text-red-400 shadow-sm">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
+                Confirm Log Out
+              </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed px-2">
+                Are you sure you want to end your session? Your chapter progress and quiz scorecard remain saved in Firebase.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 w-full mt-2">
+              <button
+                type="button"
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-sm transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmLogout}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm shadow-lg shadow-red-500/25 transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>Yes, Log Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
