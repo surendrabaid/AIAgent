@@ -21,16 +21,36 @@ Conventional digital education tools, edtech video repositories, and standard ch
 
 ---
 
-## 2. Brief About the Idea 💡
+## 2. Brief Description of Your Solution 💡
+*(Including how Google Cloud & Google Gemini services are leveraged in this submission)*
 
-**MyTutor** is a multi-platform, Socratic AI Home Tutor ecosystem that turns any textbook chapter or PDF into an interactive, voice-driven classroom led by photorealistic, expressive AI teacher avatars (**Joya** and **Mr. Rajesh**). 
+**MyTutor** is a multi-platform, voice-first Socratic AI Teacher & Home Learning Ecosystem engineered for **Web, iOS, Android, Android TV, and Set-Top Boxes (STBs)**. It transforms raw textbook chapters (`.pdf` or `.txt`) into an engaging, distraction-free classroom led by photorealistic, expressive AI teacher avatars (**Joya** and **Mr. Rajesh**). 
 
-Instead of passive lecture videos or text chatbots, MyTutor creates an engaging **3-stage conversational learning experience**:
-1. **Parent Setup**: Parents customize child parameters (name, age 4–12, grade level), select the teacher persona, and upload raw textbook chapters or select from a curriculum library.
-2. **Socratic Live Classroom**: An animated avatar delivers bite-sized concept explanations with synchronized speech, visual summary decks, checkpoint quiz evaluations with remote D-Pad navigation, and instant conversational doubt clarification.
-3. **Parent Performance Digest**: Comprehensive analytics revealing overall comprehension percentage, mastered topics, remediation areas, and personalized teacher notes.
+Instead of passive lecture videos or direct-answer chatbots, MyTutor orchestrates an active **3-stage conversational learning experience**:
+1. **Parent Setup Portal**: Parents configure child parameters (name, age 4–12, grade level), choose a pedagogical teacher persona, and upload raw textbook materials or select from the pre-loaded curriculum library.
+2. **Socratic Live Classroom**: The AI avatar delivers bite-sized concept explanations with real-time lip-sync, visual key-point decks, interactive checkpoint quizzes with spatial TV remote D-Pad navigation, and hands-free voice doubt clarification.
+3. **Parent Performance Digest**: Automated analytics providing an overall comprehension score dial, mastered vs. remedial concept breakdowns, and personalized teacher persona notes for home reinforcement.
 
-The platform runs as a unified cloud container optimized for **Web, iOS, Android, and Android TV / Set-Top Boxes**.
+### How Google Services Are Leveraged in This Submission 🌐
+
+MyTutor deeply integrates Google's cutting-edge AI, live-streaming, and cloud-native infrastructure into a single unified architecture:
+
+1. **Google Gemini 2.5 Flash / 1.5 Pro (Generative Socratic Curriculum Engine)**:
+   - **Document & Syllabus Structuring**: Automatically extracts raw text from school textbook chapters with zero truncation and transforms it into modular pedagogical units, visual summary decks, and checkpoint question banks.
+   - **Socratic Inquiry & Non-Answer Enforcement**: Enforces strict pedagogical guardrails—when a child asks for a direct answer, Gemini reframes the question into guided hints, encouraging genuine critical thinking.
+   - **Adaptive Remedial Analogies**: When a student struggles with a checkpoint question, Gemini dynamically generates age-appropriate real-world metaphors (e.g., explaining photosynthesis through a home baking analogy) and generates alternate follow-up checkpoints until mastery is verified.
+
+2. **Google Cloud Vertex AI & Gemini 3.8 Live (`gemini-3.8-live`) (Real-Time Bidirectional Avatar Video Stream)**:
+   - **Full-Duplex Audio & Video Streaming**: Establishes a bidirectional WebSocket connection (`LlmBidiService.BidiGenerateContent`) to stream raw user audio (`16kHz PCM`) and receive fragmented MP4 chunks (`video/mp4`) containing photorealistic, lip-synced avatar video frames.
+   - **Native Voice Activity Detection (VAD) & Barge-In**: Leverages Gemini 3.8 Live's built-in turn-taking and interruption handling. When a student speaks a doubt mid-lesson, the avatar immediately suspends teaching, listens, clarifies the student's question, and smoothly resumes the syllabus from the exact point of pause.
+   - **Expressive Multi-Persona Voices**: Uses high-fidelity neural voices (`fenrir`, `aoede`) tailored to the **Joya** (patient and warm) and **Mr. Rajesh** (analytical concept mentor) teacher personas.
+
+3. **Google Cloud Run (Serverless Microservices & High-Concurrency Runtime)**:
+   - Hosts the unified, production-grade container packaging the **React 18 SPA**, **FastAPI Python backend**, **Node.js Vertex AI WebSocket proxy**, and **Nginx reverse proxy**.
+   - Provides automated horizontal scaling, zero idle maintenance, built-in HTTPS/SSL termination, and low-latency global delivery on `us-central1`.
+
+4. **Google Cloud Build & Artifact Registry (Continuous Cloud CI/CD)**:
+   - Automates multi-stage Docker container builds directly in the cloud from Git commits, compiling the production Vite bundle and packaging Python/Node runtimes in under 4 minutes.
 
 ---
 
