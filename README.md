@@ -70,6 +70,8 @@ The application follows an intuitive, distraction-free 3-stage learning flow:
   * **Option B**: Select from pre-loaded chapters in the **Saved Chapters Library** (e.g., *Our Families and Communities*, *Plant Nutrition*).
 * **Launch Action**: Generates structured topics, checkpoints, and initiates the classroom session with one click.
 
+![Parent Setup Portal](screenshots/01_parent_setup.png)
+
 ### 2. Live Avatar Socratic Classroom
 * **Classroom Header**: Displays active textbook chapter title, current topic badge, Android STB/TV Remote indicator, star counter, and a clean "← Back" button.
 * **Left Stage (AI Teacher Studio)**:
@@ -84,6 +86,15 @@ The application follows an intuitive, distraction-free 3-stage learning flow:
   * **Synced Teacher Transcript Box**: Real-time transcript showing exactly what the avatar is explaining, dynamically updated on every question and praise response.
   * **Interactive Doubt Bar**: Voice microphone input or text query field to ask questions at any time.
 
+![Live Avatar Classroom](screenshots/04_classroom_teaching.png)
+
+#### Student Comprehension Check & Checkpoint Quizzes
+![Student Comprehension Check](screenshots/05_comprehension_check.png)
+![Interactive Checkpoint Quiz](screenshots/06_checkpoint_quiz.png)
+
+#### Interactive Doubt Clarification (Voice / Text)
+![Interactive Doubt Clarification](screenshots/09_doubt_clarification.png)
+
 ### 3. Parent Performance Report Digest
 * **Score Dial**: Animated circular score dial displaying overall lesson comprehension percentage.
 * **Mastered Concepts**: Green tags highlighting topics understood on the first attempt.
@@ -92,6 +103,15 @@ The application follows an intuitive, distraction-free 3-stage learning flow:
 * **Recommended Home Activities**: Practical suggestions for parents to reinforce concepts in daily life.
 * **Questions & Answers Audit Log**: Itemized breakdown of all questions asked, the student's selections, and correctness status.
 * **Restart Action**: Seamlessly returns to setup for the next lesson.
+
+![Parent Performance Report](screenshots/10_parent_report.png)
+
+### 4. Responsive Layouts (Mobile, Tablet, and Desktop)
+MyTutor features a fully adaptive, responsive layout designed for phones, tablets, and desktop/TV screens with dedicated avatar framing.
+
+| Mobile Setup | Mobile Classroom | Mobile Performance Report |
+| :---: | :---: | :---: |
+| ![Mobile Setup](screenshots/01m_parent_setup_mobile.png) | ![Mobile Classroom](screenshots/04m_classroom_mobile.png) | ![Mobile Report](screenshots/10m_parent_report_mobile.png) |
 
 ---
 
