@@ -125,7 +125,7 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
       {/* Underlying Gemini Live Bidi Video Stream */}
       <video
         ref={videoRef as React.RefObject<HTMLVideoElement>}
-        className={`absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-300 ${
+        className={`avatar-video-element absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-300 ${
           showLiveVideo ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         style={{ objectPosition: 'center 35%' }}
@@ -144,7 +144,7 @@ export const LiveAvatarCanvas: React.FC<Props> = ({
               setAspectRatio(naturalWidth / naturalHeight);
             }
           }}
-          className="w-full h-full object-cover"
+          className="avatar-img-element w-full h-full object-cover"
           style={{ objectPosition: 'center 35%' }}
         />
 

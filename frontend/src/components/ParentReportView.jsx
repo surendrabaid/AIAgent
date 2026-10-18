@@ -47,9 +47,9 @@ export default function ParentReportView({ reportData, onRestart }) {
 
         <div className="panel-body">
           {/* Top Analytics Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', marginBottom: '24px' }}>
+          <div className="report-top-grid">
             {/* Comprehension Percentage Score Dial */}
-            <div style={{
+            <div className="report-dial-card" style={{
               background: '#FFFFFF',
               border: '1.5px solid var(--border)',
               borderRadius: '16px',
@@ -83,7 +83,7 @@ export default function ParentReportView({ reportData, onRestart }) {
             </div>
 
             {/* Mastered vs Struggle Breakdown */}
-            <div style={{
+            <div className="report-breakdown-card" style={{
               background: '#FFFFFF',
               border: '1.5px solid var(--border)',
               borderRadius: '16px',
@@ -141,7 +141,7 @@ export default function ParentReportView({ reportData, onRestart }) {
           </div>
 
           {/* Teacher Notes & Recommended Activities */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+          <div className="report-two-col">
             <div style={{
               background: '#fafbff',
               border: '1.5px solid #e0deff',

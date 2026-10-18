@@ -172,7 +172,7 @@ DOUBT CLARIFICATION PROTOCOL:
         </div>
 
         {/* Real Live Avatar Canvas */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: '50px', zIndex: 2 }}>
+        <div className="avatar-canvas-wrapper">
           <LiveAvatarCanvas
             persona={activePersona}
             mood={mood}

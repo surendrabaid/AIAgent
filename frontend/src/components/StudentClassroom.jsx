@@ -775,20 +775,14 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
 
             {/* Active Doubt Clarification (when teacher is clarifying a query) */}
             {activeDoubt && (
-              <div style={{
-                background: '#fff9ea',
-                border: '1.5px solid var(--accent)',
-                borderRadius: '12px',
-                padding: '16px 20px',
-                marginBottom: '16px'
-              }}>
+              <div className="doubt-bar">
                 <div style={{ fontSize: '14px', fontWeight: 800, color: '#b45309', textTransform: 'uppercase', marginBottom: '6px' }}>
                   ❓ Clarifying {childName}'s Question: "{activeDoubt.query}"
                 </div>
                 <div style={{ fontSize: '16px', color: 'var(--ink)', lineHeight: 1.6 }}>
                   <strong>{avatarConfig.name || 'Joya'}:</strong> "{typeof activeDoubt.explanation === 'string' ? activeDoubt.explanation : activeDoubt.explanation?.teacher_explanation || ''}"
                 </div>
-                <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
+                <div className="doubt-actions">
                   <button 
                     type="button" 
                     onClick={() => handleResumeLessonAfterDoubt(true)}
@@ -819,18 +813,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
 
             {/* Student Comprehension Check Bar */}
             {isTopicTeachingOver && !isQuizReady && !evalResult && (
-              <div style={{
-                background: 'var(--green-bg)',
-                border: '1.5px solid #a7f3d0',
-                borderRadius: '12px',
-                padding: '16px 20px',
-                marginBottom: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '12px'
-              }}>
+              <div className="comprehension-bar">
                 <div>
                   <div style={{ fontSize: '17px', fontWeight: 800, color: '#065f46' }}>
                     {childName}, is everything clear to you in this topic?
@@ -839,7 +822,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
                     Ready to check your knowledge with a quiz question?
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div className="comprehension-actions">
                   <button 
                     type="button" 
                     onClick={() => handleFeedbackCheck(true)}
@@ -872,13 +855,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
 
             {/* Checkpoint Quiz Question & TV Remote D-Pad Navigation */}
             {currentResponse?.question && (isQuizReady || evalResult) && (
-              <div style={{
-                background: '#ffffff',
-                border: '1.5px solid var(--border)',
-                borderRadius: '14px',
-                padding: '18px 20px',
-                marginBottom: '16px'
-              }}>
+              <div className="quiz-card">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                   <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase' }}>
                     Quiz Question {currentResponse.question_index || 1} of {currentResponse.total_topic_questions || 1}
@@ -890,7 +867,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
                 <div style={{ fontSize: '17px', fontWeight: 800, color: 'var(--ink)', marginBottom: '14px', lineHeight: 1.5 }}>
                   {currentResponse.question.question_text}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                <div className="quiz-options-grid">
                   {currentResponse.question.options.map((optionText, idx) => {
                     const isFocused = focusedOptionIdx === idx;
                     const isSelected = selectedOption === idx;
@@ -923,7 +900,7 @@ export default function StudentClassroom({ sessionData, onLessonFinished, onBack
 
                 {/* Remedial / Correct Alert */}
                 {evalResult && (
-                  <div style={{
+                  <div className="eval-alert" style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
