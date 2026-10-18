@@ -11,9 +11,12 @@
    * [1. Parent Setup Portal](#1-parent-setup-portal)
    * [2. Live Avatar Socratic Classroom](#2-live-avatar-socratic-classroom)
    * [3. Parent Performance Report Digest](#3-parent-performance-report-digest)
+   * [4. Responsive Layouts](#4-responsive-layouts-mobile-tablet-and-desktop)
 3. [Architecture & Workflow](#-architecture--workflow)
-   * [Lesson Generation & Socratic Flow](#a-lesson-generation--socratic-teaching-flow)
-   * [Live Speech & Pause/Resume Control](#b-speech-control--avatar-interruption-flow)
+   * [End-to-End Process Flow Diagram](#a-end-to-end-process-flow-diagram)
+   * [System Use-Case Diagram](#b-system-use-case-diagram)
+   * [Lesson Generation & Socratic Teaching Flow](#c-lesson-generation--socratic-teaching-flow)
+   * [Speech Control & Avatar Interruption Flow](#d-speech-control--avatar-interruption-flow)
 4. [Repository Directory Structure](#-repository-directory-structure)
 5. [Quick Setup & Run Guide](#-quick-setup--run-guide)
    * [Prerequisites](#prerequisites)
@@ -117,7 +120,73 @@ MyTutor features a fully adaptive, responsive layout designed for phones, tablet
 
 ## 🔍 Architecture & Workflow
 
-### A. Lesson Generation & Socratic Teaching Flow
+### A. End-to-End Process Flow Diagram
+
+```mermaid
+graph TD
+    A[Parent Opens MyTutor Portal] --> B[Configure Child Profile & Select Tutor Persona]
+    B --> C{Select Material}
+    C -->|Upload PDF/TXT| D[FastAPI & PyMuPDF Extracts Text]
+    C -->|Select Pre-loaded Chapter| E[Load from Curriculum Library]
+    D --> F[Gemini Generates Socratic Lesson Plan]
+    E --> F
+    F --> G[Initialize Live Classroom Session]
+    G --> H[Avatar Teaches Topic Concept via Voice + Keypoints Deck]
+    H --> I{Student Asks Doubt?}
+    I -->|Yes| J[Lesson Pauses -> Teacher Answers Query -> Resumes]
+    J --> H
+    I -->|No| K[Topic Teaching Complete: Clarity Check]
+    K --> L{Student Confirms Clarity?}
+    L -->|Needs Re-explanation| M[Gemini Generates Simpler Analogy -> Avatar Re-explains]
+    M --> K
+    L -->|Ready for Quiz| N[Present Checkpoint Question]
+    N --> O{Student Answers Question}
+    O -->|Incorrect| P[Warm Reassurance + Simpler Analogy + Follow-up Question]
+    P --> N
+    O -->|Correct| Q[Praise Audio + Stars Increment + Next Topic]
+    Q --> R{More Topics in Chapter?}
+    R -->|Yes| H
+    R -->|No| S[Compile Parent Performance Digest & Comprehension Dial]
+```
+
+### B. System Use-Case Diagram
+
+```mermaid
+flowchart LR
+    subgraph Actors
+        Parent((Parent))
+        Student((Student))
+        AI((Gemini Socratic Engine))
+    end
+
+    subgraph "MyTutor Learning Ecosystem"
+        UC1[Setup Child Profile & Grade]
+        UC2[Select Teacher Persona Joya / Mr. Rajesh]
+        UC3[Upload Textbook Chapter PDF]
+        UC4[Engage with Avatar Speech & Visemes]
+        UC5[Pause / Resume Lesson Flow]
+        UC6[Ask Doubt via Voice or Text]
+        UC7[Answer Checkpoint Quizzes via TV Remote]
+        UC8[Receive Adaptive Remedial Guidance]
+        UC9[Review Parent Performance Digest]
+    end
+
+    Parent --> UC1
+    Parent --> UC2
+    Parent --> UC3
+    Parent --> UC9
+    Student --> UC4
+    Student --> UC5
+    Student --> UC6
+    Student --> UC7
+    UC3 -.-> AI
+    UC4 -.-> AI
+    UC6 -.-> AI
+    UC7 -.-> UC8
+    UC8 -.-> AI
+```
+
+### C. Lesson Generation & Socratic Teaching Flow
 
 ```mermaid
 sequenceDiagram
@@ -158,7 +227,7 @@ sequenceDiagram
     end
 ```
 
-### B. Speech Control & Avatar Interruption Flow
+### D. Speech Control & Avatar Interruption Flow
 
 ```mermaid
 sequenceDiagram
